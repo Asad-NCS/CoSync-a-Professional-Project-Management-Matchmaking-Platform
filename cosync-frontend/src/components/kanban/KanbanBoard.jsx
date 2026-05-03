@@ -7,204 +7,126 @@ import { arrayMove } from "@dnd-kit/sortable";
 import KanbanColumn from "./KanbanColumn";
 import TaskCard    from "./TaskCard";
 import AddTaskModal from "./AddTaskModal";
+import api from "../../lib/api";
 
-// ── Initial data ──────────────────────────────────────────────────────────────
-const INITIAL_TASKS = [
-  {
-    id: 1, title: "Set up React project structure", status: "done",
-    description: "Initialize Vite, install dependencies, set up folder structure.",
-    type: "task", priority: "high",
-    assignee: { id: 1, name: "Azaan Murtaza", color: "#7c3aed" },
-    dueDate: "Apr 20", tags: ["setup"], checklist: [
-      { text: "Install dependencies", done: true },
-      { text: "Create folder structure", done: true },
-    ], comments: 2,
-  },
-  {
-    id: 2, title: "Design Chess board UI", status: "done",
-    description: "Create responsive SVG chess board with piece rendering.",
-    type: "design", priority: "high",
-    assignee: { id: 2, name: "Sara Qureshi", color: "#a78bfa" },
-    dueDate: "Apr 22", tags: ["UI", "chess"], checklist: [
-      { text: "Board grid", done: true },
-      { text: "Piece sprites", done: true },
-      { text: "Dark/light squares", done: true },
-    ], comments: 5,
-  },
-  {
-    id: 3, title: "Implement minimax algorithm", status: "inprogress",
-    description: "Build the core chess AI using minimax with alpha-beta pruning for better performance.",
-    type: "feature", priority: "urgent",
-    assignee: { id: 2, name: "Sara Qureshi", color: "#a78bfa" },
-    dueDate: "May 2", tags: ["AI", "algorithm"], checklist: [
-      { text: "Basic minimax", done: true },
-      { text: "Alpha-beta pruning", done: false },
-      { text: "Position evaluation", done: false },
-    ], comments: 8,
-  },
-  {
-    id: 4, title: "FastAPI backend setup", status: "inprogress",
-    description: "Set up FastAPI with CORS, endpoints for move validation and game state.",
-    type: "feature", priority: "high",
-    assignee: { id: 3, name: "Ali Hassan", color: "#61dafb" },
-    dueDate: "Apr 30", tags: ["backend", "API"], checklist: [
-      { text: "Install FastAPI", done: true },
-      { text: "Move validation endpoint", done: false },
-    ], comments: 3,
-  },
-  {
-    id: 5, title: "Fix castling bug", status: "inprogress",
-    description: "Castling not working when king has previously moved. Need to track king move history.",
-    type: "bug", priority: "urgent",
-    assignee: { id: 1, name: "Azaan Murtaza", color: "#7c3aed" },
-    dueDate: "Apr 28", tags: ["bug", "chess-rules"], checklist: [], comments: 4,
-  },
-  {
-    id: 6, title: "Write API documentation", status: "review",
-    description: "Document all FastAPI endpoints with request/response schemas.",
-    type: "docs", priority: "medium",
-    assignee: { id: 3, name: "Ali Hassan", color: "#61dafb" },
-    dueDate: "May 5", tags: ["docs"], checklist: [
-      { text: "Move endpoints", done: true },
-      { text: "Game state endpoints", done: false },
-    ], comments: 1,
-  },
-  {
-    id: 7, title: "Add game timer feature", status: "todo",
-    description: "Implement chess clock — blitz, rapid, and classical time controls.",
-    type: "feature", priority: "medium",
-    assignee: null, dueDate: "May 8", tags: ["feature", "UX"],
-    checklist: [], comments: 0,
-  },
-  {
-    id: 8, title: "Mobile responsive board", status: "todo",
-    description: "Ensure chess board is fully playable on mobile with touch drag support.",
-    type: "design", priority: "medium",
-    assignee: { id: 2, name: "Sara Qureshi", color: "#a78bfa" },
-    dueDate: "May 12", tags: ["mobile", "responsive"],
-    checklist: [], comments: 2,
-  },
-  {
-    id: 9, title: "Training data pipeline", status: "todo",
-    description: "Set up data pipeline to feed chess games from Lichess API into PyTorch model.",
-    type: "feature", priority: "high",
-    assignee: { id: 2, name: "Sara Qureshi", color: "#a78bfa" },
-    dueDate: "May 15", tags: ["ML", "data"],
-    checklist: [
-      { text: "Lichess API setup", done: false },
-      { text: "Data preprocessing", done: false },
-      { text: "PyTorch dataset class", done: false },
-    ], comments: 0,
-  },
-  {
-    id: 10, title: "Write unit tests", status: "todo",
-    description: "Jest tests for move validation, game state, and API endpoints.",
-    type: "task", priority: "low",
-    assignee: null, dueDate: "May 18", tags: ["testing"],
-    checklist: [], comments: 0,
-  },
-];
-
-const COLUMNS = ["todo", "inprogress", "review", "done"];
-const COLUMN_LABELS = { todo: "To Do", inprogress: "In Progress", review: "In Review", done: "Done" };
-
-// ── Filters ───────────────────────────────────────────────────────────────────
-const MEMBERS = [
-  { id: 1, name: "Azaan Murtaza", color: "#7c3aed" },
-  { id: 2, name: "Sara Qureshi",  color: "#a78bfa" },
-  { id: 3, name: "Ali Hassan",    color: "#61dafb" },
-];
-
-const KanbanBoard = ({ workspaceTitle = "AI Chess Bot" }) => {
-  const [tasks, setTasks]           = useState(INITIAL_TASKS);
+const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsChange, projectId, members = [] }) => {
   const [activeTask, setActiveTask] = useState(null);
-  const [modal, setModal]           = useState(null); // { column, task? }
-  const [search, setSearch]         = useState("");
-  const [filterPriority, setFilterPriority] = useState("all");
-  const [filterAssignee, setFilterAssignee] = useState("all");
-  const [filterType, setFilterType]         = useState("all");
-  const [searchFocused, setSearchFocused]   = useState(false);
+  const [modal, setModal]           = useState(null); // { columnId, task? }
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [viewMode, setViewMode]             = useState("board"); // board | list
 
-  // ── Sensors — require 5px movement to start drag ──
+  // Sensors — require 5px movement to start drag
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // ── Filtered tasks ────────────────────────────────────────────────────────
-  const filteredTasks = useMemo(() => tasks.filter(t => {
-    const matchSearch   = !search || t.title.toLowerCase().includes(search.toLowerCase()) || t.tags?.some(tag => tag.toLowerCase().includes(search.toLowerCase()));
-    const matchPriority = filterPriority === "all" || t.priority === filterPriority;
-    const matchAssignee = filterAssignee === "all" || (filterAssignee === "unassigned" ? !t.assignee : t.assignee?.id?.toString() === filterAssignee);
-    const matchType     = filterType === "all" || t.type === filterType;
-    return matchSearch && matchPriority && matchAssignee && matchType;
-  }), [tasks, search, filterPriority, filterAssignee, filterType]);
+  // Stats calculation from columns
+  const stats = useMemo(() => {
+    const all = columns.flatMap(c => c.tasks || []);
+    const doneCol = columns.find(c => c.id === "done" || c.title?.toLowerCase() === "done");
+    return {
+      total: all.length,
+      done:  doneCol ? (doneCol.tasks?.length || 0) : 0,
+      urgent: all.filter(t => t.priority === "urgent").length,
+      mine:  all.filter(t => (t.assignee?.id || t.assignee || t.assignee?._id) === 1).length,
+    };
+  }, [columns]);
 
-  const tasksByColumn = useMemo(() =>
-    COLUMNS.reduce((acc, col) => ({
-      ...acc,
-      [col]: filteredTasks.filter(t => t.status === col),
-    }), {}),
-  [filteredTasks]);
+  // All tasks for list view
+  const allTasks = useMemo(() => columns.flatMap(c => (c.tasks || []).map(t => ({ ...t, status: c.id }))), [columns]);
 
-  // ── Stats ─────────────────────────────────────────────────────────────────
-  const stats = useMemo(() => ({
-    total: tasks.length,
-    done:  tasks.filter(t => t.status === "done").length,
-    urgent: tasks.filter(t => t.priority === "urgent").length,
-    mine:  tasks.filter(t => t.assignee?.id === 1).length,
-  }), [tasks]);
-
-  // ── dnd-kit handlers ──────────────────────────────────────────────────────
+  // dnd-kit handlers
   const onDragStart = ({ active }) => {
-    setActiveTask(tasks.find(t => t.id === active.id) || null);
-  };
-
-  const onDragOver = ({ active, over }) => {
-    if (!over) return;
-    const activeId  = active.id;
-    const overId    = over.id;
-    const activeCol = tasks.find(t => t.id === activeId)?.status;
-    const overCol   = COLUMNS.includes(overId) ? overId : tasks.find(t => t.id === overId)?.status;
-    if (!activeCol || !overCol || activeCol === overCol) return;
-
-    setTasks(prev => prev.map(t =>
-      t.id === activeId ? { ...t, status: overCol } : t
-    ));
-  };
-
-  const onDragEnd = ({ active, over }) => {
-    setActiveTask(null);
-    if (!over) return;
-    const activeId  = active.id;
-    const overId    = over.id;
-    const activeCol = tasks.find(t => t.id === activeId)?.status;
-    const overCol   = COLUMNS.includes(overId) ? overId : tasks.find(t => t.id === overId)?.status;
-    if (!activeCol || !overCol) return;
-
-    if (activeCol === overCol) {
-      const colTasks  = tasks.filter(t => t.status === activeCol);
-      const oldIndex  = colTasks.findIndex(t => t.id === activeId);
-      const newIndex  = colTasks.findIndex(t => t.id === overId);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reordered = arrayMove(colTasks, oldIndex, newIndex);
-        setTasks(prev => [
-          ...prev.filter(t => t.status !== activeCol),
-          ...reordered,
-        ]);
+    const taskId = active.id;
+    for (const col of columns) {
+      const found = col.tasks?.find(t => (t.id || t._id) === taskId);
+      if (found) {
+        setActiveTask({ ...found, status: col.id });
+        break;
       }
     }
   };
 
-  // ── Task CRUD ─────────────────────────────────────────────────────────────
-  const handleSaveTask = (task) => {
-    setTasks(prev => {
-      const exists = prev.find(t => t.id === task.id);
-      return exists ? prev.map(t => t.id === task.id ? task : t) : [...prev, task];
+  const onDragOver = ({ active, over }) => {
+    if (!over) return;
+    const activeId = active.id;
+    const overId = over.id;
+
+    onColumnsChange(prev => {
+      const updated = [...prev];
+      let activeColIdx = -1, activeTaskIdx = -1;
+      
+      updated.forEach((col, i) => {
+        const idx = col.tasks?.findIndex(t => (t.id || t._id) === activeId);
+        if (idx !== -1) { activeColIdx = i; activeTaskIdx = idx; }
+      });
+
+      let overColIdx = updated.findIndex(col => col.id === overId);
+      if (overColIdx === -1) {
+        updated.forEach((col, i) => {
+          const idx = col.tasks?.findIndex(t => (t.id || t._id) === overId);
+          if (idx !== -1) overColIdx = i;
+        });
+      }
+
+      if (activeColIdx === -1 || overColIdx === -1 || activeColIdx === overColIdx) return prev;
+
+      const activeTasks = [...updated[activeColIdx].tasks];
+      const overTasks = [...updated[overColIdx].tasks];
+      const [movedTask] = activeTasks.splice(activeTaskIdx, 1);
+      
+      overTasks.push(movedTask);
+      updated[activeColIdx] = { ...updated[activeColIdx], tasks: activeTasks };
+      updated[overColIdx] = { ...updated[overColIdx], tasks: overTasks };
+      
+      return updated;
     });
   };
 
-  const handleDeleteTask = (id) => setTasks(prev => prev.filter(t => t.id !== id));
+  const onDragEnd = async ({ active, over }) => {
+    setActiveTask(null);
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    let updatedColumns = [...columns];
+    let colIdx = -1, taskIdx = -1;
+    
+    updatedColumns.forEach((col, i) => {
+      const idx = col.tasks?.findIndex(t => (t.id || t._id) === activeId);
+      if (idx !== -1) { colIdx = i; taskIdx = idx; }
+    });
+
+    if (colIdx !== -1) {
+      const overTaskIdx = updatedColumns[colIdx].tasks?.findIndex(t => (t.id || t._id) === overId);
+      if (taskIdx !== -1 && overTaskIdx !== -1 && taskIdx !== overTaskIdx) {
+        const reordered = arrayMove(updatedColumns[colIdx].tasks, taskIdx, overTaskIdx);
+        updatedColumns[colIdx] = { ...updatedColumns[colIdx], tasks: reordered };
+        
+        onColumnsChange(updatedColumns);
+
+        try {
+          await api.put(`/workspaces/${projectId}`, { columns: updatedColumns })
+        } catch (err) {
+          console.error('Failed to persist workspace order:', err)
+        }
+      }
+    }
+  };
+
+  const handleDeleteTask = async (id) => {
+    const newColumns = columns.map(col => ({
+      ...col,
+      tasks: col.tasks.filter(t => (t.id || t._id) !== id)
+    }));
+    onColumnsChange(newColumns);
+    try {
+      await api.put(`/workspaces/${projectId}`, { columns: newColumns });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const clearFilters = () => {
     setSearch(""); setFilterPriority("all"); setFilterAssignee("all"); setFilterType("all");
@@ -300,84 +222,30 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot" }) => {
             </div>
           </div>
 
-          {/* Filters row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Search */}
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-sm"
-                style={{ color: searchFocused ? "#a78bfa" : "#374151", transition: "color 0.2s" }}>⌕</span>
-              <input type="text" placeholder="Search tasks or tags..."
-                value={search} onChange={e => setSearch(e.target.value)}
-                onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
-                className="text-sm text-white placeholder-gray-600 outline-none transition-all duration-200"
-                style={{
-                  background: "rgba(12,8,32,0.85)", padding: "0.45rem 0.75rem 0.45rem 2rem",
-                  border: `1px solid ${searchFocused ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.12)"}`,
-                  borderRadius: 8, width: 200,
-                  boxShadow: searchFocused ? "0 0 0 3px rgba(139,92,246,0.1)" : "none",
-                }} />
-            </div>
+          {/* Stats row */}
+          <div className="flex items-center gap-4">
+            {[
+              { label: "Total", value: stats.total, color: "#a78bfa" },
+              { label: "Done", value: `${stats.done}/${stats.total}`, color: "#4ade80" },
+              { label: "Urgent", value: stats.urgent, color: "#f87171" },
+              { label: "My tasks", value: stats.mine, color: "#61dafb" },
+            ].map(s => (
+              <div key={s.label} className="flex items-center gap-1.5">
+                <span className="text-sm font-bold" style={{ color: s.color }}>{s.value}</span>
+                <span className="text-xs" style={{ color: "#374151" }}>{s.label}</span>
+              </div>
+            ))}
 
-            {/* Priority filter */}
-            <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
-              className="filter-btn"
-              style={{ background: filterPriority !== "all" ? "rgba(124,58,237,0.15)" : "rgba(12,8,32,0.85)", border: `1px solid ${filterPriority !== "all" ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.12)"}`, color: filterPriority !== "all" ? "#a78bfa" : "#4b5563", appearance: "none", padding: "5px 20px 5px 12px" }}>
-              <option value="all" style={{ background: "#0a0520" }}>All priorities</option>
-              <option value="urgent" style={{ background: "#0a0520" }}>🔴 Urgent</option>
-              <option value="high" style={{ background: "#0a0520" }}>🟠 High</option>
-              <option value="medium" style={{ background: "#0a0520" }}>🟡 Medium</option>
-              <option value="low" style={{ background: "#0a0520" }}>🟢 Low</option>
-            </select>
-
-            {/* Type filter */}
-            <select value={filterType} onChange={e => setFilterType(e.target.value)}
-              className="filter-btn"
-              style={{ background: filterType !== "all" ? "rgba(124,58,237,0.15)" : "rgba(12,8,32,0.85)", border: `1px solid ${filterType !== "all" ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.12)"}`, color: filterType !== "all" ? "#a78bfa" : "#4b5563", appearance: "none", padding: "5px 20px 5px 12px" }}>
-              <option value="all" style={{ background: "#0a0520" }}>All types</option>
-              <option value="feature" style={{ background: "#0a0520" }}>✦ Feature</option>
-              <option value="bug" style={{ background: "#0a0520" }}>⚡ Bug</option>
-              <option value="task" style={{ background: "#0a0520" }}>◈ Task</option>
-              <option value="design" style={{ background: "#0a0520" }}>◉ Design</option>
-              <option value="docs" style={{ background: "#0a0520" }}>◎ Docs</option>
-            </select>
-
-            {/* Assignee filter */}
-            <div className="flex items-center gap-1">
-              <button onClick={() => setFilterAssignee("all")}
-                className="filter-btn"
-                style={{ background: filterAssignee === "all" ? "rgba(124,58,237,0.15)" : "rgba(12,8,32,0.85)", border: `1px solid ${filterAssignee === "all" ? "rgba(139,92,246,0.4)" : "rgba(139,92,246,0.1)"}`, color: filterAssignee === "all" ? "#a78bfa" : "#4b5563" }}>
-                All
-              </button>
-              {MEMBERS.map(m => (
-                <button key={m.id} onClick={() => setFilterAssignee(filterAssignee === m.id.toString() ? "all" : m.id.toString())}
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200"
-                  style={{
-                    background: filterAssignee === m.id.toString() ? m.color + "30" : "rgba(12,8,32,0.85)",
-                    border: `1.5px solid ${filterAssignee === m.id.toString() ? m.color : "rgba(139,92,246,0.1)"}`,
-                    color: filterAssignee === m.id.toString() ? m.color : "#4b5563",
-                    cursor: "pointer",
-                  }} title={m.name}>
-                  {m.name[0]}
-                </button>
-              ))}
-            </div>
-
-            {/* Clear filters */}
-            {hasFilters && (
-              <button onClick={clearFilters}
-                className="filter-btn transition-colors"
-                style={{ background: "transparent", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171" }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(248,113,113,0.08)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                ✕ Clear
-              </button>
-            )}
-
-            {hasFilters && (
-              <span className="text-xs" style={{ color: "#374151" }}>
-                Showing <span style={{ color: "#a78bfa" }}>{filteredTasks.length}</span> of {tasks.length}
+            {/* Progress bar */}
+            <div className="flex-1 flex items-center gap-2 ml-2">
+              <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
+                <div className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${stats.total ? (stats.done / stats.total) * 100 : 0}%`, background: "linear-gradient(90deg,#7c3aed,#4ade80)" }} />
+              </div>
+              <span className="text-xs font-medium" style={{ color: "#4b5563" }}>
+                {stats.total ? Math.round((stats.done / stats.total) * 100) : 0}%
               </span>
-            )}
+            </div>
           </div>
         </div>
 
@@ -392,13 +260,14 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot" }) => {
           >
             <div className="flex-1 overflow-x-auto board-scroll">
               <div className="flex gap-4 p-6 h-full" style={{ minWidth: "max-content" }}>
-                {COLUMNS.map((col, i) => (
-                  <div key={col} style={{ animation: `fadeUp 0.5s ease both`, animationDelay: `${i * 0.08}s` }}>
+                {columns.map((col, i) => (
+                  <div key={col.id} style={{ animation: `fadeUp 0.5s ease both`, animationDelay: `${i * 0.08}s` }}>
                     <KanbanColumn
-                      id={col}
-                      tasks={tasksByColumn[col] || []}
+                      id={col.id}
+                      title={col.title}
+                      tasks={col.tasks}
                       onAddTask={(column) => setModal({ column })}
-                      onEditTask={(task) => setModal({ column: task.status, task })}
+                      onEditTask={(task) => setModal({ column: col.id, task })}
                       onDeleteTask={handleDeleteTask}
                     />
                   </div>
@@ -419,13 +288,13 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot" }) => {
           /* ── List view ── */
           <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
             <div className="max-w-4xl space-y-2">
-              {COLUMNS.map(col => (
-                <div key={col}>
+              {columns.map(col => (
+                <div key={col.id}>
                   <p className="text-xs font-semibold uppercase tracking-widest mb-2 mt-4" style={{ color: "#374151" }}>
-                    {COLUMN_LABELS[col]} ({tasksByColumn[col]?.length || 0})
+                    {col.title} ({col.tasks?.length || 0})
                   </p>
-                  {tasksByColumn[col]?.map((task, i) => (
-                    <div key={task.id}
+                  {col.tasks?.map((task, i) => (
+                    <div key={task.id || task._id}
                       className="flex items-center justify-between px-4 py-3 rounded-xl mb-1.5 transition-all duration-200"
                       style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.1)", animation: `slideIn 0.3s ease both`, animationDelay: `${i * 0.04}s` }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; e.currentTarget.style.background = "rgba(20,12,50,0.9)"; }}
@@ -440,8 +309,8 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot" }) => {
                       <div className="flex items-center gap-3 flex-shrink-0 ml-3">
                         {task.assignee && (
                           <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                            style={{ background: task.assignee.color + "30", color: task.assignee.color }}>
-                            {task.assignee.name[0]}
+                            style={{ background: (task.assignee.color || "#a78bfa") + "30", color: task.assignee.color || "#a78bfa" }}>
+                            {(task.assignee.name || "U")[0]}
                           </div>
                         )}
                         <span className="text-xs px-2 py-0.5 rounded-md" style={{
@@ -449,7 +318,7 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot" }) => {
                           color: task.priority === "urgent" ? "#f87171" : task.priority === "high" ? "#fb923c" : "#fbbf24",
                         }}>{task.priority}</span>
                         {task.dueDate && <span className="text-xs" style={{ color: "#374151" }}>{task.dueDate}</span>}
-                        <button onClick={() => setModal({ column: task.status, task })}
+                        <button onClick={() => setModal({ column: col.id, task })}
                           className="text-xs px-2 py-1 rounded-lg transition-all duration-200"
                           style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)", color: "#a78bfa", cursor: "pointer" }}>
                           Edit
@@ -468,10 +337,13 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot" }) => {
       {modal && (
         <AddTaskModal
           onClose={() => setModal(null)}
-          onSave={handleSaveTask}
+          projectId={projectId}
+          columnId={modal.column}
+          onWorkspaceUpdate={onColumnsChange}
           defaultColumn={modal.column}
           editTask={modal.task || null}
-          columns={COLUMNS}
+          columns={columns}
+          members={members}
         />
       )}
     </>

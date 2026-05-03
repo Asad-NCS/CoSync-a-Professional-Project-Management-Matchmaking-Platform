@@ -1,83 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProjects } from "../../store/projectsSlice";
+import { PROJECT_STATUS, ROLE_COLORS } from "../../lib/utils";
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-const PROJECTS = [
-  {
-    id: 1, title: "AI Chess Bot", category: "AI / ML",
-    description: "Building a chess engine powered by reinforcement learning. The bot will learn from millions of games and develop its own strategies.",
-    roles: [{ label: "React Dev", color: "#61dafb" }, { label: "Python Dev", color: "#4ade80" }],
-    stack: ["React", "Python", "PyTorch", "FastAPI"],
-    author: { name: "Azaan Murtaza", avatar: "#7c3aed" },
-    applicants: 7, status: "Open", posted: "2 days ago", deadline: "May 10",
-    filled: 1, total: 3,
-  },
-  {
-    id: 2, title: "Campus Rideshare App", category: "Mobile / Web",
-    description: "A carpooling platform for NUST students to share rides between campus and hostels. Real-time location, split fares, ratings.",
-    roles: [{ label: "React Native", color: "#a78bfa" }, { label: "Node.js", color: "#4ade80" }, { label: "Designer", color: "#f472b6" }],
-    stack: ["React Native", "Node.js", "MongoDB", "Socket.io"],
-    author: { name: "Hammad Ajmal", avatar: "#6d28d9" },
-    applicants: 12, status: "Open", posted: "1 day ago", deadline: "May 15",
-    filled: 1, total: 4,
-  },
-  {
-    id: 3, title: "ML Research Paper Tool", category: "AI / ML",
-    description: "A platform to discover, annotate, and summarize machine learning research papers using NLP. Think Semantic Scholar but better.",
-    roles: [{ label: "ML Engineer", color: "#fb923c" }, { label: "Backend Dev", color: "#34d399" }],
-    stack: ["Python", "HuggingFace", "FastAPI", "PostgreSQL"],
-    author: { name: "Asad Kashif", avatar: "#8b5cf6" },
-    applicants: 5, status: "Open", posted: "3 days ago", deadline: "May 20",
-    filled: 2, total: 4,
-  },
-  {
-    id: 4, title: "Smart Attendance System", category: "Hardware / IoT",
-    description: "Face recognition based attendance for universities using Raspberry Pi. Auto-generates reports, sends absent alerts to parents.",
-    roles: [{ label: "CV Engineer", color: "#f472b6" }, { label: "Embedded Dev", color: "#60a5fa" }],
-    stack: ["OpenCV", "Python", "Raspberry Pi", "React"],
-    author: { name: "Sara Qureshi", avatar: "#7c3aed" },
-    applicants: 9, status: "Full",  posted: "5 days ago", deadline: "Apr 30",
-    filled: 3, total: 3,
-  },
-  {
-    id: 5, title: "Hackathon Team Finder", category: "Web App",
-    description: "An app specifically for finding hackathon teammates last-minute. Browse by upcoming hackathon, required skills, and timezone.",
-    roles: [{ label: "Full Stack", color: "#61dafb" }, { label: "UI/UX", color: "#f472b6" }],
-    stack: ["Next.js", "Prisma", "PostgreSQL", "Tailwind"],
-    author: { name: "Ali Hassan", avatar: "#a78bfa" },
-    applicants: 3, status: "Open", posted: "6 hours ago", deadline: "May 5",
-    filled: 1, total: 3,
-  },
-  {
-    id: 6, title: "E-Sports Tournament Platform", category: "Web App",
-    description: "Bracket management, live score updates, and team registration for university e-sports tournaments. Supports multiple game modes.",
-    roles: [{ label: "React Dev", color: "#61dafb" }, { label: "Backend Dev", color: "#4ade80" }, { label: "Designer", color: "#f472b6" }],
-    stack: ["React", "Express", "MongoDB", "WebSockets"],
-    author: { name: "Umar Farooq", avatar: "#6d28d9" },
-    applicants: 15, status: "Open", posted: "4 days ago", deadline: "May 12",
-    filled: 0, total: 3,
-  },
-  {
-    id: 7, title: "Mental Health Chatbot", category: "AI / ML",
-    description: "An empathetic AI chatbot for student mental health support. Trained on CBT techniques, with escalation to real counselors.",
-    roles: [{ label: "NLP Engineer", color: "#fb923c" }, { label: "React Dev", color: "#61dafb" }],
-    stack: ["Python", "GPT-4 API", "React", "Node.js"],
-    author: { name: "Fatima Malik", avatar: "#8b5cf6" },
-    applicants: 6, status: "Open", posted: "1 week ago", deadline: "May 18",
-    filled: 1, total: 3,
-  },
-  {
-    id: 8, title: "Blockchain Voting System", category: "Blockchain",
-    description: "A transparent, tamper-proof student council voting system on Ethereum. Smart contracts ensure every vote is verifiable.",
-    roles: [{ label: "Solidity Dev", color: "#a78bfa" }, { label: "React Dev", color: "#61dafb" }],
-    stack: ["Solidity", "Hardhat", "React", "Ethers.js"],
-    author: { name: "Bilal Ahmed", avatar: "#7c3aed" },
-    applicants: 4, status: "Open", posted: "2 days ago", deadline: "May 22",
-    filled: 1, total: 3,
-  },
-];
-
+// ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = ["All", "AI / ML", "Web App", "Mobile / Web", "Blockchain", "Hardware / IoT"];
 const ALL_STACKS = ["React", "Python", "Node.js", "MongoDB", "FastAPI", "PyTorch", "Next.js", "Solidity"];
 
@@ -180,7 +107,7 @@ const ApplyModal = ({ project, onClose, isAuth }) => {
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563", fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div className="flex flex-wrap gap-1.5 mb-5">
-          {project.roles.map(r => <RoleBadge key={r.label} {...r} />)}
+          {project.roles.map((r, i) => <RoleBadge key={r.title || i} label={r.title} color={ROLE_COLORS[i % ROLE_COLORS.length]} />)}
         </div>
         <div className="mb-4">
           <label className="block text-xs font-medium mb-1.5" style={{ color: focused ? "#a78bfa" : "#9ca3af" }}>
@@ -226,7 +153,10 @@ const ApplyModal = ({ project, onClose, isAuth }) => {
 const ProjectCard = ({ project, onApply, index }) => {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
-  const fillPct = Math.round((project.filled / project.total) * 100);
+  const statusLabel = PROJECT_STATUS[project.status]?.label || project.status;
+  const isFull = project.status === "closed";
+  const filled = project.members?.length || 0;
+  const fillPct = Math.round((filled / (project.total ?? 1)) * 100);
 
   return (
     <div
@@ -240,7 +170,7 @@ const ProjectCard = ({ project, onApply, index }) => {
         animationDelay: `${index * 0.07}s`,
         cursor: "pointer",
       }}
-      onClick={() => navigate(`/projects/${project.id}`)}
+      onClick={() => navigate(`/projects/${project._id ?? project.id}`)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -265,14 +195,14 @@ const ProjectCard = ({ project, onApply, index }) => {
                 {project.category}
               </span>
               <span
-                className="text-xs px-2 py-0.5 rounded-md font-medium"
+                className="text-xs px-2 py-0.5 rounded-md font-medium capitalize"
                 style={{
-                  background: project.status === "Open" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
-                  color: project.status === "Open" ? "#4ade80" : "#f87171",
-                  border: `1px solid ${project.status === "Open" ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`,
+                  background: `rgba(0,0,0,0.2)`,
+                  color: PROJECT_STATUS[project.status]?.color || "#a78bfa",
+                  border: `1px solid ${PROJECT_STATUS[project.status]?.color || "rgba(139,92,246,0.2)"}`,
                 }}
               >
-                {project.status === "Open" ? "● Open" : "◉ Full"}
+                ● {PROJECT_STATUS[project.status]?.label ?? project.status}
               </span>
             </div>
             <h3 className="text-white font-bold text-base leading-tight">{project.title}</h3>
@@ -280,10 +210,10 @@ const ProjectCard = ({ project, onApply, index }) => {
           {/* Author avatar */}
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-            style={{ background: project.author.avatar, color: "#fff" }}
-            title={project.author.name}
+            style={{ background: project.author?.avatar ?? "#7c3aed", color: "#fff" }}
+            title={project.author?.name ?? ""}
           >
-            {project.author.name[0]}
+            {(project.author?.name ?? "?")[0]}
           </div>
         </div>
 
@@ -292,17 +222,15 @@ const ProjectCard = ({ project, onApply, index }) => {
           {project.description}
         </p>
 
-        {/* Roles needed */}
         <div className="mb-3">
           <p className="text-xs mb-2" style={{ color: "#374151" }}>Roles needed</p>
           <div className="flex flex-wrap gap-1.5">
-            {project.roles.map(r => <RoleBadge key={r.label} {...r} />)}
+            {(project.roles ?? []).map((r, i) => <RoleBadge key={r.title || i} label={r.title} color={ROLE_COLORS[i % ROLE_COLORS.length]} />)}
           </div>
         </div>
 
-        {/* Stack */}
         <div className="flex flex-wrap gap-1 mb-4">
-          {project.stack.map(s => (
+          {(project.stack ?? []).map(s => (
             <span key={s} className="text-xs px-2 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.04)", color: "#4b5563", border: "1px solid rgba(255,255,255,0.06)" }}>
               {s}
             </span>
@@ -313,7 +241,7 @@ const ProjectCard = ({ project, onApply, index }) => {
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs" style={{ color: "#374151" }}>Team filled</span>
-            <span className="text-xs font-medium" style={{ color: "#a78bfa" }}>{project.filled}/{project.total} members</span>
+            <span className="text-xs font-medium" style={{ color: "#a78bfa" }}>{filled}/{project.total} members</span>
           </div>
           <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(139,92,246,0.1)" }}>
             <div
@@ -326,27 +254,26 @@ const ProjectCard = ({ project, onApply, index }) => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(139,92,246,0.08)" }}>
           <div className="flex items-center gap-3">
             <span className="text-xs" style={{ color: "#374151" }}>
-              <span style={{ color: "#6b7280" }}>{project.applicants}</span> applicants
+              <span style={{ color: "#6b7280" }}>{project.applicationCount ?? 0}</span> applicants
             </span>
-            <span className="text-xs" style={{ color: "#374151" }}>· {project.posted}</span>
+            <span className="text-xs" style={{ color: "#374151" }}>· {project.posted || new Date(project.createdAt).toLocaleDateString()}</span>
           </div>
           <button
             onClick={() => onApply(project)}
-            disabled={project.status === "Full"}
+            disabled={isFull}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
             style={{
-              background: project.status === "Full" ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg,#7c3aed,#6d28d9)",
-              color: project.status === "Full" ? "#374151" : "#fff",
-              border: project.status === "Full" ? "1px solid rgba(255,255,255,0.06)" : "none",
-              cursor: project.status === "Full" ? "not-allowed" : "pointer",
-              boxShadow: project.status !== "Full" && hovered ? "0 4px 15px rgba(124,58,237,0.35)" : "none",
+              background: isFull ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg,#7c3aed,#6d28d9)",
+              color: isFull ? "#374151" : "#fff",
+              border: isFull ? "1px solid rgba(255,255,255,0.06)" : "none",
+              cursor: isFull ? "not-allowed" : "pointer",
+              boxShadow: !isFull && hovered ? "0 4px 15px rgba(124,58,237,0.35)" : "none",
             }}
           >
-            {project.status === "Full" ? "Team full" : "Apply →"}
+            {isFull ? "Team full" : "Apply →"}
           </button>
         </div>
       </div>
@@ -357,7 +284,9 @@ const ProjectCard = ({ project, onApply, index }) => {
 // ── Main Feed Page ────────────────────────────────────────────────────────────
 const ProjectsFeedPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isAuthenticated } = useSelector(s => s.auth);
+  const { projectsList, status, error } = useSelector(s => s.projects);
 
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -366,15 +295,27 @@ const ProjectsFeedPage = () => {
   const [applyProject, setApplyProject] = useState(null);
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const filtered = useMemo(() => {
-    return PROJECTS.filter(p => {
-      const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
-      const matchCat = activeCategory === "All" || p.category === activeCategory;
-      const matchStatus = activeStatus === "All" || p.status === activeStatus;
-      const matchStack = !activeStack || p.stack.includes(activeStack);
-      return matchSearch && matchCat && matchStatus && matchStack;
-    });
+  // Fetch from backend whenever filters change
+  useEffect(() => {
+    const filters = {
+      ...(search && { search }),
+      ...(activeCategory !== "All" && { category: activeCategory }),
+      ...(activeStack && { stack: activeStack }),
+      // Status filter: UI uses "Open"/"Full", backend expects "open"/"closed"
+      ...(activeStatus === "Open" && { status: "open" }),
+      ...(activeStatus === "Full" && { status: "closed" }),
+      page: 1,
+      limit: 50,
+    };
+    dispatch(fetchProjects(filters));
   }, [search, activeCategory, activeStatus, activeStack]);
+
+  // Normalise payload: backend wraps list as { projects, totalCount } or returns array directly
+  const projects = Array.isArray(projectsList)
+    ? projectsList
+    : (projectsList?.projects ?? []);
+
+  const openCount = projects.filter(p => p.status === "open").length;
 
   return (
     <>
@@ -463,7 +404,7 @@ const ProjectsFeedPage = () => {
                     style={{ background: "#4ade80", boxShadow: "0 0 8px #4ade80", animation: "pulse-dot 2s ease-in-out infinite" }}
                   />
                   <span className="text-xs font-medium" style={{ color: "#4ade80" }}>
-                    {PROJECTS.filter(p => p.status === "Open").length} projects actively recruiting
+                    {openCount} projects actively recruiting
                   </span>
                 </div>
                 <h1 className="text-3xl font-bold mb-2" style={{ letterSpacing: "-0.025em" }}>
@@ -544,18 +485,18 @@ const ProjectsFeedPage = () => {
               <div className="h-5 w-px" style={{ background: "rgba(139,92,246,0.15)" }} />
 
               {/* Status */}
-              {["All", "Open", "Full"].map(s => (
+              {["All", "open", "closed"].map(s => (
                 <button
                   key={s}
                   className="filter-btn"
-                  onClick={() => setActiveStatus(s)}
+                  onClick={() => setActiveStatus(s === "open" ? "Open" : s === "closed" ? "Full" : "All")}
                   style={{
-                    background: activeStatus === s ? "rgba(124,58,237,0.15)" : "transparent",
-                    border: `1px solid ${activeStatus === s ? "rgba(139,92,246,0.4)" : "rgba(139,92,246,0.1)"}`,
-                    color: activeStatus === s ? "#a78bfa" : "#374151",
+                    background: (s === "open" && activeStatus === "Open") || (s === "closed" && activeStatus === "Full") || (s === "All" && activeStatus === "All") ? "rgba(124,58,237,0.15)" : "transparent",
+                    border: `1px solid ${(s === "open" && activeStatus === "Open") || (s === "closed" && activeStatus === "Full") || (s === "All" && activeStatus === "All") ? "rgba(139,92,246,0.4)" : "rgba(139,92,246,0.1)"}`,
+                    color: (s === "open" && activeStatus === "Open") || (s === "closed" && activeStatus === "Full") || (s === "All" && activeStatus === "All") ? "#a78bfa" : "#374151",
                   }}
                 >
-                  {s === "Open" ? "● Open" : s === "Full" ? "◉ Full" : s}
+                  {s === "All" ? "All" : PROJECT_STATUS[s]?.label ?? s}
                 </button>
               ))}
 
@@ -583,8 +524,9 @@ const ProjectsFeedPage = () => {
             {/* Results count */}
             <div className="flex items-center justify-between">
               <p className="text-xs" style={{ color: "#374151" }}>
-                Showing <span style={{ color: "#a78bfa", fontWeight: 600 }}>{filtered.length}</span> of {PROJECTS.length} projects
-                {search && <span> matching "<span style={{ color: "#fff" }}>{search}</span>"</span>}
+                {status === "loading"
+                  ? "Loading projects…"
+                  : <><span style={{ color: "#a78bfa", fontWeight: 600 }}>{projects.length}</span> project{projects.length !== 1 ? "s" : ""} found{search && <> matching "<span style={{ color: "#fff" }}>{search}</span>"</>}</>}
               </p>
               {(search || activeCategory !== "All" || activeStatus !== "All" || activeStack) && (
                 <button
@@ -601,10 +543,42 @@ const ProjectsFeedPage = () => {
           </div>
 
           {/* ── Grid ── */}
-          {filtered.length > 0 ? (
+          {status === "loading" ? (
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filtered.map((p, i) => (
-                <ProjectCard key={p.id} project={p} onApply={setApplyProject} index={i} />
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border"
+                  style={{
+                    background: "rgba(12,8,32,0.85)",
+                    borderColor: "rgba(139,92,246,0.12)",
+                    height: 280,
+                    animation: `fadeUp 0.5s ease both`,
+                    animationDelay: `${i * 0.07}s`,
+                    opacity: 0.5,
+                  }}
+                />
+              ))}
+            </div>
+          ) : status === "failed" ? (
+            <div className="text-center py-24" style={{ animation: "fadeUp 0.4s ease both" }}>
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                <span style={{ fontSize: 24 }}>⚠️</span>
+              </div>
+              <h3 className="text-white font-semibold mb-2">Failed to load projects</h3>
+              <p className="text-sm mb-5" style={{ color: "#374151" }}>{error}</p>
+              <button
+                onClick={() => dispatch(fetchProjects({ page: 1, limit: 50 }))}
+                className="px-4 py-2 rounded-lg text-sm font-medium"
+                style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa", cursor: "pointer" }}
+              >
+                Retry
+              </button>
+            </div>
+          ) : projects.length > 0 ? (
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {projects.map((p, i) => (
+                <ProjectCard key={p._id ?? p.id} project={p} onApply={setApplyProject} index={i} />
               ))}
             </div>
           ) : (

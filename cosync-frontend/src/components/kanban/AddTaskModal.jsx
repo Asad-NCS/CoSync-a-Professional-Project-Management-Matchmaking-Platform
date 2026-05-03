@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "../../lib/api";
 
 const PRIORITIES = ["urgent", "high", "medium", "low"];
 const TYPES = ["feature", "bug", "task", "design", "docs"];
@@ -18,11 +19,7 @@ const TYPE_CONFIG = {
   docs:    { color: "#34d399", label: "◎ Docs"     },
 };
 
-const MEMBERS = [
-  { id: 1, name: "Azaan Murtaza", color: "#7c3aed" },
-  { id: 2, name: "Sara Qureshi",  color: "#a78bfa" },
-  { id: 3, name: "Ali Hassan",    color: "#61dafb" },
-];
+
 
 const inputStyle = (focused) => ({
   background: "rgba(15,10,40,0.8)",
@@ -51,7 +48,7 @@ const FocusTextarea = ({ placeholder, value, onChange, rows = 3 }) => {
   );
 };
 
-const AddTaskModal = ({ onClose, onSave, defaultColumn, editTask, columns }) => {
+const AddTaskModal = ({ onClose, onSave, defaultColumn, editTask, columns = [], members = [], projectId, columnId, onWorkspaceUpdate }) => {
   const isEdit = !!editTask;
 
   const [form, setForm] = useState({
@@ -65,6 +62,8 @@ const AddTaskModal = ({ onClose, onSave, defaultColumn, editTask, columns }) => 
   const [checkInput, setCheckInput] = useState("");
   const [errors, setErrors] = useState({});
   const [activeSection, setActiveSection] = useState("basic");
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
 
   useEffect(() => {
     if (editTask) {
@@ -117,25 +116,26 @@ const AddTaskModal = ({ onClose, onSave, defaultColumn, editTask, columns }) => 
     return e;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    const assignee = MEMBERS.find(m => m.id.toString() === form.assigneeId);
-    onSave({
-      ...(editTask || {}),
-      id: editTask?.id || Date.now(),
-      title: form.title.trim(),
-      description: form.description.trim(),
-      type: form.type,
-      priority: form.priority,
-      status: form.column,
-      assignee: assignee || null,
-      dueDate: form.dueDate,
-      tags: form.tags,
-      comments: form.comments,
-      checklist: form.checklist,
-    });
-    onClose();
+
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const res = await api.post(`/workspaces/${projectId}/tasks`, {
+        columnId,
+        title: form.title,
+        description: form.description,
+        assignee: form.assigneeId || null,
+        priority: form.priority
+      })
+      onWorkspaceUpdate(res.data.data.columns)
+      onClose()
+    } catch (err) {
+      setSaveError('Failed to save task. Please try again.')
+    }
+    setSaving(false)
   };
 
   const SECTIONS = [
@@ -273,16 +273,16 @@ const AddTaskModal = ({ onClose, onSave, defaultColumn, editTask, columns }) => 
                 <div className="mb-4">
                   <label className="block text-xs font-semibold mb-1.5" style={{ color: "#6b7280" }}>Column</label>
                   <div className="grid grid-cols-2 gap-2">
-                    {(columns || ["todo","inprogress","review","done"]).map(col => (
-                      <button key={col} type="button" onClick={() => setForm(p => ({ ...p, column: col }))}
-                        className="py-2 rounded-lg text-xs font-medium capitalize transition-all duration-150"
+                    {columns.map(col => (
+                      <button key={col.id} type="button" onClick={() => setForm(p => ({ ...p, column: col.id }))}
+                        className="py-2 px-1 rounded-lg text-xs font-medium capitalize transition-all duration-150 truncate"
                         style={{
-                          background: form.column === col ? "rgba(124,58,237,0.18)" : "rgba(139,92,246,0.04)",
-                          border: `1px solid ${form.column === col ? "rgba(139,92,246,0.45)" : "rgba(139,92,246,0.1)"}`,
-                          color: form.column === col ? "#a78bfa" : "#4b5563",
+                          background: form.column === col.id ? "rgba(124,58,237,0.18)" : "rgba(139,92,246,0.04)",
+                          border: `1px solid ${form.column === col.id ? "rgba(139,92,246,0.45)" : "rgba(139,92,246,0.1)"}`,
+                          color: form.column === col.id ? "#a78bfa" : "#4b5563",
                           cursor: "pointer",
                         }}>
-                        {col === "inprogress" ? "In Progress" : col === "todo" ? "To Do" : col === "review" ? "In Review" : "Done"}
+                        {col.title}
                       </button>
                     ))}
                   </div>
@@ -302,21 +302,21 @@ const AddTaskModal = ({ onClose, onSave, defaultColumn, editTask, columns }) => 
                       }}>
                       Unassigned
                     </button>
-                    {MEMBERS.map(m => (
-                      <button key={m.id} type="button"
-                        onClick={() => setForm(p => ({ ...p, assigneeId: m.id.toString() }))}
+                    {members.map(m => (
+                      <button key={m.id || m._id} type="button"
+                        onClick={() => setForm(p => ({ ...p, assigneeId: (m.id || m._id).toString() }))}
                         className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150"
                         style={{
-                          background: form.assigneeId === m.id.toString() ? `${m.color}15` : "rgba(139,92,246,0.04)",
-                          border: `1px solid ${form.assigneeId === m.id.toString() ? m.color + "40" : "rgba(139,92,246,0.1)"}`,
-                          color: form.assigneeId === m.id.toString() ? m.color : "#4b5563",
+                          background: form.assigneeId === (m.id || m._id).toString() ? `${(m.color || "#a78bfa")}15` : "rgba(139,92,246,0.04)",
+                          border: `1px solid ${form.assigneeId === (m.id || m._id).toString() ? (m.color || "#a78bfa") + "40" : "rgba(139,92,246,0.1)"}`,
+                          color: form.assigneeId === (m.id || m._id).toString() ? (m.color || "#a78bfa") : "#4b5563",
                           cursor: "pointer",
                         }}>
                         <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
-                          style={{ background: m.color + "30", color: m.color }}>
-                          {m.name[0]}
+                          style={{ background: (m.color || "#a78bfa") + "30", color: m.color || "#a78bfa" }}>
+                          {(m.name || m.fullName || "U")[0]}
                         </div>
-                        {m.name.split(" ")[0]}
+                        {(m.name || m.fullName || "User").split(" ")[0]}
                       </button>
                     ))}
                   </div>
@@ -426,14 +426,17 @@ const AddTaskModal = ({ onClose, onSave, defaultColumn, editTask, columns }) => 
               style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280", cursor: "pointer" }}>
               Cancel
             </button>
-            <button onClick={handleSave}
+            <button onClick={handleSave} disabled={saving}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
-              style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 25px rgba(124,58,237,0.4)"}
+              style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}
+              onMouseEnter={e => !saving && (e.currentTarget.style.boxShadow = "0 8px 25px rgba(124,58,237,0.4)")}
               onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
-              {isEdit ? "Save changes" : "Create task ✦"}
+              {saving ? 'Saving...' : 'Save Task'}
             </button>
           </div>
+          {saveError && (
+            <p className="text-red-400 text-sm mt-2 px-6 pb-4">{saveError}</p>
+          )}
         </div>
       </div>
     </>

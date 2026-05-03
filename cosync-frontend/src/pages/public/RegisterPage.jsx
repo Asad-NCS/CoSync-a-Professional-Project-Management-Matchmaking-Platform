@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "../../store/authSlice";
 
 // ── Reusable input ────────────────────────────────────────────────────────────
 const InputField = ({ label, type = "text", placeholder, value, onChange, error, icon, hint }) => {
@@ -127,7 +129,7 @@ const TextareaField = ({ label, placeholder, value, onChange, error, maxLen }) =
 };
 
 // ── Skill tag input ───────────────────────────────────────────────────────────
-const SKILL_COLORS = ["#61dafb","#a78bfa","#4ade80","#fb923c","#f472b6","#34d399","#60a5fa","#fbbf24"];
+const SKILL_COLORS = ["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6", "#34d399", "#60a5fa", "#fbbf24"];
 const SkillTagInput = ({ skills, setSkills, error }) => {
   const [input, setInput] = useState("");
   const [focused, setFocused] = useState(false);
@@ -223,7 +225,7 @@ const PasswordStrength = ({ password }) => {
   return (
     <div className="mb-4 -mt-2">
       <div className="flex gap-1 mb-1">
-        {[0,1,2,3].map((i) => (
+        {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
             className="h-1 flex-1 rounded-full transition-all duration-300"
@@ -261,8 +263,11 @@ const UNIVERSITIES = ["NUST", "FAST-NUCES", "LUMS", "COMSATS", "UET Lahore", "IB
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { status, error } = useSelector((state) => state.auth);
+  const loading = status === "loading";
+
   const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
 
   const [form, setForm] = useState({
@@ -298,9 +303,9 @@ const RegisterPage = () => {
       if (!form.degree) errs.degree = "Please select your degree";
       if (!form.role) errs.role = "Please select your primary role";
       if (form.skills.length === 0) errs.skills = "Add at least one skill";
+      if (form.bio && form.bio.length < 20) errs.bio = "Bio should be at least 20 characters";
     }
     if (s === 2) {
-      if (form.bio && form.bio.length < 20) errs.bio = "Bio should be at least 20 characters";
       if (form.github && !/^https?:\/\/(www\.)?github\.com\/.+/.test(form.github))
         errs.github = "Enter a valid GitHub URL (e.g. https://github.com/username)";
       if (form.linkedin && !/^https?:\/\/(www\.)?linkedin\.com\/in\/.+/.test(form.linkedin))
@@ -320,19 +325,19 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting registration form:", form);
     const errs = validateStep(2);
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    setLoading(true);
     setApiError("");
     try {
-      // TODO: replace with real API call
-      // const res = await authApi.register(form);
-      await new Promise((r) => setTimeout(r, 1200));
-      navigate("/login");
+      const resultAction = await dispatch(registerUser(form));
+      if (registerUser.fulfilled.match(resultAction)) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        setApiError(resultAction.payload || "Registration failed. Please try again.");
+      }
     } catch {
       setApiError("Registration failed. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -406,13 +411,13 @@ const RegisterPage = () => {
 
           {/* Orbs */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute rounded-full" style={{ width:450,height:450,top:"-80px",left:"-80px",background:"radial-gradient(circle,rgba(109,40,217,0.18) 0%,transparent 70%)",animation:"floatA 14s ease-in-out infinite" }} />
-            <div className="absolute rounded-full" style={{ width:350,height:350,bottom:"0",right:"-60px",background:"radial-gradient(circle,rgba(139,92,246,0.13) 0%,transparent 70%)",animation:"floatB 18s ease-in-out infinite" }} />
+            <div className="absolute rounded-full" style={{ width: 450, height: 450, top: "-80px", left: "-80px", background: "radial-gradient(circle,rgba(109,40,217,0.18) 0%,transparent 70%)", animation: "floatA 14s ease-in-out infinite" }} />
+            <div className="absolute rounded-full" style={{ width: 350, height: 350, bottom: "0", right: "-60px", background: "radial-gradient(circle,rgba(139,92,246,0.13) 0%,transparent 70%)", animation: "floatB 18s ease-in-out infinite" }} />
           </div>
 
           {/* Logo */}
           <div className="relative flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background:"linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
             <span className="text-white font-semibold tracking-tight">CoSync</span>
           </div>
 
@@ -449,9 +454,9 @@ const RegisterPage = () => {
 
           {/* Bottom note */}
           <div className="relative">
-            <div className="rounded-xl border p-4" style={{ background:"rgba(15,10,40,0.6)", borderColor:"rgba(139,92,246,0.15)" }}>
+            <div className="rounded-xl border p-4" style={{ background: "rgba(15,10,40,0.6)", borderColor: "rgba(139,92,246,0.15)" }}>
               <p className="text-xs text-gray-500 leading-relaxed">
-                Your profile is how project leads find you. A complete profile with skills and a bio gets <span style={{ color:"#a78bfa" }}>3× more match opportunities</span>.
+                Your profile is how project leads find you. A complete profile with skills and a bio gets <span style={{ color: "#a78bfa" }}>3× more match opportunities</span>.
               </p>
             </div>
           </div>
@@ -465,12 +470,12 @@ const RegisterPage = () => {
           >
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2 mb-8">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background:"linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
               <span className="text-white font-semibold">CoSync</span>
             </div>
 
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-white mb-1" style={{ letterSpacing:"-0.02em" }}>
+              <h1 className="text-2xl font-bold text-white mb-1" style={{ letterSpacing: "-0.02em" }}>
                 Create your account
               </h1>
               <p className="text-gray-500 text-sm">Join CoSync and start building teams</p>
@@ -479,16 +484,22 @@ const RegisterPage = () => {
             <StepDots current={step} total={3} />
 
             {apiError && (
-              <div className="rounded-lg p-3 mb-4 text-sm" style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.3)", color:"#f87171" }}>
+              <div className="rounded-lg p-3 mb-4 text-sm" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }}>
                 {apiError}
               </div>
+            )}
+
+            {!apiError && error && (
+              <p className="text-sm mt-2 mb-4" style={{ color: "#ef4444" }}>
+                {error}
+              </p>
             )}
 
             <form onSubmit={step === 2 ? handleSubmit : (e) => { e.preventDefault(); next(); }} noValidate>
 
               {/* ── Step 0: Account ── */}
               {step === 0 && (
-                <div style={{ animation:"slideRight 0.35s ease both" }}>
+                <div style={{ animation: "slideRight 0.35s ease both" }}>
                   <InputField label="Full name" placeholder="Muhammad Asad Kashif" value={form.fullName} onChange={set("fullName")} error={errors.fullName} icon="👤" />
                   <InputField label="Email address" type="email" placeholder="you@example.com" value={form.email} onChange={set("email")} error={errors.email} icon="✉" />
                   <InputField label="Password" type="password" placeholder="Min. 8 characters" value={form.password} onChange={set("password")} error={errors.password} icon="🔒" hint="Use uppercase, numbers, and symbols for a stronger password" />
@@ -499,7 +510,7 @@ const RegisterPage = () => {
 
               {/* ── Step 1: Academic + Skills ── */}
               {step === 1 && (
-                <div style={{ animation:"slideRight 0.35s ease both" }}>
+                <div style={{ animation: "slideRight 0.35s ease both" }}>
                   <SelectField label="University / institution" value={form.university} onChange={set("university")} options={UNIVERSITIES} error={errors.university} icon="🏛" />
                   <SelectField label="Degree programme" value={form.degree} onChange={set("degree")} options={DEGREES} error={errors.degree} icon="🎓" />
                   <SelectField label="Primary role" value={form.role} onChange={set("role")} options={ROLES} error={errors.role} icon="💼" />
@@ -521,8 +532,8 @@ const RegisterPage = () => {
 
               {/* ── Step 2: Links ── */}
               {step === 2 && (
-                <div style={{ animation:"slideRight 0.35s ease both" }}>
-                  <div className="rounded-xl border p-4 mb-6" style={{ background:"rgba(139,92,246,0.05)", borderColor:"rgba(139,92,246,0.15)" }}>
+                <div style={{ animation: "slideRight 0.35s ease both" }}>
+                  <div className="rounded-xl border p-4 mb-6" style={{ background: "rgba(139,92,246,0.05)", borderColor: "rgba(139,92,246,0.15)" }}>
                     <p className="text-xs text-gray-400 leading-relaxed">
                       Portfolio links are optional but highly recommended — they increase your chances of getting accepted into teams significantly.
                     </p>
@@ -547,25 +558,25 @@ const RegisterPage = () => {
 
                   {/* Preview card */}
                   {(form.fullName || form.role || form.skills.length > 0) && (
-                    <div className="rounded-xl border p-4 mt-2" style={{ background:"rgba(15,10,40,0.7)", borderColor:"rgba(139,92,246,0.2)" }}>
-                      <p className="text-xs uppercase tracking-widest mb-3" style={{ color:"#4b5563" }}>Profile preview</p>
+                    <div className="rounded-xl border p-4 mt-2" style={{ background: "rgba(15,10,40,0.7)", borderColor: "rgba(139,92,246,0.2)" }}>
+                      <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#4b5563" }}>Profile preview</p>
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold" style={{ background:"linear-gradient(135deg,#7c3aed,#a78bfa)", color:"#fff" }}>
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff" }}>
                           {form.fullName ? form.fullName[0].toUpperCase() : "?"}
                         </div>
                         <div>
                           <p className="text-white text-sm font-medium">{form.fullName || "Your name"}</p>
-                          <p className="text-xs" style={{ color:"#a78bfa" }}>{form.role || "Your role"} · {form.university || "University"}</p>
+                          <p className="text-xs" style={{ color: "#a78bfa" }}>{form.role || "Your role"} · {form.university || "University"}</p>
                         </div>
                       </div>
                       {form.skills.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {form.skills.slice(0,5).map((s, i) => (
-                            <span key={s} className="text-xs px-2 py-0.5 rounded-full" style={{ background:`${["#61dafb","#a78bfa","#4ade80","#fb923c","#f472b6"][i%5]}18`, color:["#61dafb","#a78bfa","#4ade80","#fb923c","#f472b6"][i%5], border:`1px solid ${["#61dafb","#a78bfa","#4ade80","#fb923c","#f472b6"][i%5]}40` }}>
+                          {form.skills.slice(0, 5).map((s, i) => (
+                            <span key={s} className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6"][i % 5]}18`, color: ["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6"][i % 5], border: `1px solid ${["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6"][i % 5]}40` }}>
                               {s}
                             </span>
                           ))}
-                          {form.skills.length > 5 && <span className="text-xs" style={{ color:"#4b5563" }}>+{form.skills.length - 5}</span>}
+                          {form.skills.length > 5 && <span className="text-xs" style={{ color: "#4b5563" }}>+{form.skills.length - 5}</span>}
                         </div>
                       )}
                     </div>
@@ -594,9 +605,9 @@ const RegisterPage = () => {
               </div>
             </form>
 
-            <p className="text-center text-sm mt-6" style={{ color:"#4b5563" }}>
+            <p className="text-center text-sm mt-6" style={{ color: "#4b5563" }}>
               Already have an account?{" "}
-              <Link to="/login" style={{ color:"#a78bfa", textDecoration:"none", fontWeight:500 }}>
+              <Link to="/login" style={{ color: "#a78bfa", textDecoration: "none", fontWeight: 500 }}>
                 Sign in
               </Link>
             </p>

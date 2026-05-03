@@ -1,289 +1,79 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { applyToProject } from "../../store/projectsSlice";
+import api from "../../lib/api";
+import { PROJECT_STATUS, ROLE_COLORS } from "../../lib/utils";
 
-// ── All projects data ─────────────────────────────────────────────────────────
-const ALL_PROJECTS = [
-  {
-    id: 1, title: "AI Chess Bot", category: "AI / ML", status: "Open",
-    tagline: "Teaching a machine to think 10 moves ahead",
-    description: "Building a chess engine powered by reinforcement learning. The bot will learn from millions of games and develop its own unique playing style. We plan to train on Lichess game data and implement a neural network evaluation function.",
-    problem: "Existing open-source chess engines are either too complex to understand or too weak to be interesting. We want to build something educational that demonstrates how RL works in a game context.",
-    roles: [
-      { label: "React Developer", color: "#61dafb", skills: ["React", "TypeScript", "CSS"], filled: false },
-      { label: "Python / ML Engineer", color: "#4ade80", skills: ["PyTorch", "NumPy", "RL algorithms"], filled: true },
-    ],
-    stack: ["React", "Python", "PyTorch", "FastAPI", "MongoDB", "Docker"],
-    team: [
-      { name: "Azaan Murtaza", role: "Project Lead & ML", avatar: "#7c3aed", joined: "2 days ago" },
-      { name: "Sara Qureshi",  role: "ML Engineer",       avatar: "#a78bfa", joined: "1 day ago"  },
-    ],
-    author: { name: "Azaan Murtaza", avatar: "#7c3aed", university: "NUST SEECS" },
-    applicants: 7, deadline: "May 10, 2026", duration: "2–3 months",
-    difficulty: "Advanced", teamSize: "3 members", isRemote: true,
-    posted: "2 days ago", filled: 1, total: 3,
-    github: "https://github.com/example/ai-chess", figma: "", website: "",
-    perks: ["Portfolio project", "Open source contribution", "Research publication"],
-    applicationQuestion: "What's your experience with ML models?",
-    tags: ["AI", "Chess", "RL", "PyTorch"],
-  },
-  {
-    id: 2, title: "Campus Rideshare App", category: "Mobile / Web", status: "Open",
-    tagline: "Carpooling made easy for university students",
-    description: "A carpooling platform for NUST students to share rides between campus and hostels. Features real-time location tracking, fare splitting, and a rating system to build trust between riders.",
-    problem: "Students waste money on individual rides and there's no safe, trusted platform to connect drivers and passengers within the university community.",
-    roles: [
-      { label: "React Native Dev", color: "#a78bfa", skills: ["React Native", "Expo", "Navigation"], filled: true },
-      { label: "Node.js Backend",  color: "#4ade80", skills: ["Node.js", "Express", "MongoDB"],      filled: false },
-      { label: "UI/UX Designer",   color: "#f472b6", skills: ["Figma", "Prototyping", "User Research"], filled: false },
-    ],
-    stack: ["React Native", "Node.js", "MongoDB", "Socket.io", "Google Maps API"],
-    team: [
-      { name: "Hammad Ajmal", role: "Project Lead", avatar: "#6d28d9", joined: "3 days ago" },
-    ],
-    author: { name: "Hammad Ajmal", avatar: "#6d28d9", university: "NUST SEECS" },
-    applicants: 12, deadline: "May 15, 2026", duration: "2–3 months",
-    difficulty: "Intermediate", teamSize: "4 members", isRemote: true,
-    posted: "1 day ago", filled: 1, total: 4,
-    github: "", figma: "https://figma.com/file/example", website: "",
-    perks: ["Portfolio project", "Startup opportunity", "Certificate of completion"],
-    applicationQuestion: "",
-    tags: ["Mobile", "Maps", "Real-time", "University"],
-  },
-  {
-    id: 3, title: "ML Research Paper Tool", category: "AI / ML", status: "Open",
-    tagline: "Discover and summarize ML research with NLP",
-    description: "A platform to discover, annotate, and summarize machine learning research papers using NLP. Think Semantic Scholar but tailored for students — with plain English summaries, key contributions highlighted, and related paper recommendations.",
-    problem: "Reading ML research papers is overwhelming for students. Dense jargon, complex math, and no clear structure makes it hard to keep up with the field.",
-    roles: [
-      { label: "NLP / ML Engineer", color: "#fb923c", skills: ["HuggingFace", "Transformers", "Python"], filled: true },
-      { label: "Backend Developer",  color: "#34d399", skills: ["FastAPI", "PostgreSQL", "REST APIs"],    filled: true },
-    ],
-    stack: ["Python", "HuggingFace", "FastAPI", "PostgreSQL", "React", "Redis"],
-    team: [
-      { name: "Asad Kashif",  role: "Project Lead", avatar: "#8b5cf6", joined: "4 days ago" },
-      { name: "Fatima Malik", role: "NLP Engineer",  avatar: "#fb923c", joined: "3 days ago" },
-      { name: "Omar Sheikh",  role: "Backend Dev",   avatar: "#34d399", joined: "2 days ago" },
-    ],
-    author: { name: "Asad Kashif", avatar: "#8b5cf6", university: "NUST SEECS" },
-    applicants: 5, deadline: "May 20, 2026", duration: "3–6 months",
-    difficulty: "Advanced", teamSize: "4 members", isRemote: true,
-    posted: "3 days ago", filled: 2, total: 4,
-    github: "https://github.com/example/ml-paper-tool", figma: "", website: "",
-    perks: ["Research publication", "Open source contribution", "Portfolio project"],
-    applicationQuestion: "Which NLP models have you worked with?",
-    tags: ["NLP", "Research", "HuggingFace", "Education"],
-  },
-  {
-    id: 5, title: "Hackathon Team Finder", category: "Web App", status: "Open",
-    tagline: "Find your hackathon dream team in minutes",
-    description: "An app specifically for finding hackathon teammates last-minute. Browse by upcoming hackathon, required skills, and timezone. Post your skills and get matched instantly.",
-    problem: "Finding hackathon teammates is chaotic — Discord servers, WhatsApp groups, and spreadsheets are inefficient. Students miss hackathons because they can't find a team in time.",
-    roles: [
-      { label: "Full Stack Dev", color: "#61dafb", skills: ["Next.js", "Prisma", "tRPC"], filled: true },
-      { label: "UI/UX Designer", color: "#f472b6", skills: ["Figma", "Tailwind", "Framer"], filled: false },
-    ],
-    stack: ["Next.js", "Prisma", "PostgreSQL", "TailwindCSS", "Vercel"],
-    team: [
-      { name: "Ali Hassan", role: "Project Lead", avatar: "#a78bfa", joined: "6 hours ago" },
-    ],
-    author: { name: "Ali Hassan", avatar: "#a78bfa", university: "NUST SEECS" },
-    applicants: 3, deadline: "May 5, 2026", duration: "1 month",
-    difficulty: "Intermediate", teamSize: "3 members", isRemote: true,
-    posted: "6 hours ago", filled: 1, total: 3,
-    github: "", figma: "", website: "",
-    perks: ["Hackathon submission", "Portfolio project"],
-    applicationQuestion: "",
-    tags: ["Hackathon", "Matching", "Real-time"],
-  },
-];
 
 const SKILL_COLORS = ["#61dafb","#a78bfa","#4ade80","#fb923c","#f472b6","#34d399","#60a5fa","#fbbf24"];
 
-// ── Apply Modal ───────────────────────────────────────────────────────────────
-const ApplyModal = ({ project, onClose, isAuth, navigate }) => {
-  const [message, setMessage] = useState("");
-  const [selectedRole, setSelectedRole] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [focused, setFocused] = useState(null);
-  const openRoles = project.roles.filter(r => !r.filled);
 
-  const inputStyle = (f) => ({
-    background: "rgba(15,10,40,0.8)",
-    border: `1px solid ${focused === f ? "rgba(139,92,246,0.6)" : "rgba(139,92,246,0.15)"}`,
-    borderRadius: 10, color: "#fff", fontSize: "0.875rem",
-    outline: "none", width: "100%", fontFamily: "inherit",
-    padding: "0.625rem 0.875rem", transition: "all 0.2s",
-    boxShadow: focused === f ? "0 0 0 3px rgba(139,92,246,0.1)" : "none",
-    resize: "none",
-  });
-
-  if (!isAuth) return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }} onClick={onClose}>
-      <div className="w-full max-w-sm rounded-2xl p-8 text-center"
-        style={{ background: "#0a0520", border: "1px solid rgba(139,92,246,0.25)", animation: "modalIn 0.25s ease both" }}
-        onClick={e => e.stopPropagation()}>
-        <div className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)" }}>
-          <span style={{ fontSize: 20 }}>🔒</span>
-        </div>
-        <h3 className="text-white font-bold text-lg mb-2">Sign in to apply</h3>
-        <p className="text-sm mb-6" style={{ color: "#4b5563" }}>Create a free account to apply to projects.</p>
-        <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-            style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", color: "#9ca3af", cursor: "pointer" }}>
-            Cancel
-          </button>
-          <button onClick={() => navigate("/register")} className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
-            Get started
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (submitted) return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }} onClick={onClose}>
-      <div className="w-full max-w-sm rounded-2xl p-8 text-center"
-        style={{ background: "#0a0520", border: "1px solid rgba(74,222,128,0.25)", animation: "modalIn 0.25s ease both" }}
-        onClick={e => e.stopPropagation()}>
-        <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(74,222,128,0.15)" }}>
-          <span style={{ fontSize: 28 }}>🎉</span>
-        </div>
-        <h3 className="text-white font-bold text-xl mb-2">Application sent!</h3>
-        <p className="text-sm mb-1" style={{ color: "#4b5563" }}>
-          Applied to <span style={{ color: "#a78bfa" }}>{project.title}</span>
-        </p>
-        <p className="text-xs mb-6" style={{ color: "#374151" }}>The project lead will review and respond soon.</p>
-        <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold"
-          style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
-          Done
-        </button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }} onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-        style={{ background: "#0a0520", border: "1px solid rgba(139,92,246,0.25)", animation: "modalIn 0.25s ease both" }}
-        onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
-        <div className="px-6 py-5" style={{ borderBottom: "1px solid rgba(139,92,246,0.1)" }}>
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-white font-bold text-lg">Apply to join</h3>
-              <p className="text-sm mt-0.5" style={{ color: "#a78bfa" }}>{project.title}</p>
-            </div>
-            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563", fontSize: 22 }}>×</button>
-          </div>
-        </div>
-
-        <div className="px-6 py-5 space-y-5">
-          {/* Role selection */}
-          <div>
-            <label className="block text-xs font-semibold mb-2" style={{ color: "#6b7280" }}>
-              Which role are you applying for? <span style={{ color: "#7c3aed" }}>*</span>
-            </label>
-            <div className="space-y-2">
-              {openRoles.map(r => (
-                <button key={r.label} type="button" onClick={() => setSelectedRole(r.label)}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200"
-                  style={{
-                    background: selectedRole === r.label ? `${r.color}12` : "rgba(139,92,246,0.04)",
-                    border: `1px solid ${selectedRole === r.label ? r.color + "40" : "rgba(139,92,246,0.1)"}`,
-                    cursor: "pointer",
-                  }}>
-                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.color }} />
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: selectedRole === r.label ? r.color : "#fff" }}>{r.label}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "#374151" }}>{r.skills.join(", ")}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Message */}
-          <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color: "#6b7280" }}>
-              Why do you want to join? <span style={{ color: "#374151" }}>(optional)</span>
-            </label>
-            <textarea rows={4} value={message} onChange={e => setMessage(e.target.value)}
-              onFocus={() => setFocused("msg")} onBlur={() => setFocused(null)}
-              placeholder="Tell the project lead what you bring — skills, experience, why this excites you..."
-              style={inputStyle("msg")} />
-            <p className="text-xs mt-1" style={{ color: "#374151" }}>{message.length}/500</p>
-          </div>
-
-          {/* Custom question */}
-          {project.applicationQuestion && (
-            <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: "#6b7280" }}>
-                {project.applicationQuestion} <span style={{ color: "#7c3aed" }}>*</span>
-              </label>
-              <textarea rows={3} value={answer} onChange={e => setAnswer(e.target.value)}
-                onFocus={() => setFocused("ans")} onBlur={() => setFocused(null)}
-                placeholder="Your answer..."
-                style={inputStyle("ans")} />
-            </div>
-          )}
-        </div>
-
-        <div className="px-6 pb-5 flex gap-3" style={{ borderTop: "1px solid rgba(139,92,246,0.1)", paddingTop: 16 }}>
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-            style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280", cursor: "pointer" }}>
-            Cancel
-          </button>
-          <button
-            onClick={() => { if (selectedRole || openRoles.length === 0) setSubmitted(true); }}
-            disabled={openRoles.length > 0 && !selectedRole}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
-            style={{
-              background: (openRoles.length === 0 || selectedRole) ? "linear-gradient(135deg,#7c3aed,#6d28d9)" : "rgba(139,92,246,0.1)",
-              color: (openRoles.length === 0 || selectedRole) ? "#fff" : "#374151",
-              border: "none", cursor: (openRoles.length === 0 || selectedRole) ? "pointer" : "not-allowed",
-            }}
-            onMouseEnter={e => { if (selectedRole) e.currentTarget.style.boxShadow = "0 8px 25px rgba(124,58,237,0.4)"; }}
-            onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
-            Send application →
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const ProjectDetailPage = () => {
+  const { id } = useParams()
   const navigate = useNavigate();
-  const { id } = useParams();
-  const { isAuthenticated } = useSelector(s => s.auth);
-  const [showApply, setShowApply] = useState(false);
+  const dispatch = useDispatch()
+  const { user, isAuthenticated } = useSelector(s => s.auth)
+  const [project, setProject] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [applyMessage, setApplyMessage] = useState('')
+  const [applying, setApplying] = useState(false)
+  const [applySuccess, setApplySuccess] = useState(false)
+  const [applyError, setApplyError] = useState(null)
 
-  const project = ALL_PROJECTS.find(p => p.id === parseInt(id));
-  const similar = ALL_PROJECTS.filter(p => p.id !== parseInt(id) && p.category === project?.category).slice(0, 2);
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const res = await api.get(`/projects/${id}`)
+        setProject(res.data.data)
+        setLoading(false)
+      } catch (err) {
+        if (err.response?.status === 404) {
+          setError('not_found')
+        } else {
+          setError('Failed to load project.')
+        }
+        setLoading(false)
+      }
+    }
+    fetchProject()
+  }, [id])
 
-  if (!project) return (
-    <div className="min-h-screen flex items-center justify-center"
-      style={{ background: "#05030f", fontFamily: "'DM Sans',system-ui,sans-serif" }}>
-      <div className="text-center">
-        <p className="text-white text-xl font-bold mb-2">Project not found</p>
-        <button onClick={() => navigate("/feed")} className="text-sm px-4 py-2 rounded-xl mt-3"
-          style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
-          Back to Feed
-        </button>
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    if (project) document.title = `${project.title} — CoSync`
+    return () => { document.title = 'CoSync' }
+  }, [project])
 
-  const fillPct = Math.round((project.filled / project.total) * 100);
-  const openRoles = project.roles.filter(r => !r.filled);
+  const handleApply = async () => {
+    setApplying(true)
+    setApplyError(null)
+    const result = await dispatch(applyToProject({ 
+      projectId: project._id, 
+      message: applyMessage 
+    }))
+    if (result.meta.requestStatus === 'fulfilled') {
+      setApplySuccess(true)
+    } else {
+      setApplyError('Failed to submit application. Please try again.')
+    }
+    setApplying(false)
+  }
+
+  if (loading) return <div className="flex justify-center p-20"><p className="text-gray-400">Loading...</p></div>
+  if (error === 'not_found') return <div className="flex flex-col items-center p-20"><p className="text-gray-400">Project not found.</p><a href="/feed" className="mt-4 text-blue-400 underline">Back to Feed</a></div>
+  if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>
+  if (!project) return null
+
+  const members = project.members ?? [];
+  const roles = project.roles ?? [];
+  const filledCount = members.length;
+  const totalCount = roles.reduce((s, r) => s + (r.count ?? 1), 0) || roles.length || 1;
+  const fillPct = Math.round((filledCount / totalCount) * 100);
+  const openRoles = roles;
+  const similar = [];
 
   return (
     <>
@@ -342,8 +132,8 @@ const ProjectDetailPage = () => {
                       {project.category}
                     </span>
                     <span className="text-xs px-2.5 py-1 rounded-md font-medium"
-                      style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.25)" }}>
-                      ● {project.status}
+                      style={{ background: `rgba(0,0,0,0.2)`, color: PROJECT_STATUS[project.status]?.color || "#a78bfa", border: `1px solid ${PROJECT_STATUS[project.status]?.color || "rgba(139,92,246,0.2)"}` }}>
+                      ● {PROJECT_STATUS[project.status]?.label ?? project.status}
                     </span>
                     <span className="text-xs px-2.5 py-1 rounded-md"
                       style={{ background: "rgba(139,92,246,0.06)", color: "#374151", border: "1px solid rgba(139,92,246,0.1)" }}>
@@ -360,21 +150,20 @@ const ProjectDetailPage = () => {
                   <h1 className="text-2xl font-bold text-white mb-1" style={{ letterSpacing: "-0.02em" }}>{project.title}</h1>
                   {project.tagline && <p className="text-base mb-4" style={{ color: "#a78bfa" }}>{project.tagline}</p>}
 
-                  {/* Author */}
+                  {/* Owner */}
                   <div className="flex items-center gap-2 mb-5">
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                      style={{ background: project.author.avatar + "30", color: project.author.avatar }}>
-                      {project.author.name[0]}
+                      style={{ background: "rgba(124,58,237,0.3)", color: "#a78bfa" }}>
+                      {(project.owner?.fullName ?? "?")[0]}
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-white">{project.author.name}</span>
-                      <span className="text-xs ml-2" style={{ color: "#374151" }}>{project.author.university} · Posted {project.posted}</span>
+                      <span className="text-sm font-medium text-white">{project.owner?.fullName ?? "Unknown"}</span>
                     </div>
                   </div>
 
-                  {/* Tags */}
+                  {/* Stack as tags */}
                   <div className="flex flex-wrap gap-1.5">
-                    {project.tags.map((t, i) => (
+                    {(project.stack ?? []).map((t, i) => (
                       <span key={t} className="text-xs px-2.5 py-1 rounded-full"
                         style={{ background: `${SKILL_COLORS[i % SKILL_COLORS.length]}10`, color: SKILL_COLORS[i % SKILL_COLORS.length], border: `1px solid ${SKILL_COLORS[i % SKILL_COLORS.length]}25` }}>
                         {t}
@@ -405,36 +194,35 @@ const ProjectDetailPage = () => {
               <div className="section-card">
                 <p className="section-title">Roles needed</p>
                 <div className="space-y-3">
-                  {project.roles.map(r => (
-                    <div key={r.label} className="flex items-start justify-between p-4 rounded-xl"
-                      style={{ background: r.filled ? "rgba(139,92,246,0.03)" : `${r.color}08`, border: `1px solid ${r.filled ? "rgba(139,92,246,0.08)" : r.color + "25"}` }}>
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                          style={{ background: r.color + "15", border: `1px solid ${r.color}30` }}>
-                          <span className="w-2 h-2 rounded-full" style={{ background: r.color }} />
-                        </div>
-                        <div>
-                          <p className="text-white text-sm font-semibold">{r.label}</p>
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {r.skills.map(s => (
-                              <span key={s} className="text-xs px-2 py-0.5 rounded"
-                                style={{ background: "rgba(255,255,255,0.04)", color: "#6b7280", border: "1px solid rgba(255,255,255,0.06)" }}>
-                                {s}
-                              </span>
-                            ))}
+                  {roles.map((r, ri) => {
+                    const rc = ROLE_COLORS[ri % ROLE_COLORS.length];
+                    return (
+                      <div key={r.title ?? ri} className="flex items-start justify-between p-4 rounded-xl"
+                        style={{ background: `${rc}08`, border: `1px solid ${rc}25` }}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                            style={{ background: rc + "15", border: `1px solid ${rc}30` }}>
+                            <span className="w-2 h-2 rounded-full" style={{ background: rc }} />
+                          </div>
+                          <div>
+                            <p className="text-white text-sm font-semibold">{r.title}</p>
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {(r.skills ?? []).map(s => (
+                                <span key={s} className="text-xs px-2 py-0.5 rounded"
+                                  style={{ background: "rgba(255,255,255,0.04)", color: "#6b7280", border: "1px solid rgba(255,255,255,0.06)" }}>
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
+                        <span className="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
+                          style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.25)" }}>
+                          Open
+                        </span>
                       </div>
-                      <span className="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
-                        style={{
-                          background: r.filled ? "rgba(248,113,113,0.08)" : "rgba(74,222,128,0.1)",
-                          color: r.filled ? "#f87171" : "#4ade80",
-                          border: `1px solid ${r.filled ? "rgba(248,113,113,0.2)" : "rgba(74,222,128,0.25)"}`,
-                        }}>
-                        {r.filled ? "Filled" : "Open"}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -459,21 +247,20 @@ const ProjectDetailPage = () => {
                     <div className="h-1.5 w-24 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
                       <div className="h-full rounded-full" style={{ width: `${fillPct}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
                     </div>
-                    <span className="text-xs" style={{ color: "#a78bfa" }}>{project.filled}/{project.total}</span>
+                    <span className="text-xs" style={{ color: "#a78bfa" }}>{filledCount}/{totalCount}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {project.team.map((m, i) => (
-                    <div key={m.name} className="flex items-center justify-between px-4 py-3 rounded-xl"
+                  {members.map((m, i) => (
+                    <div key={m._id ?? i} className="flex items-center justify-between px-4 py-3 rounded-xl"
                       style={{ background: "rgba(139,92,246,0.05)", border: "1px solid rgba(139,92,246,0.1)" }}>
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
-                          style={{ background: m.avatar + "25", color: m.avatar, border: `1px solid ${m.avatar}35` }}>
-                          {m.name[0]}
+                          style={{ background: "rgba(124,58,237,0.25)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.35)" }}>
+                          {(m.fullName ?? m.name ?? "?")[0]}
                         </div>
                         <div>
-                          <p className="text-white text-sm font-medium">{m.name}</p>
-                          <p className="text-xs" style={{ color: "#4b5563" }}>{m.role} · Joined {m.joined}</p>
+                          <p className="text-white text-sm font-medium">{m.fullName ?? m.name}</p>
                         </div>
                       </div>
                       {i === 0 && (
@@ -485,7 +272,7 @@ const ProjectDetailPage = () => {
                     </div>
                   ))}
                   {/* Empty slots */}
-                  {Array.from({ length: project.total - project.filled }).map((_, i) => (
+                  {Array.from({ length: Math.max(0, totalCount - filledCount) }).map((_, i) => (
                     <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl"
                       style={{ background: "rgba(139,92,246,0.03)", border: "1px dashed rgba(139,92,246,0.15)" }}>
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -558,8 +345,8 @@ const ProjectDetailPage = () => {
                       <span className="text-xs" style={{ color: "#4b5563" }}>applicants</span>
                     </div>
                     <span className="text-xs px-2.5 py-1 rounded-full"
-                      style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.2)" }}>
-                      ● Accepting
+                      style={{ background: "rgba(0,0,0,0.2)", color: PROJECT_STATUS[project.status]?.color || "#4ade80", border: `1px solid ${PROJECT_STATUS[project.status]?.color || "rgba(74,222,128,0.2)"}` }}>
+                      ● {PROJECT_STATUS[project.status]?.label ?? project.status}
                     </span>
                   </div>
 
@@ -568,32 +355,61 @@ const ProjectDetailPage = () => {
                     <div className="mb-4">
                       <p className="text-xs font-semibold mb-2" style={{ color: "#4b5563" }}>Open roles</p>
                       <div className="space-y-1.5">
-                        {openRoles.map(r => (
-                          <div key={r.label} className="flex items-center gap-2 px-3 py-2 rounded-xl"
-                            style={{ background: `${r.color}08`, border: `1px solid ${r.color}20` }}>
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: r.color }} />
-                            <span className="text-xs font-medium" style={{ color: r.color }}>{r.label}</span>
-                          </div>
-                        ))}
+                        {openRoles.map((r, ri) => {
+                          const rc = ROLE_COLORS[ri % ROLE_COLORS.length];
+                          return (
+                            <div key={r.title ?? ri} className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                              style={{ background: `${rc}08`, border: `1px solid ${rc}20` }}>
+                              <span className="w-1.5 h-1.5 rounded-full" style={{ background: rc }} />
+                              <span className="text-xs font-medium" style={{ color: rc }}>{r.title}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
 
                   {/* Apply button */}
-                  <button
-                    onClick={() => setShowApply(true)}
-                    disabled={project.status === "Full"}
-                    className="w-full py-3 rounded-xl text-sm font-bold transition-all duration-200 mb-3"
-                    style={{
-                      background: project.status === "Full" ? "rgba(139,92,246,0.05)" : "linear-gradient(135deg,#7c3aed,#6d28d9)",
-                      color: project.status === "Full" ? "#374151" : "#fff",
-                      border: project.status === "Full" ? "1px solid rgba(139,92,246,0.1)" : "none",
-                      cursor: project.status === "Full" ? "not-allowed" : "pointer",
-                    }}
-                    onMouseEnter={e => { if (project.status !== "Full") e.currentTarget.style.boxShadow = "0 10px 30px rgba(124,58,237,0.4)"; }}
-                    onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
-                    {project.status === "Full" ? "Team is full" : "Apply to Join →"}
-                  </button>
+                  {project.requireCoverLetter && (
+                    <textarea
+                      value={applyMessage}
+                      onChange={e => setApplyMessage(e.target.value)}
+                      placeholder={project.applicationQuestion || 'Write your cover letter...'}
+                      className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-600 mt-4"
+                      rows={4}
+                    />
+                  )}
+                  {applySuccess ? (
+                    <p className="text-green-400 font-medium text-center py-2">✅ Application submitted!</p>
+                  ) : user?._id === project.owner?._id ? (
+                    <button disabled className="w-full py-3 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed mb-3"
+                      style={{ background: "rgba(139,92,246,0.05)", color: "#374151", border: "1px solid rgba(139,92,246,0.1)" }}>
+                      You own this project
+                    </button>
+                  ) : project.status === 'closed' ? (
+                    <button disabled className="w-full py-3 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed mb-3"
+                      style={{ background: "rgba(139,92,246,0.05)", color: "#374151", border: "1px solid rgba(139,92,246,0.1)" }}>
+                      Not accepting applications
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleApply}
+                      disabled={applying}
+                      className="w-full py-3 rounded-xl text-sm font-bold transition-all duration-200 mb-3"
+                      style={{
+                        background: applying ? "rgba(139,92,246,0.1)" : "linear-gradient(135deg,#7c3aed,#6d28d9)",
+                        color: applying ? "#374151" : "#fff",
+                        border: applying ? "1px solid rgba(139,92,246,0.1)" : "none",
+                        cursor: applying ? "not-allowed" : "pointer",
+                      }}
+                      onMouseEnter={e => { if (!applying) e.currentTarget.style.boxShadow = "0 10px 30px rgba(124,58,237,0.4)"; }}
+                      onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+                      {applying ? 'Submitting...' : 'Apply Now'}
+                    </button>
+                  )}
+                  {applyError && (
+                    <p className="text-red-400 text-sm mt-2 text-center">{applyError}</p>
+                  )}
 
                   <button onClick={() => navigate("/feed")}
                     className="w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
@@ -611,9 +427,9 @@ const ProjectDetailPage = () => {
                 <div className="space-y-3">
                   {[
                     { label: "Duration",   value: project.duration,  icon: "⏱" },
-                    { label: "Team size",  value: project.teamSize,  icon: "👥" },
+                    { label: "Team size",  value: `${totalCount} members`, icon: "👥" },
                     { label: "Difficulty", value: project.difficulty, icon: "⚡" },
-                    { label: "Deadline",   value: project.deadline,  icon: "📅" },
+                    { label: "Deadline",   value: project.deadline ? new Date(project.deadline).toLocaleDateString() : "No deadline",  icon: "📅" },
                     { label: "Remote",     value: project.isRemote ? "Yes" : "No", icon: "🌐" },
                   ].map(d => (
                     <div key={d.label} className="flex items-center justify-between py-2"
@@ -674,14 +490,7 @@ const ProjectDetailPage = () => {
         </div>
       </div>
 
-      {showApply && (
-        <ApplyModal
-          project={project}
-          onClose={() => setShowApply(false)}
-          isAuth={isAuthenticated}
-          navigate={navigate}
-        />
-      )}
+
     </>
   );
 };

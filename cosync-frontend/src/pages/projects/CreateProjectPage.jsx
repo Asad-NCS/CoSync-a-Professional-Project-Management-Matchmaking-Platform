@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { createProject, fetchProjects } from "../../store/projectsSlice";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = ["AI / ML", "Web App", "Mobile App", "Blockchain", "Hardware / IoT", "Game Dev", "Data Science", "Cybersecurity", "Open Source", "Research", "Other"];
@@ -377,8 +379,11 @@ const PreviewCard = ({ form }) => (
 // ── Main page ─────────────────────────────────────────────────────────────────
 const CreateProjectPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { status } = useSelector(state => state.projects);
+  const loading = status === "loading";
+  
   const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPreview, setShowPreview] = useState(true);
 
@@ -426,10 +431,17 @@ const CreateProjectPage = () => {
   const prev = () => { setErrors({}); setStep(s => s - 1); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   const submit = async () => {
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 1400));
-    setLoading(false);
-    navigate("/feed");
+    try {
+      const resultAction = await dispatch(createProject(form));
+      if (createProject.fulfilled.match(resultAction)) {
+        dispatch(fetchProjects());
+        navigate("/feed");
+      } else {
+        setErrors({ form: resultAction.payload || "Failed to create project" });
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (

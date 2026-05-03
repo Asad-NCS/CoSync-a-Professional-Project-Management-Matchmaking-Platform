@@ -42,10 +42,11 @@ const COLUMN_CONFIG = {
   },
 };
 
-const KanbanColumn = ({ id, tasks, onAddTask, onEditTask, onDeleteTask }) => {
+const KanbanColumn = ({ id, title, tasks, onAddTask, onEditTask, onDeleteTask }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
   const [hovered, setHovered] = useState(false);
   const config = COLUMN_CONFIG[id] || COLUMN_CONFIG.todo;
+  const label = title || config.label;
 
   return (
     <div
@@ -71,7 +72,7 @@ const KanbanColumn = ({ id, tasks, onAddTask, onEditTask, onDeleteTask }) => {
               {config.icon}
             </div>
             <div>
-              <p className="text-white font-bold text-sm">{config.label}</p>
+              <p className="text-white font-bold text-sm">{label}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -119,7 +120,7 @@ const KanbanColumn = ({ id, tasks, onAddTask, onEditTask, onDeleteTask }) => {
           scrollbarWidth: "none",
         }}
       >
-        <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={tasks.map(t => t.id || t._id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
             <TaskCard
               key={task.id}

@@ -1,26 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import api from "../../lib/api";
 import KanbanBoard   from "../../components/kanban/KanbanBoard";
 import DiscussionTab from "./DiscussionTab";
 import ActivityTab   from "./ActivityTab";
-const WORKSPACE_DATA = {
-  101: {
-    id: 101, title: "AI Chess Bot", category: "AI / ML", status: "Active",
-    members: [
-      { id: 1, name: "Azaan Murtaza", role: "Project Lead", avatar: "#7c3aed", online: true  },
-      { id: 2, name: "Sara Qureshi",  role: "ML Engineer",  avatar: "#a78bfa", online: true  },
-      { id: 3, name: "Ali Hassan",    role: "React Dev",    avatar: "#61dafb", online: false },
-    ],
-    stack: ["React", "Python", "PyTorch", "FastAPI"],
-    deadline: "May 10, 2026", progress: 35, tasksTotal: 10, tasksDone: 4,
-  },
-};
-
-const DEFAULT_WORKSPACE = {
-  id: 1, title: "My Project Workspace", category: "Web App", status: "Active",
-  members: [{ id: 1, name: "You", role: "Project Lead", avatar: "#7c3aed", online: true }],
-  stack: ["React", "Node.js"], deadline: "TBD", progress: 0, tasksTotal: 0, tasksDone: 0,
-};
 
 const ResourcesTab = ({ workspace }) => {
   const [resources] = useState([
@@ -128,23 +111,45 @@ const NAV_ITEMS = [
 ];
 
 const WorkspacePage = () => {
+  const { id: projectId } = useParams()
+  const [columns, setColumns] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const navigate = useNavigate();
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("kanban");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [workspace, setWorkspace] = useState(null);
 
-  const workspace = WORKSPACE_DATA[id] || DEFAULT_WORKSPACE;
+  useEffect(() => {
+    const fetchWorkspace = async () => {
+      try {
+        const res = await api.get(`/workspaces/${projectId}`)
+        setColumns(res.data.data.columns)
+        setLoading(false)
+      } catch (err) {
+        setError('Failed to load workspace.')
+        setLoading(false)
+      }
+    }
+    fetchWorkspace()
+  }, [projectId])
 
   const renderContent = () => {
+    if (loading) return <div className="p-6 text-gray-400">Loading workspace...</div>;
+    
     switch (activeTab) {
-      case "kanban":     return <KanbanBoard workspaceTitle={workspace.title} />;
+      case "kanban":     return <KanbanBoard workspaceTitle={workspace?.title} columns={columns} onColumnsChange={setColumns} projectId={projectId} members={workspace?.members} />;
       case "discussion": return <DiscussionTab workspace={workspace} />;
       case "team":       return <TeamTab workspace={workspace} />;
       case "resources":  return <ResourcesTab workspace={workspace} />;
       case "activity":   return <ActivityTab workspace={workspace} />;
-      default:           return <KanbanBoard workspaceTitle={workspace.title} />;
+      default:           return <KanbanBoard workspaceTitle={workspace?.title} columns={columns} onColumnsChange={setColumns} projectId={projectId} members={workspace?.members} />;
     }
   };
+
+  if (loading) return <div className="flex justify-center p-20"><p className="text-gray-400">Loading workspace...</p></div>
+  if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>
 
   return (
     <>
@@ -175,7 +180,7 @@ const WorkspacePage = () => {
             )}
           </div>
 
-          {!sidebarCollapsed && (
+          {!sidebarCollapsed && workspace && (
             <div className="px-4 py-4" style={{ borderBottom: "1px solid rgba(139,92,246,0.08)" }}>
               <div className="rounded-xl p-3" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.12)" }}>
                 <div className="flex items-center gap-2 mb-2">
@@ -229,19 +234,19 @@ const WorkspacePage = () => {
             ))}
           </nav>
 
-          {!sidebarCollapsed && (
+          {!sidebarCollapsed && workspace && workspace.members && (
             <div className="px-4 pb-4" style={{ borderTop: "1px solid rgba(139,92,246,0.08)", paddingTop: 12 }}>
               <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#374151" }}>Team</p>
               <div className="space-y-2 mb-3">
                 {workspace.members.slice(0, 3).map(m => (
-                  <div key={m.id} className="flex items-center gap-2">
+                  <div key={m.id || m._id} className="flex items-center gap-2">
                     <div className="relative">
                       <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{ background: m.avatar + "25", color: m.avatar }}>{m.name[0]}</div>
+                        style={{ background: (m.avatar || "#a78bfa") + "25", color: m.avatar || "#a78bfa" }}>{(m.name || "U")[0]}</div>
                       <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border"
                         style={{ background: m.online ? "#4ade80" : "#374151", borderColor: "#08051a" }} />
                     </div>
-                    <p className="text-xs truncate" style={{ color: "#4b5563" }}>{m.name}</p>
+                    <p className="text-xs truncate" style={{ color: "#4b5563" }}>{m.name || m.fullName}</p>
                   </div>
                 ))}
               </div>
@@ -260,26 +265,26 @@ const WorkspacePage = () => {
               <span style={{ color: "#374151" }}>›</span>
               <button className="nav-btn text-sm" style={{ color: "#4b5563" }} onClick={() => navigate("/my-projects")}>My Projects</button>
               <span style={{ color: "#374151" }}>›</span>
-              <span className="text-sm font-medium" style={{ color: "#a78bfa" }}>{workspace.title}</span>
+              <span className="text-sm font-medium" style={{ color: "#a78bfa" }}>{workspace?.title || "Loading..."}</span>
               <span style={{ color: "#374151" }}>›</span>
               <span className="text-sm capitalize" style={{ color: "#6b7280" }}>{NAV_ITEMS.find(n => n.id === activeTab)?.label}</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2">
                 <div className="flex -space-x-2">
-                  {workspace.members.map(m => (
-                    <div key={m.id} className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2"
-                      style={{ background: m.avatar + "30", color: m.avatar, borderColor: "#05030f" }} title={m.name}>
-                      {m.name[0]}
+                  {workspace?.members?.map(m => (
+                    <div key={m.id || m._id} className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2"
+                      style={{ background: (m.avatar || "#a78bfa") + "30", color: m.avatar || "#a78bfa", borderColor: "#05030f" }} title={m.name || m.fullName}>
+                      {(m.name || "U")[0]}
                     </div>
                   ))}
                 </div>
-                <span className="text-xs" style={{ color: "#374151" }}>{workspace.members.filter(m => m.online).length} online</span>
+                <span className="text-xs" style={{ color: "#374151" }}>{workspace?.members?.filter(m => m.online).length || 0} online</span>
               </div>
               <div className="w-px h-5" style={{ background: "rgba(139,92,246,0.15)" }} />
               <span className="text-xs px-2.5 py-1 rounded-full font-medium"
                 style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80" }}>
-                ● {workspace.status}
+                ● {workspace?.status || "Active"}
               </span>
               <button className="nav-btn px-3 py-1.5 rounded-lg text-sm"
                 style={{ border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280" }}>⚙</button>

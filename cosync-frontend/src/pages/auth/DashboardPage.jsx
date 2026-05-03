@@ -1,75 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../store/authSlice";
-
-// ── Sample data ───────────────────────────────────────────────────────────────
-const MY_PROJECTS = [
-  {
-    id: 1, title: "AI Chess Bot", status: "Recruiting",
-    roles: [{ label: "React Dev", color: "#61dafb" }, { label: "Python Dev", color: "#4ade80" }],
-    applicants: 7, members: 2, deadline: "May 10", progress: 20,
-    stack: ["React", "Python", "PyTorch"],
-  },
-];
-
-const APPLIED_PROJECTS = [
-  {
-    id: 2, title: "Campus Rideshare App", status: "Pending",
-    author: "Hammad Ajmal", role: "React Native Dev",
-    appliedDate: "2 days ago", color: "#a78bfa",
-  },
-  {
-    id: 3, title: "E-Sports Tournament Platform", status: "Accepted",
-    author: "Umar Farooq", role: "Backend Dev",
-    appliedDate: "5 days ago", color: "#4ade80",
-  },
-  {
-    id: 4, title: "Blockchain Voting System", status: "Declined",
-    author: "Bilal Ahmed", role: "React Dev",
-    appliedDate: "1 week ago", color: "#f87171",
-  },
-];
-
-const ACTIVITY = [
-  { icon: "✓", text: "Your application to Campus Rideshare was received", time: "2h ago", color: "#a78bfa" },
-  { icon: "👥", text: "Umar Farooq accepted your application to E-Sports Platform", time: "5h ago", color: "#4ade80" },
-  { icon: "📋", text: "New applicant on your AI Chess Bot project", time: "1d ago", color: "#61dafb" },
-  { icon: "🚀", text: "You posted AI Chess Bot — 7 applications so far", time: "2d ago", color: "#fb923c" },
-];
-
-const STATS = [
-  { label: "Projects Posted", value: "1", icon: "📁", color: "#7c3aed", bg: "rgba(124,58,237,0.12)" },
-  { label: "Applications Sent", value: "3", icon: "📨", color: "#61dafb", bg: "rgba(97,218,251,0.12)" },
-  { label: "Teams Joined", value: "1", icon: "👥", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
-  { label: "Match Score", value: "87%", icon: "⚡", color: "#fb923c", bg: "rgba(251,146,60,0.12)" },
-];
+import api from "../../lib/api";
+import { PROJECT_STATUS, APP_STATUS, ROLE_COLORS } from "../../lib/utils";
 
 // ── Sidebar nav items ─────────────────────────────────────────────────────────
 const NAV = [
-  { icon: "⊞", label: "Dashboard",        path: "/dashboard",      active: true  },
-  { icon: "🔍", label: "Browse Projects",  path: "/feed",           active: false },
-  { icon: "📁", label: "My Projects",      path: "/my-projects",    active: false },
-  { icon: "📨", label: "Applications",     path: "/applications",   active: false },
-  { icon: "👤", label: "Profile",          path: "/profile",        active: false },
-  { icon: "🔔", label: "Notifications",    path: "/notifications",  badge: 3, active: false },
+  { icon: "⊞", label: "Dashboard", path: "/dashboard", active: true },
+  { icon: "🔍", label: "Browse Projects", path: "/feed", active: false },
+  { icon: "📁", label: "My Projects", path: "/my-projects", active: false },
+  { icon: "📨", label: "Applications", path: "/applications", active: false },
+  { icon: "👤", label: "Profile", path: "/profile", active: false },
+  { icon: "🔔", label: "Notifications", path: "/notifications", badge: 3, active: false },
 ];
 
-// ── Status badge ──────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
-  const map = {
-    Recruiting: { color: "#4ade80", bg: "rgba(74,222,128,0.1)", border: "rgba(74,222,128,0.25)", dot: true },
-    Pending:    { color: "#fbbf24", bg: "rgba(251,191,36,0.1)",  border: "rgba(251,191,36,0.25)",  dot: true },
-    Accepted:   { color: "#4ade80", bg: "rgba(74,222,128,0.1)",  border: "rgba(74,222,128,0.25)",  dot: false },
-    Declined:   { color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.25)", dot: false },
-    Active:     { color: "#a78bfa", bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.25)", dot: true },
-  };
-  const s = map[status] || map.Pending;
+  const s = PROJECT_STATUS[status] || APP_STATUS[status] || PROJECT_STATUS.open;
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
-      style={{ background: s.bg, border: `1px solid ${s.border}`, color: s.color }}>
-      {s.dot && <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.color, animation: "pulse-dot 2s infinite" }} />}
-      {status}
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
+      style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${s.color || "rgba(139,92,246,0.2)"}`, color: s.color || "#a78bfa" }}>
+      ● {s.label || status}
     </span>
   );
 };
@@ -78,6 +29,7 @@ const StatusBadge = ({ status }) => {
 const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
   const navigate = useNavigate();
   const { user } = useSelector(s => s.auth);
+  const displayName = user?.fullName || user?.name || "User";
 
   return (
     <aside
@@ -126,8 +78,8 @@ const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
               cursor: "pointer",
               justifyContent: collapsed ? "center" : "flex-start",
             }}
-            onMouseEnter={e => { if (!item.active) { e.currentTarget.style.background = "rgba(139,92,246,0.08)"; e.currentTarget.style.color = "#9ca3af"; }}}
-            onMouseLeave={e => { if (!item.active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#4b5563"; }}}
+            onMouseEnter={e => { if (!item.active) { e.currentTarget.style.background = "rgba(139,92,246,0.08)"; e.currentTarget.style.color = "#9ca3af"; } }}
+            onMouseLeave={e => { if (!item.active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#4b5563"; } }}
           >
             <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
             {!collapsed && <span className="text-sm font-medium flex-1 text-left">{item.label}</span>}
@@ -153,10 +105,10 @@ const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
             style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.1)" }}>
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
               style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff" }}>
-              {user?.name?.[0]?.toUpperCase() || "U"}
+              {displayName[0]?.toUpperCase() || "U"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-white truncate">{user?.name || "User"}</p>
+              <p className="text-xs font-medium text-white truncate">{displayName}</p>
               <p className="text-xs truncate" style={{ color: "#4b5563" }}>{user?.email || ""}</p>
             </div>
           </div>
@@ -218,6 +170,7 @@ const MyProjectCard = ({ project }) => {
         transform: hovered ? "translateY(-2px)" : "none",
         boxShadow: hovered ? "0 16px 40px rgba(109,40,217,0.15)" : "none",
       }}
+      onClick={() => navigate(`/projects/${project._id}`)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -232,32 +185,35 @@ const MyProjectCard = ({ project }) => {
         </div>
       </div>
 
-      {/* Roles */}
       <div className="flex flex-wrap gap-1.5 mb-4">
-        {project.roles.map(r => (
-          <span key={r.label} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium"
-            style={{ background: `${r.color}12`, border: `1px solid ${r.color}30`, color: r.color }}>
-            <span className="w-1 h-1 rounded-full" style={{ background: r.color }} />{r.label}
-          </span>
-        ))}
+        {project.roles?.map((r, i) => {
+          const title = r.title;
+          const color = ROLE_COLORS[i % ROLE_COLORS.length];
+          return (
+            <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium"
+              style={{ background: `${color}12`, border: `1px solid ${color}30`, color: color }}>
+              <span className="w-1 h-1 rounded-full" style={{ background: color }} />{title}
+            </span>
+          )
+        })}
       </div>
 
       {/* Progress bar */}
       <div className="mb-4">
         <div className="flex justify-between mb-1.5">
           <span className="text-xs" style={{ color: "#374151" }}>Project progress</span>
-          <span className="text-xs font-medium" style={{ color: "#a78bfa" }}>{project.progress}%</span>
+          <span className="text-xs font-medium" style={{ color: "#a78bfa" }}>{project.progress ?? 0}%</span>
         </div>
         <div className="h-1.5 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
           <div className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${project.progress}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
+            style={{ width: `${project.progress ?? 0}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
         </div>
       </div>
 
       {/* Stack */}
       <div className="flex flex-wrap gap-1 mb-4">
-        {project.stack.map(s => (
-          <span key={s} className="text-xs px-2 py-0.5 rounded"
+        {project.stack?.map((s, i) => (
+          <span key={i} className="text-xs px-2 py-0.5 rounded"
             style={{ background: "rgba(255,255,255,0.04)", color: "#4b5563", border: "1px solid rgba(255,255,255,0.06)" }}>{s}</span>
         ))}
       </div>
@@ -265,41 +221,46 @@ const MyProjectCard = ({ project }) => {
       <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(139,92,246,0.08)" }}>
         <div className="flex items-center gap-3">
           <span className="text-xs" style={{ color: "#4b5563" }}>
-            <span style={{ color: "#6b7280" }}>{project.applicants}</span> applicants
+            <span style={{ color: "#6b7280" }}>{project.applicationCount ?? 0}</span> applicants
           </span>
-          <span className="text-xs" style={{ color: "#374151" }}>· {project.members} members</span>
+          <span className="text-xs" style={{ color: "#374151" }}>· {project.members?.length ?? 0} members</span>
         </div>
-        <span className="text-xs" style={{ color: "#374151" }}>Due {project.deadline}</span>
+        <span className="text-xs" style={{ color: "#374151" }}>Due {project.deadline ? new Date(project.deadline).toLocaleDateString() : '—'}</span>
       </div>
     </div>
   );
 };
 
 // ── Applied Project Row ───────────────────────────────────────────────────────
-const AppliedRow = ({ project, index }) => (
-  <div
-    className="flex items-center justify-between py-3.5 transition-all duration-200"
-    style={{
-      borderBottom: "1px solid rgba(139,92,246,0.06)",
-      animation: `fadeUp 0.5s ease both`,
-      animationDelay: `${index * 0.07}s`,
-    }}
-  >
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-        style={{ background: `${project.color}18`, border: `1px solid ${project.color}30`, color: project.color }}>
-        {project.title[0]}
+const AppliedRow = ({ project, index }) => {
+  const pData = project.project || project;
+  const title = pData.title || "Project";
+  const color = pData.color || "#a78bfa";
+  return (
+    <div
+      className="flex items-center justify-between py-3.5 transition-all duration-200"
+      style={{
+        borderBottom: "1px solid rgba(139,92,246,0.06)",
+        animation: `fadeUp 0.5s ease both`,
+        animationDelay: `${index * 0.07}s`,
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+          style={{ background: `${color}18`, border: `1px solid ${color}30`, color: color }}>
+          {title[0]}
+        </div>
+        <div>
+          <p className="text-white text-sm font-medium">{title}</p>
+          <p className="text-xs" style={{ color: "#4b5563" }}>
+            {project.role || 'Contributor'} · by {pData.owner?.fullName || 'Member'}
+          </p>
+        </div>
       </div>
-      <div>
-        <p className="text-white text-sm font-medium">{project.title}</p>
-        <p className="text-xs" style={{ color: "#4b5563" }}>
-          {project.role} · by {project.author} · {project.appliedDate}
-        </p>
-      </div>
+      <StatusBadge status={project.status} />
     </div>
-    <StatusBadge status={project.status} />
-  </div>
-);
+  );
+};
 
 // ── Empty state ───────────────────────────────────────────────────────────────
 const EmptyState = ({ icon, title, desc, action, onAction }) => (
@@ -321,11 +282,29 @@ const EmptyState = ({ icon, title, desc, action, onAction }) => (
 
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 const DashboardPage = () => {
+  const [dashboard, setDashboard] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await api.get('/users/dashboard')
+        setDashboard(res.data.data)
+        setLoading(false)
+      } catch (err) {
+        setError('Failed to load dashboard.')
+        setLoading(false)
+      }
+    }
+    fetchDashboard()
+  }, [])
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector(s => s.auth);
+  const displayName = user?.fullName || user?.name || "Builder";
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  //const [showMyProjects] = useState(true);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -334,6 +313,16 @@ const DashboardPage = () => {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  if (loading) return <div className="flex justify-center p-20"><p className="text-gray-400">Loading dashboard...</p></div>
+  if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>
+  if (!dashboard) return null
+
+  const STATS = [
+    { label: "Projects Posted", value: dashboard.stats.projectsPosted || 0, icon: "📁", color: "#7c3aed", bg: "rgba(124,58,237,0.12)" },
+    { label: "Applications Sent", value: dashboard.stats.applicationsSubmitted || 0, icon: "📨", color: "#61dafb", bg: "rgba(97,218,251,0.12)" },
+    { label: "Match Score", value: "87%", icon: "⚡", color: "#fb923c", bg: "rgba(251,146,60,0.12)" },
+  ];
 
   return (
     <>
@@ -394,11 +383,10 @@ const DashboardPage = () => {
             <div>
               <p className="text-xs mb-0.5" style={{ color: "#4b5563" }}>{greeting},</p>
               <h2 className="text-white font-bold text-base" style={{ letterSpacing: "-0.01em" }}>
-                {user?.name || "Builder"} 👋
+                {displayName} 👋
               </h2>
             </div>
             <div className="flex items-center gap-2">
-              {/* Notification bell */}
               <button
                 className="topbar-btn relative"
                 style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280" }}
@@ -408,25 +396,19 @@ const DashboardPage = () => {
                   style={{ background: "#7c3aed", color: "#fff", fontSize: 9 }}>3</span>
               </button>
 
-              {/* Browse feed */}
               <button
                 onClick={() => navigate("/feed")}
                 className="topbar-btn"
                 style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)", color: "#9ca3af" }}
-                onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.35)"; }}
-                onMouseLeave={e => { e.currentTarget.style.color = "#9ca3af"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.15)"; }}
               >
                 <span style={{ fontSize: 12 }}>🔍</span>
                 Browse
               </button>
 
-              {/* Create project CTA */}
               <button
                 onClick={() => navigate("/projects/create")}
                 className="topbar-btn"
                 style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff" }}
-                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 20px rgba(124,58,237,0.4)"; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
               >
                 <span style={{ fontSize: 12 }}>+</span>
                 New Project
@@ -448,9 +430,6 @@ const DashboardPage = () => {
             >
               <div className="absolute inset-0 pointer-events-none"
                 style={{ background: "radial-gradient(ellipse 70% 80% at 0% 50%, rgba(109,40,217,0.15) 0%, transparent 60%)" }} />
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden md:block pointer-events-none">
-                <div className="text-6xl opacity-10" style={{ filter: "blur(1px)" }}>⚡</div>
-              </div>
               <div className="relative">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: "#4ade80", boxShadow: "0 0 8px #4ade80" }} />
@@ -460,15 +439,13 @@ const DashboardPage = () => {
                   Ready to build something great?
                 </h2>
                 <p className="text-sm mb-4" style={{ color: "#4b5563" }}>
-                  You have <span style={{ color: "#a78bfa" }}>3 pending applications</span> and <span style={{ color: "#4ade80" }}>1 active project</span> waiting for you.
+                  You have <span style={{ color: "#a78bfa" }}>{dashboard.stats.applicationsSubmitted || 0} applications</span> submitted and <span style={{ color: "#4ade80" }}>{dashboard.stats.activeTeams || 0} active teams</span>.
                 </p>
                 <div className="flex gap-3 flex-wrap">
                   <button
                     onClick={() => navigate("/projects/create")}
                     className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
                     style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}
-                    onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 25px rgba(124,58,237,0.4)"}
-                    onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}
                   >
                     + Post a new project
                   </button>
@@ -476,8 +453,6 @@ const DashboardPage = () => {
                     onClick={() => navigate("/feed")}
                     className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200"
                     style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", color: "#9ca3af", cursor: "pointer" }}
-                    onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.4)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = "#9ca3af"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.2)"; }}
                   >
                     Browse projects →
                   </button>
@@ -493,10 +468,7 @@ const DashboardPage = () => {
             {/* ── Two column layout ── */}
             <div className="grid lg:grid-cols-3 gap-6">
 
-              {/* ── Left col (2/3) ── */}
               <div className="lg:col-span-2 space-y-6">
-
-                {/* My Projects */}
                 <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.2s" }}>
                   <div className="section-title">
                     <div className="flex items-center gap-2">
@@ -504,23 +476,21 @@ const DashboardPage = () => {
                       My Projects
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium"
                         style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
-                        {MY_PROJECTS.length}
+                        {dashboard.recentProjects.length}
                       </span>
                     </div>
                     <button
                       onClick={() => navigate("/my-projects")}
                       className="text-xs transition-colors"
                       style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563" }}
-                      onMouseEnter={e => e.currentTarget.style.color = "#a78bfa"}
-                      onMouseLeave={e => e.currentTarget.style.color = "#4b5563"}
                     >
                       View all →
                     </button>
                   </div>
 
-                  {MY_PROJECTS.length > 0 ? (
+                  {dashboard.recentProjects.length > 0 ? (
                     <div className="space-y-3">
-                      {MY_PROJECTS.map(p => <MyProjectCard key={p.id} project={p} />)}
+                      {dashboard.recentProjects.map(p => <MyProjectCard key={p._id} project={p} />)}
                     </div>
                   ) : (
                     <EmptyState
@@ -533,7 +503,6 @@ const DashboardPage = () => {
                   )}
                 </div>
 
-                {/* Applied Projects */}
                 <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.3s" }}>
                   <div className="section-title">
                     <div className="flex items-center gap-2">
@@ -541,23 +510,21 @@ const DashboardPage = () => {
                       Applied Projects
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium"
                         style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
-                        {APPLIED_PROJECTS.length}
+                        {dashboard.recentApplications.length}
                       </span>
                     </div>
                     <button
-                      onClick={() => navigate("/feed")}
+                      onClick={() => navigate("/applications")}
                       className="text-xs transition-colors"
                       style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563" }}
-                      onMouseEnter={e => e.currentTarget.style.color = "#a78bfa"}
-                      onMouseLeave={e => e.currentTarget.style.color = "#4b5563"}
                     >
-                      Browse more →
+                      View all →
                     </button>
                   </div>
 
-                  {APPLIED_PROJECTS.length > 0 ? (
+                  {dashboard.recentApplications.length > 0 ? (
                     <div>
-                      {APPLIED_PROJECTS.map((p, i) => <AppliedRow key={p.id} project={p} index={i} />)}
+                      {dashboard.recentApplications.map((p, i) => <AppliedRow key={p._id} project={p} index={i} />)}
                     </div>
                   ) : (
                     <EmptyState
@@ -571,10 +538,7 @@ const DashboardPage = () => {
                 </div>
               </div>
 
-              {/* ── Right col (1/3) ── */}
               <div className="space-y-6">
-
-                {/* Quick actions */}
                 <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.25s" }}>
                   <div className="section-title">
                     <span>Quick actions</span>
@@ -584,15 +548,13 @@ const DashboardPage = () => {
                       { icon: "➕", label: "Post a project", desc: "Find your team", action: () => navigate("/projects/create"), color: "#7c3aed" },
                       { icon: "🔍", label: "Browse projects", desc: "Find work to join", action: () => navigate("/feed"), color: "#61dafb" },
                       { icon: "👤", label: "Edit profile", desc: "Update your skills", action: () => navigate("/profile"), color: "#4ade80" },
-                      { icon: "🔔", label: "Notifications", desc: "3 unread alerts", action: () => {}, color: "#fb923c" },
+                      { icon: "🔔", label: "Notifications", desc: "3 unread alerts", action: () => { }, color: "#fb923c" },
                     ].map(item => (
                       <button
                         key={item.label}
                         onClick={item.action}
                         className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 text-left"
                         style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.08)", cursor: "pointer" }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(139,92,246,0.1)"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.2)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "rgba(139,92,246,0.04)"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.08)"; }}
                       >
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                           style={{ background: `${item.color}15` }}>
@@ -607,31 +569,31 @@ const DashboardPage = () => {
                   </div>
                 </div>
 
-                {/* Activity feed */}
-                <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.35s" }}>
-                  <div className="section-title">
-                    <div className="flex items-center gap-2">
-                      <span style={{ fontSize: 14 }}>⚡</span>
-                      Recent Activity
+                {dashboard.recentApplications.length > 0 && (
+                  <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.35s" }}>
+                    <div className="section-title">
+                      <div className="flex items-center gap-2">
+                        <span style={{ fontSize: 14 }}>⚡</span>
+                        Recent Activity
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      {dashboard.recentApplications.map((a, i) => (
+                        <div key={i} className="flex gap-3" style={{ animation: `fadeUp 0.5s ease both`, animationDelay: `${i * 0.07}s` }}>
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs"
+                            style={{ background: "rgba(97,218,251,0.12)", border: "1px solid rgba(97,218,251,0.25)" }}>
+                            📨
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-white leading-relaxed">Applied to {a.project?.title || 'Project'}</p>
+                            <p className="text-xs mt-0.5" style={{ color: "#374151" }}>{new Date(a.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    {ACTIVITY.map((a, i) => (
-                      <div key={i} className="flex gap-3" style={{ animation: `fadeUp 0.5s ease both`, animationDelay: `${i * 0.07}s` }}>
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs"
-                          style={{ background: `${a.color}15`, border: `1px solid ${a.color}25` }}>
-                          {a.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-white leading-relaxed">{a.text}</p>
-                          <p className="text-xs mt-0.5" style={{ color: "#374151" }}>{a.time}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                )}
 
-                {/* Match score card */}
                 <div
                   className="section-card text-center"
                   style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.4s" }}
@@ -663,8 +625,6 @@ const DashboardPage = () => {
                     onClick={() => navigate("/profile")}
                     className="text-xs px-3 py-1.5 rounded-lg w-full transition-all duration-200"
                     style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa", cursor: "pointer" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(139,92,246,0.18)"}
-                    onMouseLeave={e => e.currentTarget.style.background = "rgba(139,92,246,0.1)"}
                   >
                     Improve your profile →
                   </button>
