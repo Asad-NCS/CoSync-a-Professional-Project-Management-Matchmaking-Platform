@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
   github: { type: String },
   linkedin: { type: String },
   avatar: { type: String },
+  completedProjects: { type: Number, default: 0 },
+  rating: { type: Number, default: 5 },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

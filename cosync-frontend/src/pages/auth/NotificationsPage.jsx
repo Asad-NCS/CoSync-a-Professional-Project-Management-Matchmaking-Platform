@@ -1,48 +1,100 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
-
-const NOTIFICATIONS = [
-  { id: 1, type: "application", icon: "👤", title: "New applicant on AI Chess Bot", desc: "Ali Hassan applied for the React Developer role", time: "2 hours ago", read: false, color: "#61dafb" },
-  { id: 2, type: "accepted", icon: "🎉", title: "Application accepted!", desc: "Umar Farooq accepted your application to E-Sports Tournament Platform", time: "5 hours ago", read: false, color: "#4ade80" },
-  { id: 3, type: "message", icon: "💬", title: "New message in AI Chess Bot", desc: "Sara Q: 'Hey, should we start with the board UI or the engine first?'", time: "1 day ago", read: false, color: "#a78bfa" },
-  { id: 4, type: "application", icon: "👤", title: "New applicant on AI Chess Bot", desc: "Bilal Ahmed applied for the Python Developer role", time: "1 day ago", read: true, color: "#fb923c" },
-  { id: 5, type: "system", icon: "⚡", title: "Your match score improved!", desc: "Adding Python to your profile boosted your match score to 87%", time: "2 days ago", read: true, color: "#fbbf24" },
-  { id: 6, type: "deadline", icon: "📅", title: "Deadline reminder", desc: "AI Chess Bot application deadline is in 3 days (May 10)", time: "2 days ago", read: true, color: "#f87171" },
-  { id: 7, type: "accepted", icon: "👥", title: "Team formed!", desc: "Your project AI Chess Bot now has 2 members. Workspace is ready!", time: "3 days ago", read: true, color: "#4ade80" },
-  { id: 8, type: "system", icon: "🚀", title: "Project published", desc: "AI Chess Bot is now live on the feed. Share it to attract collaborators!", time: "4 days ago", read: true, color: "#a78bfa" },
-];
+import api from "../../lib/api";
 
 const TYPE_FILTERS = ["All", "Applications", "Accepted", "Messages", "System"];
-const TYPE_MAP = { application: "Applications", accepted: "Accepted", message: "Messages", system: "System", deadline: "System" };
+const TYPE_MAP = { 
+  application_received: "Applications", 
+  application_accepted: "Accepted", 
+  application_rejected: "Accepted",
+  new_message: "Messages", 
+  project_published: "System", 
+  team_formed: "System", 
+  deadline_reminder: "System" 
+};
+
+const ICON_MAP = {
+  application_received: "👤",
+  application_accepted: "🎉",
+  application_rejected: "❌",
+  new_message: "💬",
+  project_published: "🚀",
+  team_formed: "👥",
+  deadline_reminder: "📅"
+};
+
+const COLOR_MAP = {
+  application_received: "#61dafb",
+  application_accepted: "#4ade80",
+  application_rejected: "#f87171",
+  new_message: "#a78bfa",
+  project_published: "#fb923c",
+  team_formed: "#34d399",
+  deadline_reminder: "#fbbf24"
+};
 
 const NotificationsPage = () => {
   const navigate = useNavigate();
-  const [notes, setNotes] = useState(NOTIFICATIONS);
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get('/notifications');
+      setNotes(res.data.data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      setLoading(false);
+    }
+  };
 
   const unread = notes.filter(n => !n.read).length;
   const filtered = notes.filter(n => filter === "All" || TYPE_MAP[n.type] === filter);
 
-  const markAllRead = () => setNotes(notes.map(n => ({ ...n, read: true })));
-  const markRead = (id) => setNotes(notes.map(n => n.id === id ? { ...n, read: true } : n));
-  const deleteNote = (id) => setNotes(notes.filter(n => n.id !== id));
+  const markAllRead = async () => {
+    try {
+      await api.put('/notifications/read-all');
+      setNotes(notes.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error('Error marking all read:', err);
+    }
+  };
+
+  const markRead = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      setNotes(notes.map(n => n._id === id ? { ...n, read: true } : n));
+    } catch (err) {
+      console.error('Error marking read:', err);
+    }
+  };
+
+  const deleteNote = async (id) => {
+    try {
+      await api.delete(`/notifications/${id}`);
+      setNotes(notes.filter(n => n._id !== id));
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+    }
+  };
 
   return (
     <>
-      <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
-        .filter-btn { padding:6px 14px; border-radius:8px; font-size:0.78rem; font-weight:500; cursor:pointer; transition:all 0.2s; border:none; font-family:inherit; }
-      `}</style>
-
-      <div className="min-h-screen" style={{ background: "#05030f", fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
+      <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         {/* Navbar */}
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
           style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+              <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>
@@ -98,9 +150,13 @@ const NotificationsPage = () => {
 
           {/* Notification list */}
           <div className="space-y-2" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.15s" }}>
-            {filtered.map((n, i) => (
+            {loading ? (
+              <div className="text-center py-20">
+                <p className="text-gray-400">Loading notifications...</p>
+              </div>
+            ) : filtered.map((n, i) => (
               <div
-                key={n.id}
+                key={n._id}
                 className="flex items-start gap-4 p-4 rounded-2xl transition-all duration-200 group"
                 style={{
                   background: n.read ? "rgba(12,8,32,0.6)" : "rgba(20,12,50,0.9)",
@@ -109,12 +165,12 @@ const NotificationsPage = () => {
                   animationDelay: `${i * 0.05}s`,
                   cursor: "pointer",
                 }}
-                onClick={() => markRead(n.id)}
+                onClick={() => markRead(n._id)}
               >
                 {/* Icon */}
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
-                  style={{ background: `${n.color}15`, border: `1px solid ${n.color}25` }}>
-                  {n.icon}
+                  style={{ background: `${COLOR_MAP[n.type] || "#a78bfa"}15`, border: `1px solid ${COLOR_MAP[n.type] || "#a78bfa"}25` }}>
+                  {ICON_MAP[n.type] || "🔔"}
                 </div>
 
                 {/* Content */}
@@ -124,20 +180,20 @@ const NotificationsPage = () => {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {!n.read && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#7c3aed" }} />}
                       <button
-                        onClick={e => { e.stopPropagation(); deleteNote(n.id); }}
+                        onClick={e => { e.stopPropagation(); deleteNote(n._id); }}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-xs"
                         style={{ background: "none", border: "none", cursor: "pointer", color: "#374151" }}>
                         ×
                       </button>
                     </div>
                   </div>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: n.read ? "#374151" : "#6b7280" }}>{n.desc}</p>
-                  <p className="text-xs mt-1.5" style={{ color: "#374151" }}>{n.time}</p>
+                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: n.read ? "#374151" : "#6b7280" }}>{n.description}</p>
+                  <p className="text-xs mt-1.5" style={{ color: "#374151" }}>{new Date(n.createdAt).toLocaleString()}</p>
                 </div>
               </div>
             ))}
 
-            {filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <div className="text-center py-20">
                 <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
                   style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.12)" }}>

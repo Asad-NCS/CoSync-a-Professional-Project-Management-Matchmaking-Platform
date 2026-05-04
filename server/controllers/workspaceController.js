@@ -44,6 +44,11 @@ const getWorkspace = async (req, res) => {
       await workspace.save();
     }
 
+    await workspace.populate([
+      { path: 'project', select: 'title owner status deadline members', populate: { path: 'members', select: 'fullName avatar role' } },
+      { path: 'columns.tasks.assignee', select: 'fullName avatar' }
+    ]);
+
     res.status(200).json({ success: true, data: workspace });
   } catch (error) {
     console.error('getWorkspace error:', error);

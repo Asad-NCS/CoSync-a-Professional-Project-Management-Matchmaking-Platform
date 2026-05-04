@@ -44,10 +44,8 @@ const ActivityTab = ({ workspace }) => {
   return (
     <>
       <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         .activity-scroll::-webkit-scrollbar { width:3px; }
         .activity-scroll::-webkit-scrollbar-thumb { background:rgba(139,92,246,0.2); border-radius:2px; }
-        .filter-btn { padding:5px 12px; border-radius:8px; font-size:0.75rem; font-weight:500; cursor:pointer; transition:all 0.2s; border:none; font-family:inherit; white-space:nowrap; }
       `}</style>
 
       <div className="flex-1 flex overflow-hidden">

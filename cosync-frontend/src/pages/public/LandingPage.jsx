@@ -1,604 +1,287 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect } from "react";
+import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 
-// ── Animated grid background ──────────────────────────────────────────────────
+// ── Feature card with mouse-following glow ───────────────────────────────────
+const FeatureCard = ({ icon, title, desc, delay }) => {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  return (
+    <div
+      className="group relative rounded-xl border border-border bg-surface p-6 transition-colors hover:border-secondary/50 overflow-hidden opacity-0 animate-fade-up"
+      style={{ animationDelay: delay }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Glow effect */}
+      <div
+        className="pointer-events-none absolute -inset-px transition-opacity duration-300"
+        style={{
+          opacity: isHovered ? 1 : 0,
+          background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.06), transparent 40%)`,
+        }}
+      />
+
+      <div className="relative z-10 w-8 h-8 rounded-lg flex items-center justify-center text-lg mb-4 bg-border text-primary shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+        {icon}
+      </div>
+      <h3 className="relative z-10 text-primary font-medium mb-2 text-sm">{title}</h3>
+      <p className="relative z-10 text-secondary text-sm leading-relaxed">{desc}</p>
+    </div>
+  );
+};
+
+// ── Animated Grid Background ──────────────────────────────────────────────────
 const GridBackground = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+  <div className="absolute inset-0 pointer-events-none overflow-hidden [mask-image:linear-gradient(to_bottom,white,transparent)]">
     <div
       className="absolute inset-0"
       style={{
         backgroundImage: `
-          linear-gradient(rgba(139,92,246,0.07) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(139,92,246,0.07) 1px, transparent 1px)
+          linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px)
         `,
-        backgroundSize: "60px 60px",
-      }}
-    />
-    <div
-      className="absolute inset-0"
-      style={{
-        background:
-          "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(139,92,246,0.15) 0%, transparent 70%)",
+        backgroundSize: '40px 40px',
+        animation: 'gridMove 20s linear infinite'
       }}
     />
   </div>
 );
 
-// ── Floating orbs ─────────────────────────────────────────────────────────────
-const Orbs = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    <div
-      className="absolute rounded-full"
-      style={{
-        width: 600,
-        height: 600,
-        top: "-200px",
-        left: "-100px",
-        background:
-          "radial-gradient(circle, rgba(109,40,217,0.18) 0%, transparent 70%)",
-        animation: "floatA 12s ease-in-out infinite",
-      }}
-    />
-    <div
-      className="absolute rounded-full"
-      style={{
-        width: 500,
-        height: 500,
-        top: "10%",
-        right: "-150px",
-        background:
-          "radial-gradient(circle, rgba(139,92,246,0.13) 0%, transparent 70%)",
-        animation: "floatB 15s ease-in-out infinite",
-      }}
-    />
-    <div
-      className="absolute rounded-full"
-      style={{
-        width: 400,
-        height: 400,
-        bottom: "5%",
-        left: "30%",
-        background:
-          "radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%)",
-        animation: "floatC 18s ease-in-out infinite",
-      }}
-    />
-  </div>
-);
+// ── Animated Mock Kanban Board ────────────────────────────────────────────────
+const MockKanban = () => {
+  return (
+    <div className="mt-20 w-full max-w-4xl relative animate-fade-up perspective-1000" style={{ animationDelay: '0.4s' }}>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background z-20 pointer-events-none rounded-2xl"></div>
 
-// ── Typewriter hook ───────────────────────────────────────────────────────────
-const useTypewriter = (words, speed = 100, pause = 2000) => {
-  const [display, setDisplay] = useState("");
-  const [wordIdx, setWordIdx] = useState(0);
-  const [charIdx, setCharIdx] = useState(0);
-  const [deleting, setDeleting] = useState(false);
+      {/* Main Panel */}
+      <div className="glass-panel p-2 flex flex-col overflow-hidden relative shadow-2xl shadow-black border-border/60 transform-gpu transition-transform duration-700 hover:rotate-x-2 hover:-translate-y-2">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50 bg-background/50">
+          <div className="w-3 h-3 rounded-full bg-border"></div>
+          <div className="w-3 h-3 rounded-full bg-border"></div>
+          <div className="w-3 h-3 rounded-full bg-border"></div>
+        </div>
 
-  useEffect(() => {
-    const current = words[wordIdx];
-    let timeout;
-    if (!deleting && charIdx < current.length) {
-      timeout = setTimeout(() => setCharIdx((c) => c + 1), speed);
-    } else if (!deleting && charIdx === current.length) {
-      timeout = setTimeout(() => setDeleting(true), pause);
-    } else if (deleting && charIdx > 0) {
-      timeout = setTimeout(() => setCharIdx((c) => c - 1), speed / 2);
-    } else {
-      setDeleting(false);
-      setWordIdx((w) => (w + 1) % words.length);
-    }
-    setDisplay(current.slice(0, charIdx));
-    return () => clearTimeout(timeout);
-  }, [charIdx, deleting, wordIdx, words, speed, pause]);
+        <div className="p-8 grid grid-cols-3 gap-6 opacity-80 h-[320px]">
+          {/* Column 1 */}
+          <div className="col-span-1 flex flex-col gap-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="h-5 w-24 bg-border/80 rounded"></div>
+              <div className="h-4 w-6 rounded-full bg-border/50"></div>
+            </div>
+            {/* Task Card 1 */}
+            <div className="h-24 bg-surface rounded-lg border border-border/80 p-3 flex flex-col justify-between shadow-sm">
+              <div className="h-3 w-3/4 bg-border rounded"></div>
+              <div className="flex justify-between items-center mt-auto">
+                <div className="h-4 w-12 bg-accent/20 rounded"></div>
+                <div className="h-5 w-5 rounded-full bg-border"></div>
+              </div>
+            </div>
+            {/* Task Card 2 */}
+            <div className="h-20 bg-surface rounded-lg border border-border/80 p-3 shadow-sm">
+              <div className="h-3 w-1/2 bg-border rounded"></div>
+            </div>
+          </div>
 
-  return display;
+          {/* Column 2 - Animated */}
+          <div className="col-span-1 flex flex-col gap-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="h-5 w-28 bg-border/80 rounded"></div>
+              <div className="h-4 w-6 rounded-full bg-border/50"></div>
+            </div>
+            {/* Animated dropping card */}
+            <div className="h-28 bg-surface rounded-lg border border-accent/40 p-3 shadow-[0_0_15px_rgba(0,112,243,0.15)] flex flex-col justify-between relative animate-[floatDown_4s_ease-in-out_infinite]">
+              <div>
+                <div className="h-3 w-full bg-primary/20 rounded mb-2"></div>
+                <div className="h-3 w-2/3 bg-border rounded"></div>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="h-4 w-16 bg-accent/30 rounded"></div>
+                <div className="flex -space-x-1">
+                  <div className="h-5 w-5 rounded-full bg-border"></div>
+                  <div className="h-5 w-5 rounded-full bg-secondary"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 3 */}
+          <div className="col-span-1 flex flex-col gap-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="h-5 w-16 bg-border/80 rounded"></div>
+              <div className="h-4 w-6 rounded-full bg-border/50"></div>
+            </div>
+            {/* Task Card 3 */}
+            <div className="h-32 bg-surface rounded-lg border border-border/80 p-3 flex flex-col justify-between shadow-sm opacity-60">
+              <div>
+                <div className="h-3 w-full bg-border rounded mb-2"></div>
+                <div className="h-3 w-5/6 bg-border rounded mb-2"></div>
+                <div className="h-3 w-1/2 bg-border rounded"></div>
+              </div>
+              <div className="flex justify-end mt-auto">
+                <div className="h-5 w-5 rounded-full bg-border"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
-
-// ── Skill pill ────────────────────────────────────────────────────────────────
-const Pill = ({ label, color }) => (
-  <span
-    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border"
-    style={{
-      background: `${color}18`,
-      borderColor: `${color}40`,
-      color: color,
-    }}
-  >
-    <span
-      className="w-1.5 h-1.5 rounded-full"
-      style={{ background: color }}
-    />
-    {label}
-  </span>
-);
-
-// ── Animated project card (hero visual) ──────────────────────────────────────
-const HeroCard = ({ title, roles, delay }) => (
-  <div
-    className="rounded-xl border p-4 backdrop-blur-sm"
-    style={{
-      background: "rgba(15,10,40,0.7)",
-      borderColor: "rgba(139,92,246,0.2)",
-      animation: `cardFloat 6s ease-in-out infinite`,
-      animationDelay: delay,
-      minWidth: 260,
-    }}
-  >
-    <div className="flex items-start justify-between mb-3">
-      <div>
-        <p className="text-white text-sm font-semibold">{title}</p>
-        <p className="text-purple-400 text-xs mt-0.5">Open for applications</p>
-      </div>
-      <span
-        className="text-xs px-2 py-0.5 rounded-full"
-        style={{
-          background: "rgba(34,197,94,0.15)",
-          color: "#4ade80",
-          border: "1px solid rgba(34,197,94,0.3)",
-        }}
-      >
-        Active
-      </span>
-    </div>
-    <div className="flex flex-wrap gap-1.5 mb-3">
-      {roles.map((r) => (
-        <Pill key={r.label} {...r} />
-      ))}
-    </div>
-    <div className="flex items-center gap-2">
-      <div className="flex -space-x-2">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="w-6 h-6 rounded-full border-2 border-[#0a0520]"
-            style={{
-              background: `hsl(${260 + i * 30},70%,60%)`,
-            }}
-          />
-        ))}
-      </div>
-      <span className="text-xs text-gray-500">3 applicants</span>
-    </div>
-  </div>
-);
-
-// ── Feature card ─────────────────────────────────────────────────────────────
-const FeatureCard = ({ icon, title, desc, delay }) => (
-  <div
-    className="group relative rounded-2xl border p-6 transition-all duration-300 hover:border-purple-500/40"
-    style={{
-      background: "rgba(15,10,40,0.5)",
-      borderColor: "rgba(139,92,246,0.15)",
-      animation: `fadeUp 0.6s ease both`,
-      animationDelay: delay,
-    }}
-  >
-    <div
-      className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4"
-      style={{ background: "rgba(139,92,246,0.15)" }}
-    >
-      {icon}
-    </div>
-    <h3 className="text-white font-semibold mb-2 text-sm">{title}</h3>
-    <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
-    <div
-      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-      style={{
-        background:
-          "radial-gradient(circle at 50% 0%, rgba(139,92,246,0.08) 0%, transparent 60%)",
-      }}
-    />
-  </div>
-);
 
 // ── Stat ──────────────────────────────────────────────────────────────────────
 const Stat = ({ value, label }) => (
-  <div className="text-center">
-    <p
-      className="text-3xl font-bold mb-1"
-      style={{
-        background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-      }}
-    >
-      {value}
-    </p>
-    <p className="text-gray-500 text-sm">{label}</p>
+  <div className="text-center group">
+    <p className="text-3xl font-medium mb-1 text-primary group-hover:text-accent transition-colors duration-500">{value}</p>
+    <p className="text-secondary text-sm">{label}</p>
   </div>
 );
 
 // ── Main Landing Page ─────────────────────────────────────────────────────────
 const LandingPage = () => {
   const navigate = useNavigate();
-  const typed = useTypewriter(
-    ["Hackathons", "Startups", "Research", "Open Source", "FYPs"],
-    80,
-    1800
-  );
 
   return (
     <>
-      {/* ── Global keyframes ── */}
       <style>{`
-        @keyframes floatA {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(40px, 30px) scale(1.05); }
+        @keyframes gridMove {
+          0% { transform: translateY(-40px); }
+          100% { transform: translateY(0); }
         }
-        @keyframes floatB {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(-30px, 40px) scale(0.97); }
+        @keyframes floatDown {
+          0%, 100% { transform: translateY(0px); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+          50% { transform: translateY(-12px); box-shadow: 0 20px 25px rgba(0,112,243,0.15); border-color: rgba(0,112,243,0.6); }
         }
-        @keyframes floatC {
-          0%,100% { transform: translate(0,0); }
-          50% { transform: translate(20px,-20px); }
-        }
-        @keyframes cardFloat {
-          0%,100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-12px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse-ring {
-          0%   { transform: scale(1); opacity: 0.4; }
-          100% { transform: scale(1.6); opacity: 0; }
-        }
-        .cursor-blink::after {
-          content: '|';
-          animation: blink 1s step-end infinite;
-          color: #a78bfa;
-          margin-left: 2px;
-        }
-        @keyframes blink {
-          0%,100% { opacity: 1; } 50% { opacity: 0; }
-        }
-        .nav-link {
-          color: #9ca3af;
-          font-size: 0.875rem;
-          transition: color 0.2s;
-          text-decoration: none;
-        }
-        .nav-link:hover { color: #fff; }
-        .btn-primary {
-          background: linear-gradient(135deg, #7c3aed, #6d28d9);
-          color: white;
-          border: none;
-          padding: 0.625rem 1.5rem;
-          border-radius: 0.5rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-          position: relative;
-          overflow: hidden;
-        }
-        .btn-primary:hover {
-          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-          transform: translateY(-1px);
-          box-shadow: 0 8px 25px rgba(124,58,237,0.35);
-        }
-        .btn-secondary {
-          background: transparent;
-          color: #d1d5db;
-          border: 1px solid rgba(139,92,246,0.3);
-          padding: 0.625rem 1.5rem;
-          border-radius: 0.5rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .btn-secondary:hover {
-          border-color: rgba(139,92,246,0.6);
-          color: #fff;
-          background: rgba(139,92,246,0.08);
-        }
-        .btn-hero {
-          background: linear-gradient(135deg, #7c3aed, #6d28d9);
-          color: white;
-          border: none;
-          padding: 0.875rem 2rem;
-          border-radius: 0.625rem;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.25s;
-        }
-        .btn-hero:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 12px 35px rgba(124,58,237,0.4);
-        }
-        .btn-ghost {
-          background: transparent;
-          color: #9ca3af;
-          border: 1px solid rgba(255,255,255,0.1);
-          padding: 0.875rem 2rem;
-          border-radius: 0.625rem;
-          font-size: 1rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.25s;
-        }
-        .btn-ghost:hover {
-          color: #fff;
-          border-color: rgba(255,255,255,0.25);
-        }
+        .perspective-1000 { perspective: 1000px; }
+        .rotate-x-2 { transform: rotateX(2deg); }
       `}</style>
 
-      <div
-        className="min-h-screen relative"
-        style={{ background: "#05030f", color: "#fff", fontFamily: "'DM Sans', system-ui, sans-serif" }}
-      >
+      <div className="min-h-screen text-primary selection:bg-primary selection:text-background flex flex-col font-sans relative overflow-hidden">
         <GridBackground />
-        <Orbs />
 
         {/* ── Navbar ── */}
-        <nav
-          className="relative z-50 flex items-center justify-between px-6 py-4 max-w-6xl mx-auto"
-          style={{ animation: "slideDown 0.5s ease both" }}
-        >
-          <div className="flex items-center gap-2">
-            <img
-              src="/cosync_logo.jpeg"
-              alt="CoSync Logo"
-              className="w-7 h-7 rounded-lg object-contain"
-            />
-            <span className="font-semibold text-white tracking-tight">CoSync</span>
+        <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 py-4 border-b border-border bg-background/60 backdrop-blur-xl transition-all duration-300">
+          <div className="flex items-center gap-3 group cursor-pointer">
+            <Logo className="w-6 h-6 transition-transform group-hover:scale-110" />
+            <span className="font-medium tracking-tight">CoSync</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-7">
-            <a href="/feed" className="nav-link">Projects</a>
-            <a href="#features" className="nav-link">Features</a>
-            <a href="#how" className="nav-link">How it works</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a href="/feed" className="text-secondary hover:text-primary transition-colors">Projects</a>
+            <a href="#features" className="text-secondary hover:text-primary transition-colors">Features</a>
+            <a href="#how" className="text-secondary hover:text-primary transition-colors">How it works</a>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button className="btn-secondary" onClick={() => navigate("/login")}>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button className="text-secondary hover:text-primary transition-colors" onClick={() => navigate("/login")}>
               Sign in
             </button>
-            <button className="btn-primary" onClick={() => navigate("/register")}>
-              Get started
+            <button
+              className="relative overflow-hidden group bg-primary text-background px-4 py-1.5 rounded-md hover:bg-white/90 transition-transform active:scale-95"
+              onClick={() => navigate("/register")}
+            >
+              <span className="relative z-10">Get started</span>
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
             </button>
           </div>
         </nav>
 
         {/* ── Hero ── */}
-        <section className="relative z-10 max-w-6xl mx-auto px-6 pt-20 pb-32">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-
-            {/* Left — copy */}
-            <div style={{ animation: "fadeUp 0.7s ease both", animationDelay: "0.1s" }}>
-              {/* Badge */}
-              <div
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6"
-                style={{
-                  background: "rgba(139,92,246,0.12)",
-                  border: "1px solid rgba(139,92,246,0.3)",
-                  color: "#a78bfa",
-                }}
-              >
-                <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{
-                    background: "#a78bfa",
-                    boxShadow: "0 0 6px #a78bfa",
-                    animation: "pulse-ring 1.5s ease-out infinite",
-                  }}
-                />
-                Now in beta — NUST SEECS
-              </div>
-
-              <h1
-                className="text-5xl lg:text-6xl font-bold leading-tight mb-4"
-                style={{ letterSpacing: "-0.03em" }}
-              >
-                Build teams for
-                <br />
-                <span
-                  className="cursor-blink"
-                  style={{
-                    background: "linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #c084fc 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
-                >
-                  {typed || "\u00a0"}
-                </span>
-              </h1>
-
-              <p className="text-gray-400 text-lg leading-relaxed mb-8 max-w-md">
-                Post your project, find the right collaborators by skill, and manage
-                your team — all in one workspace.
-              </p>
-
-              <div className="flex items-center gap-4 flex-wrap">
-                <button className="btn-hero" onClick={() => navigate("/register")}>
-                  Start a project
-                </button>
-                <button className="btn-ghost" onClick={() => navigate("/feed")}>
-                  Browse projects →
-                </button>
-              </div>
-
-              {/* Social proof */}
-              <div className="flex items-center gap-3 mt-8">
-                <div className="flex -space-x-2">
-                  {["#7c3aed","#8b5cf6","#6d28d9","#a78bfa"].map((c, i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 rounded-full border-2"
-                      style={{ background: c, borderColor: "#05030f" }}
-                    />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-500">
-                  <span className="text-white font-medium">120+</span> students already building
-                </p>
-              </div>
-            </div>
-
-            {/* Right — floating cards */}
-            <div
-              className="relative hidden lg:block"
-              style={{ height: 420, animation: "fadeIn 1s ease both", animationDelay: "0.4s" }}
-            >
-              <div className="absolute top-0 right-0">
-                <HeroCard
-                  title="AI Chess Bot"
-                  delay="0s"
-                  roles={[
-                    { label: "React", color: "#61dafb" },
-                    { label: "Python", color: "#4ade80" },
-                  ]}
-                />
-              </div>
-              <div className="absolute top-32 left-0">
-                <HeroCard
-                  title="Campus Ride Share"
-                  delay="2s"
-                  roles={[
-                    { label: "Node.js", color: "#a78bfa" },
-                    { label: "MongoDB", color: "#4ade80" },
-                  ]}
-                />
-              </div>
-              <div className="absolute bottom-0 right-8">
-                <HeroCard
-                  title="ML Research Paper"
-                  delay="4s"
-                  roles={[
-                    { label: "PyTorch", color: "#fb923c" },
-                    { label: "FastAPI", color: "#34d399" },
-                  ]}
-                />
-              </div>
-            </div>
+        <main className="relative z-10 flex-1 pt-32 pb-24 px-6 max-w-5xl mx-auto w-full flex flex-col items-center text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border border-border bg-surface/50 backdrop-blur text-secondary mb-8 animate-fade-in hover:border-secondary/50 transition-colors cursor-default">
+            <span className="w-2 h-2 rounded-full bg-accent shadow-[0_0_8px_rgba(0,112,243,0.8)] animate-pulse-slow"></span>
+            CoSync Beta is now live at NUST SEECS
           </div>
-        </section>
 
-        {/* ── Stats bar ── */}
-        <section
-          className="relative z-10 max-w-3xl mx-auto px-6 mb-24"
-          style={{ animation: "fadeUp 0.7s ease both", animationDelay: "0.5s" }}
-        >
-          <div
-            className="rounded-2xl border p-8 grid grid-cols-3 gap-8"
-            style={{
-              background: "rgba(15,10,40,0.6)",
-              borderColor: "rgba(139,92,246,0.15)",
-              backdropFilter: "blur(12px)",
-            }}
-          >
-            <Stat value="120+" label="Students" />
-            <Stat value="40+" label="Projects posted" />
-            <Stat value="15+" label="Teams formed" />
+          <h1 className="text-5xl md:text-7xl font-medium tracking-tighter leading-tight mb-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            Build teams.<br />
+            <span className="text-secondary inline-block hover:text-primary transition-colors duration-500 cursor-default">Ship projects faster.</span>
+          </h1>
+
+          <p className="text-secondary text-lg md:text-xl max-w-2xl mb-10 animate-fade-up leading-relaxed" style={{ animationDelay: '0.2s' }}>
+            The professional matchmaking and management platform for student developers, designers, and project leads. No more siloed talent.
+          </p>
+
+          <div className="flex items-center gap-4 animate-fade-up" style={{ animationDelay: '0.3s' }}>
+            <button
+              className="bg-primary text-background px-6 py-3 rounded-lg font-medium hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+              onClick={() => navigate("/register")}
+            >
+              Start building
+            </button>
+            <button
+              className="bg-surface/50 backdrop-blur border border-border text-primary px-6 py-3 rounded-lg font-medium hover:bg-surfaceHover active:scale-95 transition-all"
+              onClick={() => navigate("/feed")}
+            >
+              Browse projects
+            </button>
+          </div>
+
+          <MockKanban />
+        </main>
+
+        {/* ── Stats ── */}
+        <section className="relative z-10 border-y border-border bg-surface/80 backdrop-blur-sm py-12 px-6">
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-border">
+            <Stat value="120+" label="Active Students" />
+            <Stat value="40+" label="Projects Posted" />
+            <Stat value="15+" label="Teams Formed" />
           </div>
         </section>
 
         {/* ── Features ── */}
-        <section id="features" className="relative z-10 max-w-6xl mx-auto px-6 mb-24">
-          <div className="text-center mb-12" style={{ animation: "fadeUp 0.6s ease both" }}>
-            <p className="text-purple-400 text-sm font-medium mb-2 uppercase tracking-widest">
-              Everything you need
-            </p>
-            <h2
-              className="text-3xl font-bold"
-              style={{ letterSpacing: "-0.02em" }}
-            >
-              From idea to shipped product
-            </h2>
+        <section id="features" className="relative z-10 py-32 px-6 max-w-5xl mx-auto w-full">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-medium tracking-tight mb-4">Everything you need</h2>
+            <p className="text-secondary max-w-xl mx-auto">From discovering the right talent to managing your Kanban boards, CoSync handles the entire project lifecycle.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <FeatureCard
-              icon="🎯"
-              title="Skill-based matchmaking"
-              desc="Post what roles you need — React dev, ML engineer, designer. Our engine surfaces the best matches automatically."
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>}
+              title="Skill Matchmaking"
+              desc="Specify your required tech stack and roles. Our engine surfaces developers and designers that perfectly fit your needs."
+              delay="0s"
+            />
+            <FeatureCard
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>}
+              title="Integrated Workspace"
+              desc="Drag-and-drop Kanban boards connected directly to your project. Keep your team aligned without external tools."
               delay="0.1s"
             />
             <FeatureCard
-              icon="📋"
-              title="Kanban workspace"
-              desc="Drag-and-drop task management built right in. To-do, In Progress, Done — your team stays in sync."
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>}
+              title="Team Discussions"
+              desc="Persistent project messaging. Discuss features, share updates, and collaborate in context."
               delay="0.2s"
-            />
-            <FeatureCard
-              icon="💬"
-              title="Team discussions"
-              desc="Threaded conversations per workspace. No need for a separate Slack — everything lives in CoSync."
-              delay="0.3s"
-            />
-            <FeatureCard
-              icon="⚡"
-              title="Real-time updates"
-              desc="When someone moves a task or posts a message, everyone sees it instantly. No refresh required."
-              delay="0.4s"
-            />
-            <FeatureCard
-              icon="📁"
-              title="Resource repository"
-              desc="Store your mocks, docs, and assets in one place. Every team member has instant access."
-              delay="0.5s"
-            />
-            <FeatureCard
-              icon="🏆"
-              title="Reputation system"
-              desc="Complete projects, earn trust scores. Build a track record that speaks louder than a resume."
-              delay="0.6s"
             />
           </div>
         </section>
 
         {/* ── How it works ── */}
-        <section id="how" className="relative z-10 max-w-4xl mx-auto px-6 mb-24">
-          <div className="text-center mb-12">
-            <p className="text-purple-400 text-sm font-medium mb-2 uppercase tracking-widest">
-              How it works
-            </p>
-            <h2 className="text-3xl font-bold" style={{ letterSpacing: "-0.02em" }}>
-              Three steps to your team
-            </h2>
+        <section id="how" className="relative z-10 py-24 px-6 max-w-4xl mx-auto w-full border-t border-border">
+          <div className="mb-16">
+            <h2 className="text-3xl font-medium tracking-tight mb-4">How it works</h2>
           </div>
 
-          <div className="relative">
-            {/* connector line */}
-            <div
-              className="absolute left-6 top-8 bottom-8 w-px hidden md:block"
-              style={{ background: "linear-gradient(to bottom, transparent, rgba(139,92,246,0.4), transparent)" }}
-            />
-
+          <div className="space-y-12">
             {[
-              { step: "01", title: "Post your project", desc: "Describe your idea, specify the tech stack, and list the roles you need filled." },
-              { step: "02", title: "Match with collaborators", desc: "Students with matching skills discover your project and apply to join your team." },
-              { step: "03", title: "Build together", desc: "Accept applications, unlock your private workspace, and ship your project." },
-            ].map(({ step, title, desc }, i) => (
-              <div
-                key={step}
-                className="flex gap-6 mb-8"
-                style={{ animation: "fadeUp 0.6s ease both", animationDelay: `${i * 0.15}s` }}
-              >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
-                  style={{
-                    background: "rgba(139,92,246,0.15)",
-                    border: "1px solid rgba(139,92,246,0.3)",
-                    color: "#a78bfa",
-                  }}
-                >
-                  {step}
-                </div>
-                <div className="pt-2">
-                  <h3 className="text-white font-semibold mb-1">{title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+              { step: "01", title: "Post your project", desc: "Define your requirements, timeline, and open roles in a clean, structured format." },
+              { step: "02", title: "Find matches", desc: "Browse applicants or let our matchmaking algorithm suggest the perfect collaborators." },
+              { step: "03", title: "Ship it", desc: "Manage tasks in your private workspace and build your reputation on campus." },
+            ].map(({ step, title, desc }) => (
+              <div key={step} className="flex gap-6 items-start group">
+                <div className="text-sm font-medium text-secondary pt-1 transition-colors group-hover:text-primary">{step}</div>
+                <div>
+                  <h3 className="text-xl font-medium mb-2 transition-colors group-hover:text-accent">{title}</h3>
+                  <p className="text-secondary leading-relaxed">{desc}</p>
                 </div>
               </div>
             ))}
@@ -606,59 +289,29 @@ const LandingPage = () => {
         </section>
 
         {/* ── CTA ── */}
-        <section className="relative z-10 max-w-3xl mx-auto px-6 mb-24">
-          <div
-            className="rounded-2xl p-12 text-center relative overflow-hidden"
-            style={{
-              background: "rgba(15,10,40,0.8)",
-              border: "1px solid rgba(139,92,246,0.25)",
-            }}
-          >
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(109,40,217,0.2) 0%, transparent 70%)",
-              }}
-            />
-            <h2
-              className="text-3xl font-bold mb-4 relative"
-              style={{ letterSpacing: "-0.02em" }}
+        <section className="relative z-10 py-32 px-6 border-t border-border bg-surface text-center">
+          <h2 className="text-3xl font-medium tracking-tight mb-6">Ready to build?</h2>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              className="relative overflow-hidden group bg-primary text-background px-6 py-3 rounded-lg font-medium hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+              onClick={() => navigate("/register")}
             >
-              Ready to find your team?
-            </h2>
-            <p className="text-gray-400 mb-8 relative">
-              Join CoSync and turn your ideas into real projects.
-            </p>
-            <div className="flex items-center justify-center gap-4 relative">
-              <button className="btn-hero" onClick={() => navigate("/register")}>
-                Create your account
-              </button>
-              <button className="btn-ghost" onClick={() => navigate("/feed")}>
-                Browse first
-              </button>
-            </div>
+              <span className="relative z-10">Create account</span>
+            </button>
           </div>
         </section>
 
         {/* ── Footer ── */}
-        <footer
-          className="relative z-10 border-t px-6 py-8 max-w-6xl mx-auto"
-          style={{ borderColor: "rgba(139,92,246,0.1)" }}
-        >
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <img
-                src="/cosync_logo.jpeg"
-                alt="CoSync Logo"
-                className="w-5 h-5 rounded object-contain"
-              />
-              <span className="text-sm text-gray-500">CoSync — CS-236 Web Technologies, NUST</span>
+        <footer className="relative z-10 py-8 px-6 border-t border-border bg-background text-center flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-secondary">
+          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <div className="w-4 h-4 bg-secondary rounded-sm flex items-center justify-center text-background font-bold text-[8px] transition-colors group-hover:bg-primary">
+              C
             </div>
-            <div className="flex gap-6">
-              <a href="/feed" className="nav-link text-xs">Projects</a>
-              <a href="/login" className="nav-link text-xs">Sign in</a>
-              <a href="/register" className="nav-link text-xs">Register</a>
-            </div>
+            <span className="transition-colors group-hover:text-primary">CoSync — CS-236 Web Technologies</span>
+          </div>
+          <div className="flex gap-6">
+            <a href="/feed" className="hover:text-primary transition-colors">Projects</a>
+            <a href="/login" className="hover:text-primary transition-colors">Sign in</a>
           </div>
         </footer>
       </div>

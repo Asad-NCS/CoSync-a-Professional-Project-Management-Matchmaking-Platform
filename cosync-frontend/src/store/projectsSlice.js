@@ -14,6 +14,18 @@ export const fetchProjects = createAsyncThunk(
   }
 )
 
+export const fetchMatchedProjects = createAsyncThunk(
+  'projects/fetchMatchedProjects',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/projects/matches')
+      return response.data.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch matched projects')
+    }
+  }
+)
+
 export const fetchMyProjects = createAsyncThunk(
   'projects/fetchMyProjects',
   async (_, { rejectWithValue }) => {
@@ -62,10 +74,23 @@ export const applyToProject = createAsyncThunk(
   }
 )
 
+export const completeProject = createAsyncThunk(
+  'projects/completeProject',
+  async (projectId, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/projects/${projectId}/complete`)
+      return response.data.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to complete project')
+    }
+  }
+)
+
 const projectsSlice = createSlice({
   name: 'projects',
   initialState: {
     projectsList: [],
+    matchedProjects: [],
     myProjects: [],
     appliedProjects: [],
     status: 'idle',
@@ -92,6 +117,18 @@ const projectsSlice = createSlice({
         state.projectsList = action.payload
       })
       .addCase(fetchProjects.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.payload
+      })
+      // fetchMatchedProjects
+      .addCase(fetchMatchedProjects.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(fetchMatchedProjects.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.matchedProjects = action.payload
+      })
+      .addCase(fetchMatchedProjects.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.payload
       })
@@ -142,6 +179,17 @@ const projectsSlice = createSlice({
       .addCase(applyToProject.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.payload
+      })
+      // completeProject
+      .addCase(completeProject.fulfilled, (state, action) => {
+        const index = state.myProjects.findIndex(p => p._id === action.payload._id);
+        if (index !== -1) {
+          state.myProjects[index] = action.payload;
+        }
+        const pIndex = state.projectsList.findIndex(p => p._id === action.payload._id);
+        if (pIndex !== -1) {
+          state.projectsList[pIndex] = action.payload;
+        }
       })
   }
 })

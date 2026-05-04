@@ -1,5 +1,7 @@
 const Application = require('../models/Application');
 const Project = require('../models/Project');
+const User = require('../models/User');
+const { createNotification } = require('./notificationsController');
 
 // POST /api/projects/:id/apply
 const applyToProject = async (req, res) => {
@@ -29,6 +31,17 @@ const applyToProject = async (req, res) => {
     });
 
     await application.save();
+
+    // Create notification for the project owner
+    const applicantUser = await User.findById(applicantId);
+    await createNotification({
+      recipient: project.owner,
+      type: 'application_received',
+      title: 'New Project Application',
+      description: `${applicantUser.fullName} applied to your project "${project.title}"`,
+      relatedProject: project._id,
+      relatedUser: applicantId
+    });
 
     res.status(201).json({ success: true, data: application });
   } catch (error) {
@@ -83,13 +96,23 @@ const updateApplicationStatus = async (req, res) => {
     application.status = status;
     await application.save();
 
+    const project = await Project.findById(application.project._id);
+
     if (status === 'accepted') {
-      const project = await Project.findById(application.project._id);
       if (!project.members.includes(application.applicant)) {
         project.members.push(application.applicant);
         await project.save();
       }
     }
+
+    // Create notification for the applicant
+    await createNotification({
+      recipient: application.applicant,
+      type: status === 'accepted' ? 'application_accepted' : 'application_rejected',
+      title: `Application ${status === 'accepted' ? 'Accepted' : 'Rejected'}`,
+      description: `Your application to "${project.title}" was ${status}`,
+      relatedProject: project._id
+    });
 
     res.status(200).json({ success: true, data: application });
   } catch (error) {

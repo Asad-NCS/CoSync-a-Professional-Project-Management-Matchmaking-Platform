@@ -137,11 +137,9 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
   return (
     <>
       <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         @keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
         .scrollbar-hide::-webkit-scrollbar { display:none; }
         .scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none; }
-        .filter-btn { padding:5px 12px; border-radius:8px; font-size:0.75rem; font-weight:500; cursor:pointer; transition:all 0.2s; border:none; font-family:inherit; white-space:nowrap; }
         .board-scroll::-webkit-scrollbar { height:4px; }
         .board-scroll::-webkit-scrollbar-track { background:rgba(139,92,246,0.05); }
         .board-scroll::-webkit-scrollbar-thumb { background:rgba(139,92,246,0.2); border-radius:2px; }

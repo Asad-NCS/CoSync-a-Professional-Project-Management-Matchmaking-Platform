@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Logo from "../../components/ui/Logo";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { applyToProject } from "../../store/projectsSlice";
@@ -78,22 +79,17 @@ const ProjectDetailPage = () => {
   return (
     <>
       <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes modalIn { from{opacity:0;transform:scale(0.96) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
-        .nav-btn { background:none; border:none; cursor:pointer; font-family:inherit; transition:all 0.2s; }
-        .section-card { background:rgba(12,8,32,0.8); border:1px solid rgba(139,92,246,0.1); border-radius:16px; padding:20px; margin-bottom:16px; }
         .section-title { font-size:0.75rem; font-weight:600; color:#4b5563; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:12px; }
       `}</style>
 
-      <div className="min-h-screen" style={{ background: "#05030f", fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
+      <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         {/* Navbar */}
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
           style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-2">
             <button className="nav-btn flex items-center gap-2" onClick={() => navigate("/")}>
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+              <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>

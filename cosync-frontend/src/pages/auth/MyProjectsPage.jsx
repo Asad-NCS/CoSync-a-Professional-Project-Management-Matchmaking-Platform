@@ -1,20 +1,12 @@
 import { useState, useEffect } from "react";
+import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { removeProject, fetchMyProjects } from "../../store/projectsSlice";
 import { PROJECT_STATUS, ROLE_COLORS } from "../../lib/utils";
+import StatusBadge from "../../components/ui/StatusBadge";
 
 const SKILL_COLORS = ["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6", "#34d399", "#60a5fa", "#fbbf24"];
-
-const StatusBadge = ({ status }) => {
-  const s = PROJECT_STATUS[status] || PROJECT_STATUS.open;
-  return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
-      style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${s.color || "rgba(139,92,246,0.2)"}`, color: s.color || "#a78bfa" }}>
-      ● {s.label || status}
-    </span>
-  );
-};
 
 // ── Applicant row ─────────────────────────────────────────────────────────────
 const ApplicantRow = ({ a }) => {
@@ -380,20 +372,15 @@ const MyProjectsPage = () => {
 
   return (
     <>
-      <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes modalIn { from{opacity:0;transform:scale(0.96) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
-        .filter-btn { padding:6px 14px; border-radius:8px; font-size:0.78rem; font-weight:500; cursor:pointer; transition:all 0.2s; border:none; white-space:nowrap; font-family:inherit; }
-      `}</style>
 
-      <div className="min-h-screen" style={{ background: "#05030f", fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
+
+      <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
           style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+              <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>

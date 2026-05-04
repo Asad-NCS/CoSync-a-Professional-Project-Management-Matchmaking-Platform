@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
+import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../store/authSlice";
+import { fetchMatchedProjects } from "../../store/projectsSlice";
 import api from "../../lib/api";
 import { PROJECT_STATUS, APP_STATUS, ROLE_COLORS } from "../../lib/utils";
+import StatusBadge from "../../components/ui/StatusBadge";
 
 // ── Sidebar nav items ─────────────────────────────────────────────────────────
 const NAV = [
@@ -14,16 +17,6 @@ const NAV = [
   { icon: "👤", label: "Profile", path: "/profile", active: false },
   { icon: "🔔", label: "Notifications", path: "/notifications", badge: 3, active: false },
 ];
-
-const StatusBadge = ({ status }) => {
-  const s = PROJECT_STATUS[status] || APP_STATUS[status] || PROJECT_STATUS.open;
-  return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
-      style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${s.color || "rgba(139,92,246,0.2)"}`, color: s.color || "#a78bfa" }}>
-      ● {s.label || status}
-    </span>
-  );
-};
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
@@ -44,14 +37,12 @@ const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
       <div className="flex items-center justify-between px-4 py-5" style={{ borderBottom: "1px solid rgba(139,92,246,0.08)" }}>
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0"
-              style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+            <Logo className="w-7 h-7 flex-shrink-0" />
             <span className="font-semibold text-white tracking-tight">CoSync</span>
           </div>
         )}
         {collapsed && (
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm mx-auto"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+          <Logo className="w-7 h-7 mx-auto" />
         )}
         {!collapsed && (
           <button onClick={() => setCollapsed(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: 16 }}>‹</button>
@@ -286,6 +277,12 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector(s => s.auth);
+  const { matchedProjects } = useSelector(s => s.projects);
+  const displayName = user?.fullName || user?.name || "Builder";
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -298,12 +295,8 @@ const DashboardPage = () => {
       }
     }
     fetchDashboard()
-  }, [])
-
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { user } = useSelector(s => s.auth);
-  const displayName = user?.fullName || user?.name || "Builder";
+    dispatch(fetchMatchedProjects())
+  }, [dispatch])
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleLogout = () => {
@@ -318,51 +311,22 @@ const DashboardPage = () => {
   if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>
   if (!dashboard) return null
 
+  const avgMatch = matchedProjects.length > 0
+    ? Math.round(matchedProjects.reduce((s, p) => s + (p.matchPercentage || 0), 0) / matchedProjects.length)
+    : 0;
+
   const STATS = [
     { label: "Projects Posted", value: dashboard.stats.projectsPosted || 0, icon: "📁", color: "#7c3aed", bg: "rgba(124,58,237,0.12)" },
-    { label: "Applications Sent", value: dashboard.stats.applicationsSubmitted || 0, icon: "📨", color: "#61dafb", bg: "rgba(97,218,251,0.12)" },
-    { label: "Match Score", value: "87%", icon: "⚡", color: "#fb923c", bg: "rgba(251,146,60,0.12)" },
+    { label: "Completed Projects", value: user?.completedProjects || 0, icon: "🏆", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
+    { label: "Match Score", value: `${avgMatch}%`, icon: "⚡", color: "#fb923c", bg: "rgba(251,146,60,0.12)" },
+    { label: "Reputation", value: user?.rating || 5.0, icon: "⭐", color: "#61dafb", bg: "rgba(97,218,251,0.12)" },
   ];
 
   return (
     <>
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity:0; transform:translateY(16px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        @keyframes slideDown {
-          from { opacity:0; transform:translateY(-10px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        @keyframes pulse-dot {
-          0%,100% { opacity:1; box-shadow: 0 0 0 0 currentColor; }
-          50% { opacity:0.7; }
-        }
-        @keyframes shimmer {
-          0% { background-position:-200% 0; }
-          100% { background-position:200% 0; }
-        }
-        .topbar-btn {
-          display: flex; align-items: center; gap: 6px;
-          padding: 6px 14px; border-radius: 8px; font-size: 0.8rem;
-          font-weight: 500; cursor: pointer; transition: all 0.2s;
-          border: none;
-        }
-        .section-card {
-          border-radius: 20px;
-          background: rgba(12,8,32,0.8);
-          border: 1px solid rgba(139,92,246,0.1);
-          padding: 20px;
-        }
-        .section-title {
-          font-size: 0.875rem; font-weight: 600;
-          color: #fff; margin-bottom: 16px;
-          display: flex; align-items: center; justify-content: space-between;
-        }
-      `}</style>
 
-      <div className="flex min-h-screen" style={{ background: "#05030f", fontFamily: "'DM Sans',system-ui,sans-serif" }}>
+
+      <div className="flex min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif" }}>
 
         {/* ── Sidebar ── */}
         <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} onLogout={handleLogout} />
@@ -433,7 +397,7 @@ const DashboardPage = () => {
               <div className="relative">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: "#4ade80", boxShadow: "0 0 8px #4ade80" }} />
-                  <span className="text-xs font-medium" style={{ color: "#4ade80" }}>Profile active · 87% match score</span>
+                  <span className="text-xs font-medium" style={{ color: "#4ade80" }}>Profile active · {avgMatch}% match score</span>
                 </div>
                 <h2 className="text-white font-bold text-xl mb-1" style={{ letterSpacing: "-0.02em" }}>
                   Ready to build something great?
@@ -502,6 +466,58 @@ const DashboardPage = () => {
                     />
                   )}
                 </div>
+
+                {/* ── Recommended For You (Matchmaking) ── */}
+                {matchedProjects.length > 0 && (
+                  <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.25s" }}>
+                    <div className="section-title">
+                      <div className="flex items-center gap-2">
+                        <span style={{ fontSize: 14 }}>🎯</span>
+                        Recommended For You
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ background: "rgba(74,222,128,0.15)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.2)" }}>
+                          {matchedProjects.length} matches
+                        </span>
+                      </div>
+                      <button onClick={() => navigate("/feed")} className="text-xs transition-colors"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563" }}>View all →</button>
+                    </div>
+                    <div className="space-y-3">
+                      {matchedProjects.slice(0, 4).map((p, i) => (
+                        <div key={p._id} onClick={() => navigate(`/projects/${p._id}`)}
+                          className="flex items-center justify-between p-4 rounded-xl transition-all duration-200 cursor-pointer group"
+                          style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.1)", animation: `fadeUp 0.4s ease both`, animationDelay: `${i * 0.06}s` }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; e.currentTarget.style.background = "rgba(20,12,50,0.9)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.1)"; e.currentTarget.style.background = "rgba(139,92,246,0.04)"; }}>
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                              style={{ background: `${ROLE_COLORS[i % ROLE_COLORS.length]}18`, border: `1px solid ${ROLE_COLORS[i % ROLE_COLORS.length]}30`, color: ROLE_COLORS[i % ROLE_COLORS.length] }}>
+                              {p.title?.[0]}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-white text-sm font-medium truncate">{p.title}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs" style={{ color: "#4b5563" }}>{p.category}</span>
+                                {p.matchedSkills?.slice(0, 3).map(s => (
+                                  <span key={s} className="text-xs px-1.5 py-0.5 rounded" style={{ background: "rgba(74,222,128,0.08)", color: "#4ade80" }}>{s}</span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                            <div className="text-right">
+                              <span className="text-sm font-bold" style={{ color: p.matchPercentage >= 70 ? "#4ade80" : p.matchPercentage >= 40 ? "#fbbf24" : "#a78bfa" }}>
+                                {p.matchPercentage}%
+                              </span>
+                              <p className="text-xs" style={{ color: "#374151" }}>match</p>
+                            </div>
+                            <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "#a78bfa" }}>→</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.3s" }}>
                   <div className="section-title">
@@ -604,7 +620,7 @@ const DashboardPage = () => {
                       <circle cx="50" cy="50" r="42" fill="none"
                         stroke="url(#scoreGrad)" strokeWidth="8"
                         strokeLinecap="round"
-                        strokeDasharray={`${2 * Math.PI * 42 * 0.87} ${2 * Math.PI * 42}`}
+                        strokeDasharray={`${2 * Math.PI * 42 * (avgMatch / 100)} ${2 * Math.PI * 42}`}
                       />
                       <defs>
                         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -614,7 +630,7 @@ const DashboardPage = () => {
                       </defs>
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xl font-bold text-white">87%</span>
+                      <span className="text-xl font-bold text-white">{avgMatch}%</span>
                     </div>
                   </div>
                   <p className="text-white text-sm font-semibold mb-1">Match Score</p>

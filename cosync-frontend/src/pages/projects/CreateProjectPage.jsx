@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createProject, fetchProjects } from "../../store/projectsSlice";
@@ -447,12 +448,7 @@ const CreateProjectPage = () => {
   return (
     <>
       <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes slideRight { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
-        @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes spin { to{transform:rotate(360deg)} }
-        .nav-btn { background:none; border:none; cursor:pointer; transition:all 0.2s; font-family:inherit; }
-        .section-card { background:rgba(12,8,32,0.8); border:1px solid rgba(139,92,246,0.1); border-radius:16px; padding:24px; margin-bottom:20px; }
         .section-title { font-size:0.8rem; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
         .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(139,92,246,0.06); }
         .toggle-row:last-child { border-bottom:none; padding-bottom:0; }
@@ -460,14 +456,14 @@ const CreateProjectPage = () => {
         .toggle-knob { width:16px; height:16px; border-radius:50%; background:white; position:absolute; top:3px; transition:left 0.2s; }
       `}</style>
 
-      <div className="min-h-screen" style={{ background: "#05030f", fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
+      <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         {/* ── Navbar ── */}
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
           style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button className="nav-btn flex items-center gap-2" onClick={() => navigate("/dashboard")}>
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+              <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import api from "../../lib/api";
@@ -120,19 +121,15 @@ const ProfilePage = () => {
 
   return (
     <>
-      <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
-        .section-card { background:rgba(12,8,32,0.8); border:1px solid rgba(139,92,246,0.1); border-radius:16px; padding:20px; margin-bottom:16px; }
-      `}</style>
 
-      <div className="min-h-screen" style={{ background: "#05030f", fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
+
+      <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
           style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
+              <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>
@@ -179,6 +176,14 @@ const ProfilePage = () => {
                     <span className="text-xs px-3 py-1.5 rounded-full font-medium"
                       style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80" }}>
                       ● {availability}
+                    </span>
+                    <span className="text-xs px-3 py-1.5 rounded-full font-medium"
+                      style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}>
+                      🏆 {user?.completedProjects || 0} Completed
+                    </span>
+                    <span className="text-xs px-3 py-1.5 rounded-full font-medium"
+                      style={{ background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.25)", color: "#fb923c" }}>
+                      ⭐ {user?.rating || 5.0} Reputation
                     </span>
                   </div>
                 </div>

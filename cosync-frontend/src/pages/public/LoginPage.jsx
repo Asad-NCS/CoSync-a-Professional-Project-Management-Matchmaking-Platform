@@ -1,18 +1,21 @@
 import { useState } from "react";
+import Logo from "../../components/ui/Logo";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../../store/authSlice";
 
 const GridBackground = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
     <div
       className="absolute inset-0"
       style={{
         backgroundImage: `
-          linear-gradient(rgba(139,92,246,0.07) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(139,92,246,0.07) 1px, transparent 1px)
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
         `,
-        backgroundSize: "60px 60px",
+        backgroundSize: "40px 40px",
+        maskImage: "linear-gradient(to bottom, black, transparent)",
+        WebkitMaskImage: "linear-gradient(to right, black, transparent)"
       }}
     />
   </div>
@@ -20,36 +23,27 @@ const GridBackground = () => (
 
 const FloatingCard = ({ title, subtitle, tag, tagColor, delay, style }) => (
   <div
-    className="absolute rounded-xl border p-4 backdrop-blur-sm"
+    className="absolute rounded-xl border border-border bg-surface/50 backdrop-blur-md p-4 shadow-xl"
     style={{
-      background: "rgba(15,10,40,0.75)",
-      borderColor: "rgba(139,92,246,0.25)",
-      animation: `cardFloat 6s ease-in-out infinite`,
+      animation: `cardFloat 8s ease-in-out infinite`,
       animationDelay: delay,
-      minWidth: 200,
+      minWidth: 220,
       ...style,
     }}
   >
     <div className="flex items-center justify-between mb-2">
-      <p className="text-white text-xs font-semibold">{title}</p>
-      <span
-        className="text-xs px-2 py-0.5 rounded-full"
-        style={{
-          background: `${tagColor}18`,
-          color: tagColor,
-          border: `1px solid ${tagColor}40`,
-        }}
-      >
+      <p className="text-primary text-xs font-medium tracking-tight">{title}</p>
+      <span className={`text-[10px] px-2 py-0.5 rounded border font-medium ${tagColor}`}>
         {tag}
       </span>
     </div>
-    <p className="text-gray-500 text-xs">{subtitle}</p>
-    <div className="flex gap-1 mt-2">
-      {["#7c3aed", "#8b5cf6", "#a78bfa"].map((c, i) => (
+    <p className="text-secondary text-xs">{subtitle}</p>
+    <div className="flex -space-x-1 mt-3">
+      {["#0070F3", "#3291FF", "#888888"].map((c, i) => (
         <div
           key={i}
-          className="w-5 h-5 rounded-full border"
-          style={{ background: c, borderColor: "#05030f" }}
+          className="w-5 h-5 rounded-full border-2 border-surface"
+          style={{ background: c }}
         />
       ))}
     </div>
@@ -63,21 +57,10 @@ const InputField = ({ label, type = "text", placeholder, value, onChange, error,
 
   return (
     <div className="mb-4">
-      <label
-        className="block text-xs font-medium mb-1.5"
-        style={{ color: focused ? "#a78bfa" : "#9ca3af", transition: "color 0.2s" }}
-      >
+      <label className={`block text-xs font-medium mb-1.5 transition-colors ${focused ? 'text-accent' : 'text-secondary'}`}>
         {label}
       </label>
       <div className="relative">
-        {icon && (
-          <span
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
-            style={{ color: focused ? "#a78bfa" : "#4b5563", transition: "color 0.2s" }}
-          >
-            {icon}
-          </span>
-        )}
         <input
           type={isPassword && showPass ? "text" : type}
           placeholder={placeholder}
@@ -85,26 +68,19 @@ const InputField = ({ label, type = "text", placeholder, value, onChange, error,
           onChange={onChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className="w-full rounded-lg text-sm text-white placeholder-gray-600 outline-none transition-all duration-200"
-          style={{
-            background: "rgba(15,10,40,0.8)",
-            border: `1px solid ${error ? "#ef4444" : focused ? "rgba(139,92,246,0.6)" : "rgba(139,92,246,0.15)"}`,
-            padding: `0.625rem ${isPassword ? "2.5rem" : "0.875rem"} 0.625rem ${icon ? "2.25rem" : "0.875rem"}`,
-            boxShadow: focused && !error ? "0 0 0 3px rgba(139,92,246,0.1)" : "none",
-          }}
+          className={`w-full rounded-lg text-sm bg-surface border text-primary placeholder-secondary/50 outline-none transition-all duration-200 px-3.5 py-2.5 ${error ? 'border-red-500' : focused ? 'border-accent shadow-[0_0_0_3px_rgba(0,112,243,0.1)]' : 'border-border'}`}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPass(!showPass)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
-            style={{ color: "#4b5563" }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary hover:text-primary transition-colors"
           >
             {showPass ? "Hide" : "Show"}
           </button>
         )}
       </div>
-      {error && <p className="text-xs mt-1" style={{ color: "#f87171" }}>{error}</p>}
+      {error && <p className="text-xs mt-1 text-red-500">{error}</p>}
     </div>
   );
 };
@@ -156,126 +132,76 @@ const LoginPage = () => {
       <style>{`
         @keyframes cardFloat {
           0%,100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes fadeUp {
-          from { opacity:0; transform:translateY(20px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        @keyframes fadeIn {
-          from { opacity:0; } to { opacity:1; }
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-        .btn-submit {
-          width: 100%;
-          padding: 0.75rem;
-          border-radius: 0.5rem;
-          border: none;
-          font-size: 0.9rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.25s;
-          position: relative;
-          overflow: hidden;
-          background: linear-gradient(135deg, #7c3aed, #6d28d9);
-          color: white;
-        }
-        .btn-submit:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 10px 30px rgba(124,58,237,0.4);
-        }
-        .btn-submit:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-        .divider {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin: 20px 0;
-          color: #374151;
-          font-size: 0.75rem;
-        }
-        .divider::before, .divider::after {
-          content: '';
-          flex: 1;
-          height: 1px;
-          background: rgba(139,92,246,0.15);
+          50% { transform: translateY(-12px); }
         }
       `}</style>
 
-      <div
-        className="min-h-screen flex"
-        style={{ background: "#05030f", fontFamily: "'DM Sans', system-ui, sans-serif" }}
-      >
+      <div className="min-h-screen flex font-sans text-primary selection:bg-accent selection:text-white">
+        
         {/* ── Left panel — decorative ── */}
-        <div
-          className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden p-12"
-          style={{ borderRight: "1px solid rgba(139,92,246,0.1)" }}
-        >
+        <div className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden p-12">
           <GridBackground />
 
-          {/* Orbs */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute rounded-full" style={{ width:500, height:500, top:"-100px", left:"-100px", background:"radial-gradient(circle, rgba(109,40,217,0.2) 0%, transparent 70%)" }} />
-            <div className="absolute rounded-full" style={{ width:400, height:400, bottom:"0", right:"-100px", background:"radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)" }} />
+          {/* Subtle Accent Glow */}
+          <div className="absolute inset-0 pointer-events-none opacity-30">
+            <div className="absolute top-1/4 -left-32 w-96 h-96 bg-accent rounded-full blur-[140px]" />
+            <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-blue-500 rounded-full blur-[140px]" />
           </div>
 
-          {/* Logo */}
-          <div className="relative flex items-center gap-2" style={{ animation: "fadeIn 0.5s ease both" }}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
-            <span className="text-white font-semibold tracking-tight">CoSync</span>
+          <div className="relative flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
+            <Logo className="w-8 h-8" />
+            <span className="text-primary font-medium tracking-tight text-lg">CoSync</span>
           </div>
 
-          {/* Floating cards */}
           <div className="relative flex-1">
-            <FloatingCard title="AI Chess Bot" subtitle="2 of 3 roles filled" tag="Active" tagColor="#4ade80" delay="0s" style={{ top: "15%", left: "5%" }} />
-            <FloatingCard title="Campus Rideshare" subtitle="Looking for React dev" tag="Open" tagColor="#a78bfa" delay="2s" style={{ top: "42%", right: "5%" }} />
-            <FloatingCard title="ML Research" subtitle="Team of 4 formed" tag="Full" tagColor="#fb923c" delay="4s" style={{ bottom: "15%", left: "10%" }} />
+            <FloatingCard 
+              title="Next.js Platform" 
+              subtitle="2 of 3 roles filled" 
+              tag="Active" 
+              tagColor="bg-green-500/10 text-green-500 border-green-500/20" 
+              delay="0s" 
+              style={{ top: "25%", left: "10%" }} 
+            />
+            <FloatingCard 
+              title="Campus Rideshare" 
+              subtitle="Looking for React dev" 
+              tag="Open" 
+              tagColor="bg-accent/10 text-accent border-accent/20" 
+              delay="2s" 
+              style={{ top: "50%", right: "10%" }} 
+            />
           </div>
 
-          {/* Quote */}
-          <div className="relative" style={{ animation: "fadeIn 0.8s ease both", animationDelay: "0.3s" }}>
-            <p className="text-gray-400 text-sm leading-relaxed italic mb-3">
-              "Found my entire hackathon team in under an hour. We ended up winning."
+          <div className="relative glass-panel rounded-xl p-5 border-border/60 max-w-sm">
+            <p className="text-secondary text-sm leading-relaxed italic mb-3">
+              "Found my entire hackathon team in under an hour. We ended up winning first place."
             </p>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }} />
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-border flex items-center justify-center text-xs font-medium text-primary">BA</div>
               <div>
-                <p className="text-white text-xs font-medium">Bilal Ahmed</p>
-                <p className="text-gray-600 text-xs">CS-2022, NUST</p>
+                <p className="text-primary text-xs font-medium">Bilal Ahmed</p>
+                <p className="text-secondary text-[10px]">CS-2022, NUST</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* ── Right panel — form ── */}
-        <div className="flex-1 flex items-center justify-center p-6 relative">
-          <div
-            className="w-full max-w-md"
-            style={{ animation: "fadeUp 0.6s ease both", animationDelay: "0.1s" }}
-          >
-            {/* Header */}
-            <div className="mb-8">
-              <div className="lg:hidden flex items-center gap-2 mb-8">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>C</div>
-                <span className="text-white font-semibold">CoSync</span>
-              </div>
-              <h1 className="text-2xl font-bold text-white mb-1" style={{ letterSpacing: "-0.02em" }}>
-                Welcome back
-              </h1>
-              <p className="text-gray-500 text-sm">Sign in to your CoSync account</p>
+        <div className="flex-1 flex items-center justify-center p-6 relative z-10">
+          <div className="w-full max-w-sm" style={{ animation: "fadeUp 0.5s ease both" }}>
+            
+            <div className="lg:hidden flex items-center gap-2 mb-10 cursor-pointer" onClick={() => navigate("/")}>
+              <Logo className="w-6 h-6" />
+              <span className="text-primary font-medium tracking-tight">CoSync</span>
             </div>
 
-            {/* API error */}
+            <div className="mb-8">
+              <h1 className="text-2xl font-medium text-primary tracking-tight mb-2">Welcome back</h1>
+              <p className="text-secondary text-sm">Sign in to your CoSync account</p>
+            </div>
+
             {apiError && (
-              <div
-                className="rounded-lg p-3 mb-4 text-sm"
-                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }}
-              >
+              <div className="rounded-md p-3 mb-5 text-sm bg-red-500/10 border border-red-500/20 text-red-500">
                 {apiError}
               </div>
             )}
@@ -288,7 +214,6 @@ const LoginPage = () => {
                 value={form.email}
                 onChange={set("email")}
                 error={errors.email}
-                icon="✉"
               />
               <InputField
                 label="Password"
@@ -297,35 +222,35 @@ const LoginPage = () => {
                 value={form.password}
                 onChange={set("password")}
                 error={errors.password}
-                icon="🔒"
               />
 
-              <div className="flex items-center justify-between mb-6 mt-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="accent-purple-600" />
-                  <span className="text-xs text-gray-500">Remember me</span>
+              <div className="flex items-center justify-between mb-8 mt-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" className="w-3.5 h-3.5 rounded border-border bg-surface accent-accent cursor-pointer" />
+                  <span className="text-xs text-secondary group-hover:text-primary transition-colors">Remember me</span>
                 </label>
-                <button type="button" className="text-xs" style={{ color: "#a78bfa", background: "none", border: "none", cursor: "pointer" }}>
+                <button type="button" className="text-xs text-secondary hover:text-primary transition-colors">
                   Forgot password?
                 </button>
               </div>
 
-              <button type="submit" className="btn-submit" disabled={loading}>
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-primary text-background hover:bg-white/90 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100"
+              >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="3" strokeOpacity="0.3" />
-                      <path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                    </svg>
+                    <svg className="animate-spin w-4 h-4 text-background" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" strokeWidth="3" strokeOpacity="0.3" /><path d="M12 2a10 10 0 0 1 10 10" strokeWidth="3" strokeLinecap="round" /></svg>
                     Signing in...
                   </span>
                 ) : "Sign in"}
               </button>
             </form>
 
-            <p className="text-center text-sm mt-6" style={{ color: "#4b5563" }}>
+            <p className="text-center text-sm mt-8 text-secondary">
               Don't have an account?{" "}
-              <Link to="/register" style={{ color: "#a78bfa", textDecoration: "none", fontWeight: 500 }}>
+              <Link to="/register" className="text-primary hover:text-accent font-medium transition-colors">
                 Create one free
               </Link>
             </p>

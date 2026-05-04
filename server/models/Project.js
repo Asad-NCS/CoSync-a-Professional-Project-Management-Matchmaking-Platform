@@ -29,7 +29,8 @@ const projectSchema = new mongoose.Schema({
   requireCoverLetter: { type: Boolean, default: false },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  status: { type: String, enum: ['open', 'closed'], default: 'open' },
+  status: { type: String, enum: ['open', 'closed', 'completed'], default: 'open' },
+  completedAt: { type: Date },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', projectSchema);

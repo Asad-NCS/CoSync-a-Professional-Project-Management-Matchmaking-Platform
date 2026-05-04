@@ -6,7 +6,9 @@ const {
   getProjectById,
   createProject,
   updateProject,
-  deleteProject
+  deleteProject,
+  getMatchedProjects,
+  completeProject
 } = require('../controllers/projectsController');
 const {
   applyToProject,
@@ -15,11 +17,13 @@ const {
 
 // Public routes
 router.get('/', getProjects);
+router.get('/matches', verifyToken, getMatchedProjects);
 router.get('/:id', getProjectById);
 
 // Protected routes
 router.post('/', verifyToken, createProject);
 router.put('/:id', verifyToken, updateProject);
+router.put('/:id/complete', verifyToken, completeProject);
 router.delete('/:id', verifyToken, deleteProject);
 
 // Application routes
