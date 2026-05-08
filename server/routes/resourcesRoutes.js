@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router({ mergeParams: true });
 const { getResources, addResource, deleteResource } = require('../controllers/resourcesController');
 const { verifyToken } = require('../middleware/auth');
+
 const upload = require('../middleware/uploadMiddleware');
 
 router.use(verifyToken);
