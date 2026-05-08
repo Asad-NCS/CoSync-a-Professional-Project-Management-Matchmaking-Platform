@@ -3,7 +3,7 @@ import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createProject, fetchProjects } from "../../store/projectsSlice";
-import { Lightbulb, FileText, Users, LayoutGrid, Settings, Wrench, Link2, Github, Figma, Globe, AlertTriangle, Sparkles, Rocket } from "lucide-react";
+import { Lightbulb, FileText, Users, LayoutGrid, Settings, Wrench, Link2, Globe, AlertTriangle, Sparkles, Rocket } from "lucide-react";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = ["AI / ML", "Web App", "Mobile App", "Blockchain", "Hardware / IoT", "Game Dev", "Data Science", "Cybersecurity", "Open Source", "Research", "Other"];
@@ -648,10 +648,10 @@ const CreateProjectPage = () => {
                   <div className="section-card">
                     <p className="section-title flex items-center gap-2"><Link2 size={18} /> Project Links</p>
                     <Field label="GitHub Repository" hint="optional">
-                      <TextInput placeholder="https://github.com/username/repo" value={form.github} onChange={set("github")} icon={<Github size={14} />} />
+                      <TextInput placeholder="https://github.com/..." value={form.github} onChange={set("github")} icon={<Link2 size={14} />} />
                     </Field>
                     <Field label="Figma / Design File" hint="optional">
-                      <TextInput placeholder="https://figma.com/file/..." value={form.figma} onChange={set("figma")} icon={<Figma size={14} />} />
+                      <TextInput placeholder="https://figma.com/file/..." value={form.figma} onChange={set("figma")} icon={<Link2 size={14} />} />
                     </Field>
                     <Field label="Website / Demo" hint="optional">
                       <TextInput placeholder="https://yourproject.com" value={form.website} onChange={set("website")} icon={<Globe size={14} />} />

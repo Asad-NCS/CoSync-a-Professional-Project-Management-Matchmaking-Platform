@@ -3,16 +3,16 @@ import Logo from "../../components/ui/Logo";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import api from "../../lib/api";
-import { LayoutDashboard, MessageSquare, Users, Folder, Zap, Settings, Trash2, ExternalLink, FileText, Link, Github, Figma } from "lucide-react";
-import KanbanBoard   from "../../components/kanban/KanbanBoard";
+import { LayoutDashboard, MessageSquare, Users, Folder, Zap, Settings, Trash2, ExternalLink, FileText, Link } from "lucide-react";
+import KanbanBoard from "../../components/kanban/KanbanBoard";
 import DiscussionTab from "./DiscussionTab";
-import ActivityTab   from "./ActivityTab";
+import ActivityTab from "./ActivityTab";
 
 const ResourcesTab = ({ workspace, projectId }) => {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  
+
   const [name, setName] = useState('');
   const [type, setType] = useState('link');
   const [url, setUrl] = useState('');
@@ -74,8 +74,8 @@ const ResourcesTab = ({ workspace, projectId }) => {
   const getIcon = (type, url) => {
     if (type === 'file') return <FileText size={18} />;
     if (!url) return <Link size={18} />;
-    if (url.includes('github')) return <Github size={18} />;
-    if (url.includes('figma')) return <Figma size={18} />;
+    if (url.includes('github')) return <Link size={18} />;
+    if (url.includes('figma')) return <Link size={18} />;
     return <Link size={18} />;
   };
 
@@ -104,10 +104,10 @@ const ResourcesTab = ({ workspace, projectId }) => {
         <p className="text-gray-400 text-sm">Loading resources...</p>
       ) : resources.length === 0 ? (
         <div className="text-center py-10 max-w-xl" style={{ background: "rgba(12,12,15,0.8)", border: "1px dashed rgba(0,112,243,0.2)", borderRadius: 16 }}>
-           <div className="flex justify-center mb-3 text-primary"><Folder size={32} /></div>
-           <p className="text-white font-medium mb-1">No resources yet</p>
-           <p className="text-xs text-gray-400 mb-4">Upload files or share links with your team.</p>
-           <button onClick={() => setShowModal(true)} className="text-xs px-4 py-2 rounded-lg font-medium transition-colors" style={{ background: "rgba(0,112,243,0.1)", color: "#3291FF", cursor: "pointer" }}>Add First Resource</button>
+          <div className="flex justify-center mb-3 text-primary"><Folder size={32} /></div>
+          <p className="text-white font-medium mb-1">No resources yet</p>
+          <p className="text-xs text-gray-400 mb-4">Upload files or share links with your team.</p>
+          <button onClick={() => setShowModal(true)} className="text-xs px-4 py-2 rounded-lg font-medium transition-colors" style={{ background: "rgba(0,112,243,0.1)", color: "#3291FF", cursor: "pointer" }}>Add First Resource</button>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
@@ -228,11 +228,11 @@ const TeamTab = ({ workspace }) => (
 );
 
 const NAV_ITEMS = [
-  { id: "kanban",     icon: <LayoutDashboard size={16} />, label: "Kanban Board",  desc: "Tasks & progress"  },
-  { id: "discussion", icon: <MessageSquare size={16} />, label: "Discussion",    desc: "Team chat"         },
-  { id: "team",       icon: <Users size={16} />, label: "Team",          desc: "Members & roles"   },
-  { id: "resources",  icon: <Folder size={16} />, label: "Resources",     desc: "Files & links"     },
-  { id: "activity",   icon: <Zap size={16} />, label: "Activity Feed", desc: "Real-time stream"  },
+  { id: "kanban", icon: <LayoutDashboard size={16} />, label: "Kanban Board", desc: "Tasks & progress" },
+  { id: "discussion", icon: <MessageSquare size={16} />, label: "Discussion", desc: "Team chat" },
+  { id: "team", icon: <Users size={16} />, label: "Team", desc: "Members & roles" },
+  { id: "resources", icon: <Folder size={16} />, label: "Resources", desc: "Files & links" },
+  { id: "activity", icon: <Zap size={16} />, label: "Activity Feed", desc: "Real-time stream" },
 ];
 
 const WorkspacePage = () => {
@@ -296,14 +296,14 @@ const WorkspacePage = () => {
 
   const renderContent = () => {
     if (loading) return <div className="p-6 text-gray-400">Loading workspace...</div>;
-    
+
     switch (activeTab) {
-      case "kanban":     return <KanbanBoard workspaceTitle={workspace?.title} columns={columns} onColumnsChange={setColumns} projectId={projectId} members={workspace?.members} />;
+      case "kanban": return <KanbanBoard workspaceTitle={workspace?.title} columns={columns} onColumnsChange={setColumns} projectId={projectId} members={workspace?.members} />;
       case "discussion": return <DiscussionTab workspace={workspace} />;
-      case "team":       return <TeamTab workspace={workspace} />;
-      case "resources":  return <ResourcesTab workspace={workspace} projectId={projectId} />;
-      case "activity":   return <ActivityTab workspace={workspace} />;
-      default:           return <KanbanBoard workspaceTitle={workspace?.title} columns={columns} onColumnsChange={setColumns} projectId={projectId} members={workspace?.members} />;
+      case "team": return <TeamTab workspace={workspace} />;
+      case "resources": return <ResourcesTab workspace={workspace} projectId={projectId} />;
+      case "activity": return <ActivityTab workspace={workspace} />;
+      default: return <KanbanBoard workspaceTitle={workspace?.title} columns={columns} onColumnsChange={setColumns} projectId={projectId} members={workspace?.members} />;
     }
   };
 
@@ -370,8 +370,8 @@ const WorkspacePage = () => {
                   cursor: "pointer",
                   justifyContent: sidebarCollapsed ? "center" : "flex-start",
                 }}
-                onMouseEnter={e => { if (activeTab !== item.id) { e.currentTarget.style.background = "rgba(0,112,243,0.08)"; e.currentTarget.style.color = "#9ca3af"; }}}
-                onMouseLeave={e => { if (activeTab !== item.id) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#4b5563"; }}}>
+                onMouseEnter={e => { if (activeTab !== item.id) { e.currentTarget.style.background = "rgba(0,112,243,0.08)"; e.currentTarget.style.color = "#9ca3af"; } }}
+                onMouseLeave={e => { if (activeTab !== item.id) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#4b5563"; } }}>
                 <div className="flex items-center justify-center">
                   {item.icon}
                 </div>
@@ -439,23 +439,23 @@ const WorkspacePage = () => {
               </div>
               <div className="w-px h-5" style={{ background: "rgba(0,112,243,0.15)" }} />
               <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                style={{ 
-                  background: workspace?.status === 'completed' ? "rgba(74,222,128,0.1)" : "rgba(0,112,243,0.1)", 
-                  border: `1px solid ${workspace?.status === 'completed' ? "rgba(74,222,128,0.25)" : "rgba(0,112,243,0.25)"}`, 
-                  color: workspace?.status === 'completed' ? "#4ade80" : "#3291FF" 
+                style={{
+                  background: workspace?.status === 'completed' ? "rgba(74,222,128,0.1)" : "rgba(0,112,243,0.1)",
+                  border: `1px solid ${workspace?.status === 'completed' ? "rgba(74,222,128,0.25)" : "rgba(0,112,243,0.25)"}`,
+                  color: workspace?.status === 'completed' ? "#4ade80" : "#3291FF"
                 }}>
                 ● {workspace?.status === 'completed' ? 'Completed' : 'Active'}
               </span>
-              
+
               {isOwner && workspace?.status !== 'completed' && (
-                <button 
+                <button
                   onClick={handleComplete}
                   className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
                   style={{ background: "linear-gradient(135deg,#4ade80,#34d399)", color: "#05030f", border: "none", cursor: "pointer" }}>
                   Mark as Completed
                 </button>
               )}
-              
+
               <button className="nav-btn px-3 py-1.5 rounded-lg text-sm flex items-center justify-center"
                 style={{ border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280" }}><Settings size={18} /></button>
             </div>
