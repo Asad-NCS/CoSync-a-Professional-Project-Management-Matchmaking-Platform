@@ -10,9 +10,9 @@ const TYPE_FILTERS = [
 ];
 
 const getActivityType = (type) => {
-  if (["application_received", "application_accepted", "application_rejected", "team_formed"].includes(type)) return "member";
-  if (type === "new_message") return "message";
-  if (["project_published", "deadline_reminder"].includes(type)) return "system";
+  if (["application_received", "application_accepted", "application_rejected"].includes(type)) return "member";
+  if (["new_message"].includes(type)) return "message";
+  if (["project_published", "team_formed", "deadline_reminder"].includes(type)) return "system";
   return "task";
 };
 
@@ -37,7 +37,7 @@ const getColor = (type) => {
 };
 
 const formatTime = (dateStr) => {
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  const diff = Math.floor((new Date() - new Date(dateStr)) / 1000);
   if (diff < 60)    return "just now";
   if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -45,103 +45,51 @@ const formatTime = (dateStr) => {
 };
 
 const formatDate = (dateStr) => {
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+  const diff = Math.floor((new Date() - new Date(dateStr)) / 86400000);
   if (diff === 0) return "Today";
   if (diff === 1) return "Yesterday";
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
+const buildTaskActivity = (workspace) => {
+  if (!workspace?.columns) return [];
+  const items = [];
+  workspace.columns.forEach(col => {
+    col.tasks?.forEach(task => {
+      const isDone = col.title?.toLowerCase().includes("done");
+      items.push({
+        id: `task-${task.id || task._id}`,
+        type: "task",
+        icon: isDone ? "✓" : "✦",
+        color: isDone ? "#4ade80" : "#a78bfa",
+        user: task.assignee?.fullName || task.assignee?.name || "Team",
+        userColor: "#a78bfa",
+        subject: task.title,
+        detail: `In ${col.title}`,
+        time: "Active",
+        date: "Current",
+        createdAt: new Date().toISOString(),
+      });
+    });
+  });
+  return items;
+};
+
 const ActivityTab = ({ workspace }) => {
-  const [filter, setFilter]   = useState("all");
-  const [activity, setActivity] = useState([]);
-  const [stats, setStats]     = useState({ tasks: 0, notifications: 0, unread: 0, members: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [filter, setFilter]           = useState("all");
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState(null);
 
-  // workspace._id is the workspace doc id; project id lives at workspace.project._id
-  const projectId = workspace?.project?._id || workspace?.project;
-
-  useEffect(() => { fetchActivity(); }, [projectId]);
+  useEffect(() => { fetchActivity(); }, []);
 
   const fetchActivity = async () => {
-    setLoading(true);
-    setError(null);
     try {
-      let items = [];
-      let memberCount = workspace?.members?.length || 0;
-
-      if (projectId) {
-        // Use dedicated activity endpoint (returns deduped notifications + task data)
-        const res = await api.get(`/workspaces/${projectId}/activity`);
-        const { notifications = [], tasks = [], memberCount: mc = 0 } = res.data.data;
-        memberCount = mc;
-
-        // Map notifications into unified activity items
-        const notifItems = notifications.map(n => ({
-          id: n._id,
-          type: getActivityType(n.type),
-          icon: getIcon(n.type),
-          color: getColor(n.type),
-          user: n.relatedUser?.fullName || "System",
-          userColor: "#a78bfa",
-          text: n.description || n.title,
-          subject: n.relatedProject?.title || "",
-          detail: "",
-          time: formatTime(n.createdAt),
-          date: formatDate(n.createdAt),
-          createdAt: n.createdAt,
-          read: n.read,
-        }));
-
-        // Map task items
-        const taskItems = tasks.map(t => ({
-          id: t._id,
-          type: "task",
-          icon: t.isDone ? "✓" : "✦",
-          color: t.isDone ? "#4ade80" : "#a78bfa",
-          user: t.assignee?.fullName || "Team",
-          userColor: "#a78bfa",
-          text: "",
-          subject: t.taskTitle,
-          detail: `In ${t.columnTitle}${t.priority ? " · " + t.priority : ""}`,
-          time: "Active",
-          date: "Current",
-          createdAt: t.createdAt || new Date().toISOString(),
-        }));
-
-        items = [...notifItems, ...taskItems].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-
-        setStats({
-          tasks: tasks.length,
-          notifications: notifications.length,
-          unread: notifications.filter(n => !n.read).length,
-          members: memberCount,
-        });
-      } else {
-        // Fallback: just use the notifications endpoint
-        const res = await api.get("/notifications");
-        const data = res.data?.data || [];
-        items = data.map(n => ({
-          id: n._id,
-          type: getActivityType(n.type),
-          icon: getIcon(n.type),
-          color: getColor(n.type),
-          user: n.relatedUser?.fullName || "System",
-          userColor: "#a78bfa",
-          text: n.description || n.title,
-          subject: "",
-          detail: "",
-          time: formatTime(n.createdAt),
-          date: formatDate(n.createdAt),
-          createdAt: n.createdAt,
-          read: n.read,
-        }));
-        setStats({ tasks: 0, notifications: data.length, unread: data.filter(n => !n.read).length, members: memberCount });
-      }
-
-      setActivity(items);
+      setLoading(true);
+      setError(null);
+      const res = await api.get("/notifications");
+      const data = res.data?.data || res.data || [];
+      setNotifications(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Activity fetch error:", err);
       setError("Could not load activity");
@@ -150,7 +98,28 @@ const ActivityTab = ({ workspace }) => {
     }
   };
 
-  const filtered = activity.filter(a => filter === "all" || a.type === filter);
+  const taskActivity = buildTaskActivity(workspace);
+
+  const allActivity = [
+    ...notifications.map(n => ({
+      id: n._id,
+      type: getActivityType(n.type),
+      icon: getIcon(n.type),
+      color: getColor(n.type),
+      user: n.sender?.fullName || n.sender?.name || "System",
+      userColor: "#a78bfa",
+      text: n.message || n.title || "",
+      subject: n.projectTitle || "",
+      detail: "",
+      time: formatTime(n.createdAt),
+      date: formatDate(n.createdAt),
+      createdAt: n.createdAt,
+      read: n.read,
+    })),
+    ...taskActivity,
+  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const filtered = allActivity.filter(a => filter === "all" || a.type === filter);
 
   const grouped = {};
   filtered.forEach(a => {
@@ -158,18 +127,17 @@ const ActivityTab = ({ workspace }) => {
     grouped[a.date].push(a);
   });
 
-  const statCards = [
-    { label: "Tasks",         value: stats.tasks,         color: "#4ade80", icon: "✦" },
-    { label: "Notifications", value: stats.notifications, color: "#a78bfa", icon: "🔔" },
-    { label: "Unread",        value: stats.unread,        color: "#fb923c", icon: "⚡" },
-    { label: "Team members",  value: stats.members,       color: "#61dafb", icon: "👥" },
+  const stats = [
+    { label: "Tasks done",    value: taskActivity.filter(t => t.icon === "✓").length, color: "#4ade80", icon: "✓"  },
+    { label: "Notifications", value: notifications.length,                            color: "#a78bfa", icon: "🔔" },
+    { label: "Unread",        value: notifications.filter(n => !n.read).length,       color: "#fb923c", icon: "⚡" },
+    { label: "Team members",  value: workspace?.project?.members?.length || 0,        color: "#61dafb", icon: "👥" },
   ];
 
   return (
     <>
       <style>{`
         @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes spin { to{transform:rotate(360deg)} }
         .activity-scroll::-webkit-scrollbar { width:3px; }
         .activity-scroll::-webkit-scrollbar-thumb { background:rgba(139,92,246,0.2); border-radius:2px; }
         .filter-btn { padding:5px 12px; border-radius:8px; font-size:0.75rem; font-weight:500; cursor:pointer; transition:all 0.2s; border:none; font-family:inherit; white-space:nowrap; }
@@ -269,7 +237,7 @@ const ActivityTab = ({ workspace }) => {
 
                   {items.map((a, i) => (
                     <div key={a.id} className="flex gap-4 pb-4 relative"
-                      style={{ animation: "fadeUp 0.4s ease both", animationDelay: `${i * 0.05}s` }}>
+                      style={{ animation: `fadeUp 0.4s ease both`, animationDelay: `${i * 0.05}s` }}>
 
                       <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-sm z-10"
                         style={{ background: `${a.color}15`, border: `1px solid ${a.color}25`, color: a.color }}>
@@ -290,7 +258,7 @@ const ActivityTab = ({ workspace }) => {
                           </p>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             {a.read === false && (
-                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#7c3aed" }} />
+                              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#7c3aed" }} />
                             )}
                             <span className="text-xs" style={{ color: "#374151" }}>{a.time}</span>
                           </div>
@@ -317,7 +285,7 @@ const ActivityTab = ({ workspace }) => {
             Workspace stats
           </p>
           <div className="space-y-3 mb-6">
-            {statCards.map(s => (
+            {stats.map(s => (
               <div key={s.label} className="flex items-center justify-between p-3 rounded-xl"
                 style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.08)" }}>
                 <div className="flex items-center gap-2">
@@ -329,11 +297,11 @@ const ActivityTab = ({ workspace }) => {
             ))}
           </div>
 
-          {workspace?.members?.length > 0 && (
+          {workspace?.project?.members?.length > 0 && (
             <>
               <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#374151" }}>Team</p>
               <div className="space-y-2 mb-4">
-                {workspace.members.slice(0, 5).map((m, i) => (
+                {workspace.project.members.slice(0, 5).map((m, i) => (
                   <div key={m._id || i} className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                       style={{ background: "rgba(124,58,237,0.2)", color: "#a78bfa" }}>
