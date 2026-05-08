@@ -4,10 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { applyToProject } from "../../store/projectsSlice";
 import api from "../../lib/api";
-import { PROJECT_STATUS, ROLE_COLORS } from "../../lib/utils";
-
-
-const SKILL_COLORS = ["#61dafb","#a78bfa","#4ade80","#fb923c","#f472b6","#34d399","#60a5fa","#fbbf24"];
+import { Clock, Users, Zap, Calendar, Globe } from "lucide-react";
+import { PROJECT_STATUS, ROLE_COLORS, SKILL_COLORS } from "../../lib/utils";
 
 
 
@@ -86,7 +84,7 @@ const ProjectDetailPage = () => {
 
         {/* Navbar */}
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
-          style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
+          style={{ background: "rgba(4,4,6,0.92)", borderBottom: "1px solid rgba(0,112,243,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-2">
             <button className="nav-btn flex items-center gap-2" onClick={() => navigate("/")}>
               <Logo className="w-7 h-7" />
@@ -95,16 +93,16 @@ const ProjectDetailPage = () => {
             <span style={{ color: "#374151" }}>›</span>
             <button className="nav-btn text-sm" style={{ color: "#4b5563" }} onClick={() => navigate("/feed")}>Projects</button>
             <span style={{ color: "#374151" }}>›</span>
-            <span className="text-sm font-medium" style={{ color: "#a78bfa" }}>{project.title}</span>
+            <span className="text-sm font-medium" style={{ color: "#3291FF" }}>{project.title}</span>
           </div>
           <div className="flex gap-3">
             <button onClick={() => navigate("/feed")} className="nav-btn text-sm px-3 py-1.5 rounded-lg"
-              style={{ border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280" }}>
+              style={{ border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280" }}>
               ← Browse
             </button>
             {isAuthenticated && (
               <button onClick={() => navigate("/dashboard")} className="nav-btn text-sm px-3 py-1.5 rounded-lg"
-                style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff" }}>
+                style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff" }}>
                 Dashboard
               </button>
             )}
@@ -118,21 +116,21 @@ const ProjectDetailPage = () => {
             <div className="lg:col-span-2 space-y-4" style={{ animation: "fadeUp 0.5s ease both" }}>
 
               {/* Hero card */}
-              <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(12,8,32,0.9)", border: "1px solid rgba(139,92,246,0.15)" }}>
-                <div className="h-1" style={{ background: "linear-gradient(90deg,#7c3aed,#a78bfa,#c084fc)" }} />
+              <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(12,12,15,0.9)", border: "1px solid rgba(0,112,243,0.15)" }}>
+                <div className="h-1" style={{ background: "linear-gradient(90deg,#0064dc,#3291FF,#64b4ff)" }} />
                 <div className="p-6">
                   {/* Badges */}
                   <div className="flex items-center gap-2 flex-wrap mb-3">
                     <span className="text-xs px-2.5 py-1 rounded-md font-medium"
-                      style={{ background: "rgba(139,92,246,0.12)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+                      style={{ background: "rgba(0,112,243,0.12)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
                       {project.category}
                     </span>
                     <span className="text-xs px-2.5 py-1 rounded-md font-medium"
-                      style={{ background: `rgba(0,0,0,0.2)`, color: PROJECT_STATUS[project.status]?.color || "#a78bfa", border: `1px solid ${PROJECT_STATUS[project.status]?.color || "rgba(139,92,246,0.2)"}` }}>
+                      style={{ background: `rgba(0,0,0,0.2)`, color: PROJECT_STATUS[project.status]?.color || "#3291FF", border: `1px solid ${PROJECT_STATUS[project.status]?.color || "rgba(0,112,243,0.2)"}` }}>
                       ● {PROJECT_STATUS[project.status]?.label ?? project.status}
                     </span>
                     <span className="text-xs px-2.5 py-1 rounded-md"
-                      style={{ background: "rgba(139,92,246,0.06)", color: "#374151", border: "1px solid rgba(139,92,246,0.1)" }}>
+                      style={{ background: "rgba(0,112,243,0.06)", color: "#374151", border: "1px solid rgba(0,112,243,0.1)" }}>
                       {project.difficulty}
                     </span>
                     {project.isRemote && (
@@ -144,12 +142,12 @@ const ProjectDetailPage = () => {
                   </div>
 
                   <h1 className="text-2xl font-bold text-white mb-1" style={{ letterSpacing: "-0.02em" }}>{project.title}</h1>
-                  {project.tagline && <p className="text-base mb-4" style={{ color: "#a78bfa" }}>{project.tagline}</p>}
+                  {project.tagline && <p className="text-base mb-4" style={{ color: "#3291FF" }}>{project.tagline}</p>}
 
                   {/* Owner */}
                   <div className="flex items-center gap-2 mb-5">
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                      style={{ background: "rgba(124,58,237,0.3)", color: "#a78bfa" }}>
+                      style={{ background: "rgba(0,100,220,0.3)", color: "#3291FF" }}>
                       {(project.owner?.fullName ?? "?")[0]}
                     </div>
                     <div>
@@ -180,7 +178,7 @@ const ProjectDetailPage = () => {
                 <div className="section-card">
                   <p className="section-title">Problem we're solving</p>
                   <div className="flex gap-3">
-                    <div className="w-1 rounded-full flex-shrink-0 mt-1" style={{ background: "linear-gradient(to bottom,#7c3aed,#a78bfa)", minHeight: 40 }} />
+                    <div className="w-1 rounded-full flex-shrink-0 mt-1" style={{ background: "linear-gradient(to bottom,#0064dc,#3291FF)", minHeight: 40 }} />
                     <p className="text-sm leading-relaxed" style={{ color: "#9ca3af" }}>{project.problem}</p>
                   </div>
                 </div>
@@ -240,19 +238,19 @@ const ProjectDetailPage = () => {
                 <div className="flex items-center justify-between mb-3">
                   <p className="section-title" style={{ marginBottom: 0 }}>Current team</p>
                   <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-24 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
-                      <div className="h-full rounded-full" style={{ width: `${fillPct}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
+                    <div className="h-1.5 w-24 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
+                      <div className="h-full rounded-full" style={{ width: `${fillPct}%`, background: "linear-gradient(90deg,#0064dc,#3291FF)" }} />
                     </div>
-                    <span className="text-xs" style={{ color: "#a78bfa" }}>{filledCount}/{totalCount}</span>
+                    <span className="text-xs" style={{ color: "#3291FF" }}>{filledCount}/{totalCount}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   {members.map((m, i) => (
                     <div key={m._id ?? i} className="flex items-center justify-between px-4 py-3 rounded-xl"
-                      style={{ background: "rgba(139,92,246,0.05)", border: "1px solid rgba(139,92,246,0.1)" }}>
+                      style={{ background: "rgba(0,112,243,0.05)", border: "1px solid rgba(0,112,243,0.1)" }}>
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
-                          style={{ background: "rgba(124,58,237,0.25)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.35)" }}>
+                          style={{ background: "rgba(0,100,220,0.25)", color: "#3291FF", border: "1px solid rgba(0,100,220,0.35)" }}>
                           {(m.fullName ?? m.name ?? "?")[0]}
                         </div>
                         <div>
@@ -261,7 +259,7 @@ const ProjectDetailPage = () => {
                       </div>
                       {i === 0 && (
                         <span className="text-xs px-2 py-0.5 rounded-full"
-                          style={{ background: "rgba(139,92,246,0.12)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+                          style={{ background: "rgba(0,112,243,0.12)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
                           Lead
                         </span>
                       )}
@@ -270,9 +268,9 @@ const ProjectDetailPage = () => {
                   {/* Empty slots */}
                   {Array.from({ length: Math.max(0, totalCount - filledCount) }).map((_, i) => (
                     <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                      style={{ background: "rgba(139,92,246,0.03)", border: "1px dashed rgba(139,92,246,0.15)" }}>
+                      style={{ background: "rgba(0,112,243,0.03)", border: "1px dashed rgba(0,112,243,0.15)" }}>
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                        style={{ background: "rgba(139,92,246,0.06)", border: "1px dashed rgba(139,92,246,0.15)" }}>
+                        style={{ background: "rgba(0,112,243,0.06)", border: "1px dashed rgba(0,112,243,0.15)" }}>
                         <span style={{ color: "#374151", fontSize: 16 }}>+</span>
                       </div>
                       <p className="text-sm" style={{ color: "#374151" }}>Open slot — apply to join</p>
@@ -288,7 +286,7 @@ const ProjectDetailPage = () => {
                   <div className="flex flex-wrap gap-2">
                     {project.perks.map(p => (
                       <span key={p} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm"
-                        style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)", color: "#9ca3af" }}>
+                        style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.15)", color: "#9ca3af" }}>
                         ✦ {p}
                       </span>
                     ))}
@@ -304,9 +302,9 @@ const ProjectDetailPage = () => {
                     {similar.map(s => (
                       <div key={s.id} onClick={() => navigate(`/projects/${s.id}`)}
                         className="p-4 rounded-2xl transition-all duration-200 cursor-pointer"
-                        style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.1)" }}
-                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.35)"; e.currentTarget.style.background = "rgba(20,12,50,0.9)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.1)"; e.currentTarget.style.background = "rgba(12,8,32,0.8)"; }}>
+                        style={{ background: "rgba(12,12,15,0.8)", border: "1px solid rgba(0,112,243,0.1)" }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,112,243,0.35)"; e.currentTarget.style.background = "rgba(22,22,26,0.9)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(0,112,243,0.1)"; e.currentTarget.style.background = "rgba(12,12,15,0.8)"; }}>
                         <div className="flex items-start justify-between mb-2">
                           <p className="text-white text-sm font-semibold">{s.title}</p>
                           <span className="text-xs px-2 py-0.5 rounded-full ml-2 flex-shrink-0"
@@ -315,7 +313,7 @@ const ProjectDetailPage = () => {
                         <p className="text-xs leading-relaxed mb-2" style={{ color: "#4b5563" }}>
                           {s.description.slice(0, 70)}...
                         </p>
-                        <p className="text-xs" style={{ color: "#a78bfa" }}>View project →</p>
+                        <p className="text-xs" style={{ color: "#3291FF" }}>View project →</p>
                       </div>
                     ))}
                   </div>
@@ -328,9 +326,9 @@ const ProjectDetailPage = () => {
 
               {/* Apply CTA */}
               <div className="rounded-2xl p-5 sticky top-24"
-                style={{ background: "rgba(12,8,32,0.9)", border: "1px solid rgba(139,92,246,0.2)" }}>
+                style={{ background: "rgba(12,12,15,0.9)", border: "1px solid rgba(0,112,243,0.2)" }}>
                 <div className="absolute inset-0 rounded-2xl pointer-events-none overflow-hidden">
-                  <div style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(109,40,217,0.15) 0%, transparent 70%)" }} className="absolute inset-0" />
+                  <div style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,80,180,0.15) 0%, transparent 70%)" }} className="absolute inset-0" />
                 </div>
 
                 <div className="relative">
@@ -379,12 +377,12 @@ const ProjectDetailPage = () => {
                     <p className="text-green-400 font-medium text-center py-2">✅ Application submitted!</p>
                   ) : user?._id === project.owner?._id ? (
                     <button disabled className="w-full py-3 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed mb-3"
-                      style={{ background: "rgba(139,92,246,0.05)", color: "#374151", border: "1px solid rgba(139,92,246,0.1)" }}>
+                      style={{ background: "rgba(0,112,243,0.05)", color: "#374151", border: "1px solid rgba(0,112,243,0.1)" }}>
                       You own this project
                     </button>
                   ) : project.status === 'closed' ? (
                     <button disabled className="w-full py-3 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed mb-3"
-                      style={{ background: "rgba(139,92,246,0.05)", color: "#374151", border: "1px solid rgba(139,92,246,0.1)" }}>
+                      style={{ background: "rgba(0,112,243,0.05)", color: "#374151", border: "1px solid rgba(0,112,243,0.1)" }}>
                       Not accepting applications
                     </button>
                   ) : (
@@ -393,12 +391,12 @@ const ProjectDetailPage = () => {
                       disabled={applying}
                       className="w-full py-3 rounded-xl text-sm font-bold transition-all duration-200 mb-3"
                       style={{
-                        background: applying ? "rgba(139,92,246,0.1)" : "linear-gradient(135deg,#7c3aed,#6d28d9)",
+                        background: applying ? "rgba(0,112,243,0.1)" : "linear-gradient(135deg,#0064dc,#0050b4)",
                         color: applying ? "#374151" : "#fff",
-                        border: applying ? "1px solid rgba(139,92,246,0.1)" : "none",
+                        border: applying ? "1px solid rgba(0,112,243,0.1)" : "none",
                         cursor: applying ? "not-allowed" : "pointer",
                       }}
-                      onMouseEnter={e => { if (!applying) e.currentTarget.style.boxShadow = "0 10px 30px rgba(124,58,237,0.4)"; }}
+                      onMouseEnter={e => { if (!applying) e.currentTarget.style.boxShadow = "0 10px 30px rgba(0,100,220,0.4)"; }}
                       onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
                       {applying ? 'Submitting...' : 'Apply Now'}
                     </button>
@@ -409,9 +407,9 @@ const ProjectDetailPage = () => {
 
                   <button onClick={() => navigate("/feed")}
                     className="w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-                    style={{ background: "transparent", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280", cursor: "pointer" }}
-                    onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.35)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = "#6b7280"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.15)"; }}>
+                    style={{ background: "transparent", border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280", cursor: "pointer" }}
+                    onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.35)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = "#6b7280"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.15)"; }}>
                     Browse other projects
                   </button>
                 </div>
@@ -422,16 +420,16 @@ const ProjectDetailPage = () => {
                 <p className="section-title">Project details</p>
                 <div className="space-y-3">
                   {[
-                    { label: "Duration",   value: project.duration,  icon: "⏱" },
-                    { label: "Team size",  value: `${totalCount} members`, icon: "👥" },
-                    { label: "Difficulty", value: project.difficulty, icon: "⚡" },
-                    { label: "Deadline",   value: project.deadline ? new Date(project.deadline).toLocaleDateString() : "No deadline",  icon: "📅" },
-                    { label: "Remote",     value: project.isRemote ? "Yes" : "No", icon: "🌐" },
+                    { label: "Duration",   value: project.duration,  icon: <Clock size={14} /> },
+                    { label: "Team size",  value: `${totalCount} members`, icon: <Users size={14} /> },
+                    { label: "Difficulty", value: project.difficulty, icon: <Zap size={14} /> },
+                    { label: "Deadline",   value: project.deadline ? new Date(project.deadline).toLocaleDateString() : "No deadline",  icon: <Calendar size={14} /> },
+                    { label: "Remote",     value: project.isRemote ? "Yes" : "No", icon: <Globe size={14} /> },
                   ].map(d => (
                     <div key={d.label} className="flex items-center justify-between py-2"
-                      style={{ borderBottom: "1px solid rgba(139,92,246,0.06)" }}>
-                      <div className="flex items-center gap-2">
-                        <span style={{ fontSize: 13 }}>{d.icon}</span>
+                      style={{ borderBottom: "1px solid rgba(0,112,243,0.06)" }}>
+                      <div className="flex items-center gap-2 text-primary">
+                        {d.icon}
                         <span className="text-xs" style={{ color: "#4b5563" }}>{d.label}</span>
                       </div>
                       <span className="text-xs font-medium text-white">{d.value}</span>
@@ -448,9 +446,9 @@ const ProjectDetailPage = () => {
                     {project.github && (
                       <a href={project.github} target="_blank" rel="noreferrer"
                         className="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200"
-                        style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.12)", color: "#9ca3af", textDecoration: "none" }}
-                        onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = "#9ca3af"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)"; }}>
+                        style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.12)", color: "#9ca3af", textDecoration: "none" }}
+                        onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.3)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = "#9ca3af"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.12)"; }}>
                         <span style={{ fontSize: 14 }}>⌥</span>
                         <span className="text-sm">GitHub Repository</span>
                         <span className="ml-auto" style={{ fontSize: 12 }}>↗</span>
@@ -459,9 +457,9 @@ const ProjectDetailPage = () => {
                     {project.figma && (
                       <a href={project.figma} target="_blank" rel="noreferrer"
                         className="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200"
-                        style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.12)", color: "#9ca3af", textDecoration: "none" }}
-                        onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = "#9ca3af"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)"; }}>
+                        style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.12)", color: "#9ca3af", textDecoration: "none" }}
+                        onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.3)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = "#9ca3af"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.12)"; }}>
                         <span style={{ fontSize: 14 }}>🎨</span>
                         <span className="text-sm">Figma Design</span>
                         <span className="ml-auto" style={{ fontSize: 12 }}>↗</span>
@@ -470,9 +468,9 @@ const ProjectDetailPage = () => {
                     {project.website && (
                       <a href={project.website} target="_blank" rel="noreferrer"
                         className="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200"
-                        style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.12)", color: "#9ca3af", textDecoration: "none" }}
-                        onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = "#9ca3af"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)"; }}>
+                        style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.12)", color: "#9ca3af", textDecoration: "none" }}
+                        onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.3)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = "#9ca3af"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.12)"; }}>
                         <span style={{ fontSize: 14 }}>🌐</span>
                         <span className="text-sm">Live Website</span>
                         <span className="ml-auto" style={{ fontSize: 12 }}>↗</span>

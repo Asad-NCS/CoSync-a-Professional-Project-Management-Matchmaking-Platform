@@ -3,6 +3,7 @@ import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createProject, fetchProjects } from "../../store/projectsSlice";
+import { Lightbulb, FileText, Users, LayoutGrid, Settings, Wrench, Link2, Github, Figma, Globe, AlertTriangle, Sparkles, Rocket } from "lucide-react";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = ["AI / ML", "Web App", "Mobile App", "Blockchain", "Hardware / IoT", "Game Dev", "Data Science", "Cybersecurity", "Open Source", "Research", "Other"];
@@ -14,17 +15,17 @@ const STACK_SUGGESTIONS = ["React", "Next.js", "Vue", "Angular", "Node.js", "Exp
 const PERKS = ["Certificate of completion", "Portfolio project", "Open source contribution", "Startup opportunity", "Research publication", "Hackathon submission", "Revenue sharing", "Mentorship provided"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const SKILL_COLORS = ["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6", "#34d399", "#60a5fa", "#fbbf24", "#e879f9", "#38bdf8"];
+import { SKILL_COLORS } from "../../lib/utils";
 
 const inputBase = (focused, error) => ({
-  background: "rgba(15,10,40,0.8)",
-  border: `1px solid ${error ? "#ef4444" : focused ? "rgba(139,92,246,0.6)" : "rgba(139,92,246,0.15)"}`,
+  background: "rgba(18,18,22,0.8)",
+  border: `1px solid ${error ? "#ef4444" : focused ? "rgba(0,112,243,0.6)" : "rgba(0,112,243,0.15)"}`,
   borderRadius: 10,
   color: "#fff",
   fontSize: "0.875rem",
   outline: "none",
   transition: "all 0.2s",
-  boxShadow: focused && !error ? "0 0 0 3px rgba(139,92,246,0.1)" : "none",
+  boxShadow: focused && !error ? "0 0 0 3px rgba(0,112,243,0.1)" : "none",
   width: "100%",
   fontFamily: "inherit",
 });
@@ -45,22 +46,22 @@ const StepBar = ({ current }) => (
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-base transition-all duration-300"
             style={{
-              background: i < current ? "#7c3aed" : i === current ? "rgba(124,58,237,0.2)" : "rgba(139,92,246,0.06)",
-              border: `1px solid ${i <= current ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.1)"}`,
+              background: i < current ? "#0064dc" : i === current ? "rgba(0,100,220,0.2)" : "rgba(0,112,243,0.06)",
+              border: `1px solid ${i <= current ? "rgba(0,112,243,0.5)" : "rgba(0,112,243,0.1)"}`,
               transform: i === current ? "scale(1.08)" : "scale(1)",
-              boxShadow: i === current ? "0 0 20px rgba(124,58,237,0.3)" : "none",
+              boxShadow: i === current ? "0 0 20px rgba(0,100,220,0.3)" : "none",
             }}
           >
             {i < current ? "✓" : s.icon}
           </div>
-          <p className="text-xs mt-1 font-medium" style={{ color: i === current ? "#a78bfa" : i < current ? "#7c3aed" : "#374151" }}>
+          <p className="text-xs mt-1 font-medium" style={{ color: i === current ? "#3291FF" : i < current ? "#0064dc" : "#374151" }}>
             {s.label}
           </p>
         </div>
         {i < STEPS.length - 1 && (
           <div
             className="w-16 h-px mx-2 mb-5 transition-all duration-500"
-            style={{ background: i < current ? "linear-gradient(90deg,#7c3aed,#a78bfa)" : "rgba(139,92,246,0.1)" }}
+            style={{ background: i < current ? "linear-gradient(90deg,#0064dc,#3291FF)" : "rgba(0,112,243,0.1)" }}
           />
         )}
       </div>
@@ -73,7 +74,7 @@ const Field = ({ label, hint, error, required, children }) => (
   <div className="mb-5">
     <div className="flex items-center justify-between mb-1.5">
       <label className="text-xs font-semibold" style={{ color: "#9ca3af" }}>
-        {label} {required && <span style={{ color: "#7c3aed" }}>*</span>}
+        {label} {required && <span style={{ color: "#0064dc" }}>*</span>}
       </label>
       {hint && <span className="text-xs" style={{ color: "#374151" }}>{hint}</span>}
     </div>
@@ -88,7 +89,7 @@ const TextInput = ({ placeholder, value, onChange, error, icon, maxLen }) => {
   return (
     <div className="relative">
       {icon && (
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: focused ? "#a78bfa" : "#374151", transition: "color 0.2s", fontSize: 14 }}>{icon}</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: focused ? "#3291FF" : "#374151", transition: "color 0.2s", fontSize: 14 }}>{icon}</span>
       )}
       <input
         type="text"
@@ -183,7 +184,7 @@ const TagInput = ({ tags, setTags, suggestions, placeholder, maxTags = 15, color
           <span key={t} className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium"
             style={colorful
               ? { background: `${SKILL_COLORS[i % SKILL_COLORS.length]}15`, border: `1px solid ${SKILL_COLORS[i % SKILL_COLORS.length]}35`, color: SKILL_COLORS[i % SKILL_COLORS.length] }
-              : { background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }
+              : { background: "rgba(0,112,243,0.12)", border: "1px solid rgba(0,112,243,0.25)", color: "#3291FF" }
             }>
             {t}
             <button type="button" onClick={() => setTags(tags.filter(x => x !== t))} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", lineHeight: 1, fontSize: 12 }}>×</button>
@@ -202,12 +203,12 @@ const TagInput = ({ tags, setTags, suggestions, placeholder, maxTags = 15, color
       </div>
       {showSugg && filtered.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-20"
-          style={{ background: "#0a0520", border: "1px solid rgba(139,92,246,0.2)", boxShadow: "0 12px 30px rgba(0,0,0,0.4)" }}>
+          style={{ background: "#0a0520", border: "1px solid rgba(0,112,243,0.2)", boxShadow: "0 12px 30px rgba(0,0,0,0.4)" }}>
           {filtered.map(s => (
             <button key={s} type="button" onMouseDown={() => add(s)}
               className="w-full text-left px-3 py-2 text-sm transition-colors"
               style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", display: "block" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(139,92,246,0.1)"; e.currentTarget.style.color = "#fff"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,112,243,0.1)"; e.currentTarget.style.color = "#fff"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#9ca3af"; }}>
               + {s}
             </button>
@@ -232,7 +233,7 @@ const RoleBuilder = ({ roles, setRoles }) => {
     setTitle(""); setSkills(""); setCount(1);
   };
 
-  const ROLE_COLORS = ["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6", "#34d399"];
+  const ROLE_COLORS = ["#61dafb", "#3291FF", "#4ade80", "#fb923c", "#f472b6", "#34d399"];
 
   return (
     <div>
@@ -241,7 +242,7 @@ const RoleBuilder = ({ roles, setRoles }) => {
         <div className="space-y-2 mb-4">
           {roles.map((r, i) => (
             <div key={r.id} className="flex items-center justify-between px-4 py-3 rounded-xl"
-              style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.12)" }}>
+              style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.12)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
                   style={{ background: `${ROLE_COLORS[i % ROLE_COLORS.length]}15`, color: ROLE_COLORS[i % ROLE_COLORS.length] }}>
@@ -269,7 +270,7 @@ const RoleBuilder = ({ roles, setRoles }) => {
       )}
 
       {/* Add role form */}
-      <div className="rounded-xl p-4" style={{ background: "rgba(139,92,246,0.04)", border: "1px dashed rgba(139,92,246,0.2)" }}>
+      <div className="rounded-xl p-4" style={{ background: "rgba(0,112,243,0.04)", border: "1px dashed rgba(0,112,243,0.2)" }}>
         <p className="text-xs font-semibold mb-3" style={{ color: "#6b7280" }}>Add a role</p>
         <div className="grid grid-cols-3 gap-3 mb-3">
           <div className="col-span-2">
@@ -295,9 +296,9 @@ const RoleBuilder = ({ roles, setRoles }) => {
         <button type="button" onClick={addRole} disabled={!title}
           className="w-full py-2 rounded-lg text-sm font-semibold transition-all duration-200"
           style={{
-            background: title ? "rgba(124,58,237,0.15)" : "rgba(139,92,246,0.04)",
-            border: `1px solid ${title ? "rgba(139,92,246,0.4)" : "rgba(139,92,246,0.1)"}`,
-            color: title ? "#a78bfa" : "#374151",
+            background: title ? "rgba(0,100,220,0.15)" : "rgba(0,112,243,0.04)",
+            border: `1px solid ${title ? "rgba(0,112,243,0.4)" : "rgba(0,112,243,0.1)"}`,
+            color: title ? "#3291FF" : "#374151",
             cursor: title ? "pointer" : "not-allowed",
           }}>
           + Add role to project
@@ -314,9 +315,9 @@ const ToggleChip = ({ label, selected, onToggle }) => (
     onClick={onToggle}
     className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
     style={{
-      background: selected ? "rgba(124,58,237,0.18)" : "rgba(139,92,246,0.04)",
-      border: `1px solid ${selected ? "rgba(139,92,246,0.45)" : "rgba(139,92,246,0.1)"}`,
-      color: selected ? "#a78bfa" : "#4b5563",
+      background: selected ? "rgba(0,100,220,0.18)" : "rgba(0,112,243,0.04)",
+      border: `1px solid ${selected ? "rgba(0,112,243,0.45)" : "rgba(0,112,243,0.1)"}`,
+      color: selected ? "#3291FF" : "#4b5563",
       cursor: "pointer",
     }}
   >
@@ -326,14 +327,14 @@ const ToggleChip = ({ label, selected, onToggle }) => (
 
 // ── Preview card ──────────────────────────────────────────────────────────────
 const PreviewCard = ({ form }) => (
-  <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(12,8,32,0.9)", border: "1px solid rgba(139,92,246,0.2)" }}>
-    <div className="h-1" style={{ background: "linear-gradient(90deg,#7c3aed,#a78bfa,#c084fc)" }} />
+  <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(12,12,15,0.9)", border: "1px solid rgba(0,112,243,0.2)" }}>
+    <div className="h-1" style={{ background: "linear-gradient(90deg,#0064dc,#3291FF,#64b4ff)" }} />
     <div className="p-5">
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             {form.category && (
-              <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={{ background: "rgba(139,92,246,0.12)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+              <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={{ background: "rgba(0,112,243,0.12)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
                 {form.category}
               </span>
             )}
@@ -343,7 +344,7 @@ const PreviewCard = ({ form }) => (
           </div>
           <h3 className="text-white font-bold text-base">{form.title || "Your project title"}</h3>
         </div>
-        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff" }}>
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "linear-gradient(135deg,#0064dc,#3291FF)", color: "#fff" }}>
           Y
         </div>
       </div>
@@ -369,9 +370,9 @@ const PreviewCard = ({ form }) => (
           {form.stack.length > 5 && <span className="text-xs" style={{ color: "#374151" }}>+{form.stack.length - 5} more</span>}
         </div>
       )}
-      <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(139,92,246,0.08)" }}>
+      <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(0,112,243,0.08)" }}>
         <span className="text-xs" style={{ color: "#374151" }}>Just posted · 0 applicants</span>
-        <span className="text-xs px-3 py-1.5 rounded-lg font-semibold" style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff" }}>Apply →</span>
+        <span className="text-xs px-3 py-1.5 rounded-lg font-semibold" style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff" }}>Apply →</span>
       </div>
     </div>
   </div>
@@ -450,7 +451,7 @@ const CreateProjectPage = () => {
       <style>{`
         @keyframes spin { to{transform:rotate(360deg)} }
         .section-title { font-size:0.8rem; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-        .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(139,92,246,0.06); }
+        .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(0,112,243,0.06); }
         .toggle-row:last-child { border-bottom:none; padding-bottom:0; }
         .toggle-switch { width:38px; height:22px; border-radius:11px; position:relative; cursor:pointer; transition:background 0.2s; border:none; }
         .toggle-knob { width:16px; height:16px; border-radius:50%; background:white; position:absolute; top:3px; transition:left 0.2s; }
@@ -460,7 +461,7 @@ const CreateProjectPage = () => {
 
         {/* ── Navbar ── */}
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
-          style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
+          style={{ background: "rgba(4,4,6,0.92)", borderBottom: "1px solid rgba(0,112,243,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button className="nav-btn flex items-center gap-2" onClick={() => navigate("/dashboard")}>
               <Logo className="w-7 h-7" />
@@ -472,7 +473,7 @@ const CreateProjectPage = () => {
           <div className="flex items-center gap-3">
             <button
               className="nav-btn text-sm px-3 py-1.5 rounded-lg"
-              style={{ color: "#6b7280", border: "1px solid rgba(139,92,246,0.12)" }}
+              style={{ color: "#6b7280", border: "1px solid rgba(0,112,243,0.12)" }}
               onClick={() => navigate("/dashboard")}
             >
               Discard
@@ -480,7 +481,7 @@ const CreateProjectPage = () => {
             <button
               onClick={() => setShowPreview(p => !p)}
               className="nav-btn text-sm px-3 py-1.5 rounded-lg"
-              style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa" }}
+              style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.2)", color: "#3291FF" }}
             >
               {showPreview ? "Hide" : "Show"} preview
             </button>
@@ -492,7 +493,7 @@ const CreateProjectPage = () => {
           {/* ── Page header ── */}
           <div className="mb-8 text-center" style={{ animation: "fadeUp 0.5s ease both" }}>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-4"
-              style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}>
+              style={{ background: "rgba(0,112,243,0.12)", border: "1px solid rgba(0,112,243,0.25)", color: "#3291FF" }}>
               ✦ Creating a new project
             </div>
             <h1 className="text-3xl font-bold mb-2" style={{ letterSpacing: "-0.025em" }}>
@@ -518,9 +519,9 @@ const CreateProjectPage = () => {
               {step === 0 && (
                 <>
                   <div className="section-card">
-                    <p className="section-title">💡 Project Identity</p>
+                    <p className="section-title flex items-center gap-2"><Lightbulb size={18} /> Project Identity</p>
                     <Field label="Project Title" required error={errors.title}>
-                      <TextInput placeholder="e.g. AI Chess Bot, Campus Rideshare App..." value={form.title} onChange={set("title")} error={errors.title} icon="✦" maxLen={60} />
+                      <TextInput placeholder="e.g. AI Chess Bot, Campus Rideshare App..." value={form.title} onChange={set("title")} error={errors.title} icon={<Sparkles size={14} />} maxLen={60} />
                     </Field>
                     <Field label="One-line Tagline" hint="optional">
                       <TextInput placeholder="A catchy one-liner — what makes this project unique?" value={form.tagline} onChange={set("tagline")} maxLen={100} />
@@ -531,7 +532,7 @@ const CreateProjectPage = () => {
                   </div>
 
                   <div className="section-card">
-                    <p className="section-title">📝 Project Description</p>
+                    <p className="section-title flex items-center gap-2"><FileText size={18} /> Project Description</p>
                     <Field label="What are you building?" required error={errors.description} hint={`${form.description.length}/1000`}>
                       <TextArea
                         placeholder="Describe your project in detail. What will it do? Who is it for? What makes it exciting? The more you write, the better matches you'll attract..."
@@ -552,13 +553,13 @@ const CreateProjectPage = () => {
               {step === 1 && (
                 <>
                   <div className="section-card">
-                    <p className="section-title">👥 Roles Needed</p>
-                    {errors.roles && <p className="text-xs mb-3" style={{ color: "#f87171" }}>⚠ {errors.roles}</p>}
+                    <p className="section-title flex items-center gap-2"><Users size={18} /> Roles Needed</p>
+                    {errors.roles && <p className="text-xs mb-3 flex items-center gap-1" style={{ color: "#f87171" }}><AlertTriangle size={14} /> {errors.roles}</p>}
                     <RoleBuilder roles={form.roles} setRoles={r => setForm(p => ({ ...p, roles: r }))} />
                   </div>
 
                   <div className="section-card">
-                    <p className="section-title">📐 Team Structure</p>
+                    <p className="section-title flex items-center gap-2"><LayoutGrid size={18} /> Team Structure</p>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <Field label="Team Size" required error={errors.teamSize}>
                         <Select options={TEAM_SIZES} value={form.teamSize} onChange={set("teamSize")} placeholder="Total members" error={errors.teamSize} />
@@ -577,14 +578,14 @@ const CreateProjectPage = () => {
                   </div>
 
                   <div className="section-card">
-                    <p className="section-title">⚙ Team Settings</p>
+                    <p className="section-title flex items-center gap-2"><Settings size={18} /> Team Settings</p>
                     <div className="toggle-row">
                       <div>
                         <p className="text-sm text-white font-medium">Remote friendly</p>
                         <p className="text-xs" style={{ color: "#374151" }}>Team members can work from anywhere</p>
                       </div>
                       <button type="button" className="toggle-switch" onClick={() => setBool("isRemote")}
-                        style={{ background: form.isRemote ? "#7c3aed" : "rgba(139,92,246,0.15)" }}>
+                        style={{ background: form.isRemote ? "#0064dc" : "rgba(0,112,243,0.15)" }}>
                         <div className="toggle-knob" style={{ left: form.isRemote ? 19 : 3 }} />
                       </button>
                     </div>
@@ -594,7 +595,7 @@ const CreateProjectPage = () => {
                         <p className="text-xs" style={{ color: "#374151" }}>Visible to all students on the feed</p>
                       </div>
                       <button type="button" className="toggle-switch" onClick={() => setBool("isPublic")}
-                        style={{ background: form.isPublic ? "#7c3aed" : "rgba(139,92,246,0.15)" }}>
+                        style={{ background: form.isPublic ? "#0064dc" : "rgba(0,112,243,0.15)" }}>
                         <div className="toggle-knob" style={{ left: form.isPublic ? 19 : 3 }} />
                       </button>
                     </div>
@@ -604,7 +605,7 @@ const CreateProjectPage = () => {
                         <p className="text-xs" style={{ color: "#374151" }}>Applicants must write why they want to join</p>
                       </div>
                       <button type="button" className="toggle-switch" onClick={() => setBool("requireCoverLetter")}
-                        style={{ background: form.requireCoverLetter ? "#7c3aed" : "rgba(139,92,246,0.15)" }}>
+                        style={{ background: form.requireCoverLetter ? "#0064dc" : "rgba(0,112,243,0.15)" }}>
                         <div className="toggle-knob" style={{ left: form.requireCoverLetter ? 19 : 3 }} />
                       </button>
                     </div>
@@ -616,7 +617,7 @@ const CreateProjectPage = () => {
               {step === 2 && (
                 <>
                   <div className="section-card">
-                    <p className="section-title">🛠 Tech Stack</p>
+                    <p className="section-title flex items-center gap-2"><Wrench size={18} /> Tech Stack</p>
                     <Field label="Technologies & Tools" required error={errors.stack} hint="Click suggestions or type your own">
                       <TagInput tags={form.stack} setTags={s => { setForm(p => ({ ...p, stack: s })); if (errors.stack) setErrors(p => ({ ...p, stack: "" })); }}
                         suggestions={STACK_SUGGESTIONS} placeholder="React, Python, MongoDB..." colorful maxTags={20} />
@@ -630,9 +631,9 @@ const CreateProjectPage = () => {
                           <button key={s} type="button"
                             onClick={() => setForm(p => ({ ...p, stack: [...p.stack, s] }))}
                             className="text-xs px-2.5 py-1 rounded-lg transition-all duration-150"
-                            style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.12)", color: "#4b5563", cursor: "pointer" }}
+                            style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.12)", color: "#4b5563", cursor: "pointer" }}
                             onMouseEnter={e => { e.currentTarget.style.color = SKILL_COLORS[i % SKILL_COLORS.length]; e.currentTarget.style.borderColor = `${SKILL_COLORS[i % SKILL_COLORS.length]}40`; }}
-                            onMouseLeave={e => { e.currentTarget.style.color = "#4b5563"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)"; }}>
+                            onMouseLeave={e => { e.currentTarget.style.color = "#4b5563"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.12)"; }}>
                             + {s}
                           </button>
                         ))}
@@ -645,15 +646,15 @@ const CreateProjectPage = () => {
                   </div>
 
                   <div className="section-card">
-                    <p className="section-title">🔗 Project Links</p>
+                    <p className="section-title flex items-center gap-2"><Link2 size={18} /> Project Links</p>
                     <Field label="GitHub Repository" hint="optional">
-                      <TextInput placeholder="https://github.com/username/repo" value={form.github} onChange={set("github")} icon="⌥" />
+                      <TextInput placeholder="https://github.com/username/repo" value={form.github} onChange={set("github")} icon={<Github size={14} />} />
                     </Field>
                     <Field label="Figma / Design File" hint="optional">
-                      <TextInput placeholder="https://figma.com/file/..." value={form.figma} onChange={set("figma")} icon="🎨" />
+                      <TextInput placeholder="https://figma.com/file/..." value={form.figma} onChange={set("figma")} icon={<Figma size={14} />} />
                     </Field>
                     <Field label="Website / Demo" hint="optional">
-                      <TextInput placeholder="https://yourproject.com" value={form.website} onChange={set("website")} icon="🌐" />
+                      <TextInput placeholder="https://yourproject.com" value={form.website} onChange={set("website")} icon={<Globe size={14} />} />
                     </Field>
                   </div>
                 </>
@@ -693,7 +694,7 @@ const CreateProjectPage = () => {
                   </div>
 
                   {/* Final review summary */}
-                  <div className="rounded-2xl p-5" style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(139,92,246,0.2)" }}>
+                  <div className="rounded-2xl p-5" style={{ background: "rgba(0,100,220,0.06)", border: "1px solid rgba(0,112,243,0.2)" }}>
                     <p className="text-sm font-semibold text-white mb-3">📋 Project Summary</p>
                     <div className="space-y-2 text-xs" style={{ color: "#6b7280" }}>
                       <div className="flex justify-between"><span>Title</span><span className="text-white">{form.title || "—"}</span></div>
@@ -714,23 +715,23 @@ const CreateProjectPage = () => {
                 {step > 0 && (
                   <button type="button" onClick={prev}
                     className="flex-1 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-                    style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280", cursor: "pointer" }}>
+                    style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280", cursor: "pointer" }}>
                     ← Back
                   </button>
                 )}
                 {step < 3 ? (
                   <button type="button" onClick={next}
                     className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
-                    style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}
-                    onMouseEnter={e => e.currentTarget.style.boxShadow = "0 10px 30px rgba(124,58,237,0.4)"}
+                    style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: "pointer" }}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = "0 10px 30px rgba(0,100,220,0.4)"}
                     onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
                     Continue →
                   </button>
                 ) : (
                   <button type="button" onClick={submit} disabled={loading}
                     className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
-                    style={{ background: loading ? "rgba(124,58,237,0.5)" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: loading ? "not-allowed" : "pointer" }}
-                    onMouseEnter={e => !loading && (e.currentTarget.style.boxShadow = "0 10px 30px rgba(124,58,237,0.4)")}
+                    style={{ background: loading ? "rgba(0,100,220,0.5)" : "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: loading ? "not-allowed" : "pointer" }}
+                    onMouseEnter={e => !loading && (e.currentTarget.style.boxShadow = "0 10px 30px rgba(0,100,220,0.4)")}
                     onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -740,7 +741,11 @@ const CreateProjectPage = () => {
                         </svg>
                         Publishing project...
                       </span>
-                    ) : "🚀 Publish Project"}
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <Rocket size={16} /> Publish Project
+                      </span>
+                    )}
                   </button>
                 )}
               </div>
@@ -754,7 +759,7 @@ const CreateProjectPage = () => {
                     Live preview
                   </p>
                   <PreviewCard form={form} />
-                  <div className="mt-4 rounded-xl p-4" style={{ background: "rgba(139,92,246,0.05)", border: "1px solid rgba(139,92,246,0.12)" }}>
+                  <div className="mt-4 rounded-xl p-4" style={{ background: "rgba(0,112,243,0.05)", border: "1px solid rgba(0,112,243,0.12)" }}>
                     <p className="text-xs font-semibold mb-2" style={{ color: "#6b7280" }}>Tips for better matches</p>
                     <div className="space-y-1.5">
                       {[
@@ -767,7 +772,7 @@ const CreateProjectPage = () => {
                       ].map(({ done, tip }) => (
                         <div key={tip} className="flex items-center gap-2">
                           <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-xs"
-                            style={{ background: done ? "rgba(74,222,128,0.15)" : "rgba(139,92,246,0.08)", color: done ? "#4ade80" : "#374151", border: `1px solid ${done ? "rgba(74,222,128,0.3)" : "rgba(139,92,246,0.1)"}` }}>
+                            style={{ background: done ? "rgba(74,222,128,0.15)" : "rgba(0,112,243,0.08)", color: done ? "#4ade80" : "#374151", border: `1px solid ${done ? "rgba(74,222,128,0.3)" : "rgba(0,112,243,0.1)"}` }}>
                             {done ? "✓" : "·"}
                           </div>
                           <p className="text-xs" style={{ color: done ? "#4b5563" : "#374151", textDecoration: done ? "line-through" : "none" }}>{tip}</p>

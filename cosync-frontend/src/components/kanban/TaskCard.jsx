@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
+import { SKILL_COLORS } from "../../lib/utils";
 
 const PRIORITY_CONFIG = {
   urgent: { color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.25)", label: "Urgent" },
@@ -10,14 +11,13 @@ const PRIORITY_CONFIG = {
 };
 
 const TYPE_CONFIG = {
-  feature: { color: "#a78bfa", bg: "rgba(167,139,250,0.1)", label: "Feature" },
+  feature: { color: "#3291FF", bg: "rgba(50,145,255,0.1)", label: "Feature" },
   bug:     { color: "#f87171", bg: "rgba(248,113,113,0.1)", label: "Bug"     },
   task:    { color: "#61dafb", bg: "rgba(97,218,251,0.1)",  label: "Task"    },
   design:  { color: "#f472b6", bg: "rgba(244,114,182,0.1)", label: "Design"  },
   docs:    { color: "#34d399", bg: "rgba(52,211,153,0.1)",  label: "Docs"    },
 };
 
-const SKILL_COLORS = ["#7c3aed","#a78bfa","#61dafb","#4ade80","#fb923c","#f472b6"];
 
 const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
   const {
@@ -55,9 +55,9 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
       <div
         className="rounded-2xl transition-all duration-200"
         style={{
-          background: overlay ? "rgba(30,18,60,0.98)" : hovered ? "rgba(22,14,48,0.98)" : "rgba(15,10,40,0.9)",
-          border: `1px solid ${isDragging ? "rgba(139,92,246,0.6)" : hovered ? "rgba(139,92,246,0.35)" : "rgba(139,92,246,0.12)"}`,
-          boxShadow: overlay ? "0 25px 50px rgba(0,0,0,0.5)" : hovered ? "0 8px 25px rgba(109,40,217,0.2)" : "none",
+          background: overlay ? "rgba(32,32,36,0.98)" : hovered ? "rgba(22,14,48,0.98)" : "rgba(18,18,22,0.9)",
+          border: `1px solid ${isDragging ? "rgba(0,112,243,0.6)" : hovered ? "rgba(0,112,243,0.35)" : "rgba(0,112,243,0.12)"}`,
+          boxShadow: overlay ? "0 25px 50px rgba(0,0,0,0.5)" : hovered ? "0 8px 25px rgba(0,80,180,0.2)" : "none",
           cursor: isDragging ? "grabbing" : "grab",
         }}
       >
@@ -85,7 +85,7 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
               <button
                 className="w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-200"
                 style={{
-                  background: showActions ? "rgba(139,92,246,0.2)" : "transparent",
+                  background: showActions ? "rgba(0,112,243,0.2)" : "transparent",
                   border: "none", cursor: "pointer", color: "#4b5563",
                   opacity: hovered ? 1 : 0,
                 }}
@@ -96,10 +96,10 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
               </button>
               {showActions && (
                 <div className="absolute right-0 top-7 rounded-xl overflow-hidden z-50 w-36"
-                  style={{ background: "#0a0520", border: "1px solid rgba(139,92,246,0.25)", boxShadow: "0 12px 30px rgba(0,0,0,0.5)" }}>
+                  style={{ background: "#0a0520", border: "1px solid rgba(0,112,243,0.25)", boxShadow: "0 12px 30px rgba(0,0,0,0.5)" }}>
                   <button className="w-full text-left px-3 py-2 text-xs transition-colors"
                     style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", display: "block" }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(139,92,246,0.1)"; e.currentTarget.style.color = "#fff"; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,112,243,0.1)"; e.currentTarget.style.color = "#fff"; }}
                     onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#9ca3af"; }}
                     onClick={e => { e.stopPropagation(); setShowActions(false); onEdit(task); }}>
                     ✏ Edit task
@@ -146,20 +146,20 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs" style={{ color: "#374151" }}>Checklist</span>
-                <span className="text-xs font-medium" style={{ color: checkPct === 100 ? "#4ade80" : "#a78bfa" }}>
+                <span className="text-xs font-medium" style={{ color: checkPct === 100 ? "#4ade80" : "#3291FF" }}>
                   {completedChecks}/{totalChecks}
                 </span>
               </div>
-              <div className="h-1 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
+              <div className="h-1 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
                 <div className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${checkPct}%`, background: checkPct === 100 ? "#4ade80" : "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
+                  style={{ width: `${checkPct}%`, background: checkPct === 100 ? "#4ade80" : "linear-gradient(90deg,#0064dc,#3291FF)" }} />
               </div>
             </div>
           )}
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-3"
-            style={{ borderTop: "1px solid rgba(139,92,246,0.07)" }}>
+            style={{ borderTop: "1px solid rgba(0,112,243,0.07)" }}>
             <div className="flex items-center gap-2">
               {/* Assignee */}
               {task.assignee && (
@@ -174,9 +174,9 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
               {task.dueDate && (
                 <span className="text-xs px-2 py-0.5 rounded-md"
                   style={{
-                    background: isOverdue ? "rgba(248,113,113,0.1)" : "rgba(139,92,246,0.06)",
+                    background: isOverdue ? "rgba(248,113,113,0.1)" : "rgba(0,112,243,0.06)",
                     color: isOverdue ? "#f87171" : "#4b5563",
-                    border: `1px solid ${isOverdue ? "rgba(248,113,113,0.2)" : "rgba(139,92,246,0.1)"}`,
+                    border: `1px solid ${isOverdue ? "rgba(248,113,113,0.2)" : "rgba(0,112,243,0.1)"}`,
                   }}>
                   {isOverdue ? "⚠ " : "📅 "}{task.dueDate}
                 </span>

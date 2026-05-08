@@ -7,7 +7,7 @@ const EMOJI_OPTIONS = ["👍", "🔥", "🎉", "👀", "💡", "✓", "⚡", "�
 
 const Avatar = ({ member, size = 8, showOnline = false }) => {
   const name = member?.name || member?.fullName || "User";
-  const avatarBg = member?.avatar || "#a78bfa";
+  const avatarBg = member?.avatar || "#3291FF";
   
   return (
     <div className="relative flex-shrink-0">
@@ -28,7 +28,7 @@ const Avatar = ({ member, size = 8, showOnline = false }) => {
 const MessageItem = ({ msg, me, membersMap }) => {
   const author = msg.sender || {};
   const isMe = author._id === me._id;
-  const authorData = membersMap[author._id] || { ...author, color: "#a78bfa" };
+  const authorData = membersMap[author._id] || { ...author, color: "#3291FF" };
 
   // Parse time
   const timeStr = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -40,7 +40,7 @@ const MessageItem = ({ msg, me, membersMap }) => {
       <div className={`flex-1 max-w-lg ${isMe ? "items-end" : "items-start"} flex flex-col`}>
         {/* Author + time */}
         <div className={`flex items-center gap-2 mb-1 ${isMe ? "flex-row-reverse" : ""}`}>
-          <span className="text-xs font-semibold" style={{ color: authorData.color || "#a78bfa" }}>
+          <span className="text-xs font-semibold" style={{ color: authorData.color || "#3291FF" }}>
             {authorData.name || authorData.fullName || "User"}
           </span>
           <span className="text-xs" style={{ color: "#374151" }}>{timeStr}</span>
@@ -50,8 +50,8 @@ const MessageItem = ({ msg, me, membersMap }) => {
         <div className="relative">
           <div className="rounded-2xl px-4 py-3 text-sm leading-relaxed"
             style={{
-              background: isMe ? "rgba(124,58,237,0.2)" : "rgba(15,10,40,0.85)",
-              border: `1px solid ${isMe ? "rgba(139,92,246,0.35)" : "rgba(139,92,246,0.12)"}`,
+              background: isMe ? "rgba(0,100,220,0.2)" : "rgba(18,18,22,0.85)",
+              border: `1px solid ${isMe ? "rgba(0,112,243,0.35)" : "rgba(0,112,243,0.12)"}`,
               color: "#e5e7eb",
               borderTopRightRadius: isMe ? 4 : 16,
               borderTopLeftRadius: isMe ? 16 : 4,
@@ -148,14 +148,14 @@ const DiscussionTab = ({ workspace }) => {
       <style>{`
         @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         .chat-scroll::-webkit-scrollbar { width:3px; }
-        .chat-scroll::-webkit-scrollbar-thumb { background:rgba(139,92,246,0.2); border-radius:2px; }
+        .chat-scroll::-webkit-scrollbar-thumb { background:rgba(0,112,243,0.2); border-radius:2px; }
       `}</style>
 
       <div className="flex flex-1 overflow-hidden">
         {/* ── Messages area ── */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(139,92,246,0.08)" }}>
+          <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(0,112,243,0.08)" }}>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-white">Team Discussion</h2>
@@ -190,7 +190,7 @@ const DiscussionTab = ({ workspace }) => {
           </div>
 
           {/* Input area */}
-          <div className="px-6 pb-5 pt-3 flex-shrink-0" style={{ borderTop: "1px solid rgba(139,92,246,0.08)" }}>
+          <div className="px-6 pb-5 pt-3 flex-shrink-0" style={{ borderTop: "1px solid rgba(0,112,243,0.08)" }}>
             <div className="flex items-end gap-3">
               <Avatar member={user} size={8} />
               <div className="flex-1 relative">
@@ -204,10 +204,10 @@ const DiscussionTab = ({ workspace }) => {
                   rows={1}
                   className="w-full rounded-xl text-sm text-white placeholder-gray-600 outline-none resize-none transition-all duration-200"
                   style={{
-                    background: "rgba(15,10,40,0.85)",
-                    border: `1px solid ${inputFocused ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.15)"}`,
+                    background: "rgba(18,18,22,0.85)",
+                    border: `1px solid ${inputFocused ? "rgba(0,112,243,0.5)" : "rgba(0,112,243,0.15)"}`,
                     padding: "0.75rem 3rem 0.75rem 1rem",
-                    boxShadow: inputFocused ? "0 0 0 3px rgba(139,92,246,0.1)" : "none",
+                    boxShadow: inputFocused ? "0 0 0 3px rgba(0,112,243,0.1)" : "none",
                     fontFamily: "inherit",
                   }}
                 />
@@ -215,7 +215,7 @@ const DiscussionTab = ({ workspace }) => {
                   disabled={!input.trim()}
                   className="absolute right-3 bottom-2.5 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 disabled:opacity-50"
                   style={{
-                    background: input.trim() ? "linear-gradient(135deg,#7c3aed,#6d28d9)" : "rgba(139,92,246,0.08)",
+                    background: input.trim() ? "linear-gradient(135deg,#0064dc,#0050b4)" : "rgba(0,112,243,0.08)",
                     border: "none", cursor: input.trim() ? "pointer" : "default",
                     color: input.trim() ? "#fff" : "#374151", fontSize: 13,
                   }}>
@@ -231,7 +231,7 @@ const DiscussionTab = ({ workspace }) => {
 
         {/* ── Right sidebar — online members ── */}
         <div className="hidden xl:flex flex-col w-56 flex-shrink-0 p-4"
-          style={{ borderLeft: "1px solid rgba(139,92,246,0.08)" }}>
+          style={{ borderLeft: "1px solid rgba(0,112,243,0.08)" }}>
           <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: "#374151" }}>Members</p>
           <div className="space-y-3">
             {activeMembers.map(m => (

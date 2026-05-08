@@ -86,6 +86,32 @@ export const completeProject = createAsyncThunk(
   }
 )
 
+// Fix: removeProject is now an async thunk that calls the DELETE API
+export const removeProject = createAsyncThunk(
+  'projects/removeProject',
+  async (projectId, { rejectWithValue }) => {
+    try {
+      await api.delete(`/projects/${projectId}`)
+      return projectId
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete project')
+    }
+  }
+)
+
+// Fix: updateApplicationStatus async thunk
+export const updateApplicationStatus = createAsyncThunk(
+  'projects/updateApplicationStatus',
+  async ({ applicationId, status }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/applications/${applicationId}`, { status })
+      return response.data.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update application')
+    }
+  }
+)
+
 const projectsSlice = createSlice({
   name: 'projects',
   initialState: {
@@ -99,11 +125,6 @@ const projectsSlice = createSlice({
   reducers: {
     clearProjectError: (state) => {
       state.error = null
-    },
-    removeProject: (state, action) => {
-      const targetId = String(action.payload)
-      state.myProjects = state.myProjects.filter((project) => String(project.id ?? project._id) !== targetId)
-      state.projectsList = state.projectsList.filter((project) => String(project.id ?? project._id) !== targetId)
     }
   },
   extraReducers: (builder) => {
@@ -191,8 +212,26 @@ const projectsSlice = createSlice({
           state.projectsList[pIndex] = action.payload;
         }
       })
+      // removeProject (now calls API)
+      .addCase(removeProject.fulfilled, (state, action) => {
+        const targetId = String(action.payload)
+        state.myProjects = state.myProjects.filter((project) => String(project.id ?? project._id) !== targetId)
+        state.projectsList = state.projectsList.filter((project) => String(project.id ?? project._id) !== targetId)
+      })
+      // updateApplicationStatus
+      .addCase(updateApplicationStatus.fulfilled, (state, action) => {
+        // Update in myProjects applications list if present
+        state.myProjects.forEach(project => {
+          if (project.applications) {
+            const appIndex = project.applications.findIndex(a => a._id === action.payload._id);
+            if (appIndex !== -1) {
+              project.applications[appIndex] = action.payload;
+            }
+          }
+        });
+      })
   }
 })
 
-export const { clearProjectError, removeProject } = projectsSlice.actions
+export const { clearProjectError } = projectsSlice.actions
 export default projectsSlice.reducer

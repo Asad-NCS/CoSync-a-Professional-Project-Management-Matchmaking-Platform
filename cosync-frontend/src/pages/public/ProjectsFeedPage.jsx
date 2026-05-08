@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProjects, fetchMatchedProjects } from "../../store/projectsSlice";
 import { PROJECT_STATUS, ROLE_COLORS } from "../../lib/utils";
+import { Search, AlertTriangle, Sparkles, Check, Lock } from "lucide-react";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = ["All", "AI / ML", "Web App", "Mobile / Web", "Blockchain", "Hardware / IoT"];
@@ -28,8 +29,8 @@ const ApplyModal = ({ project, onClose, isAuth }) => {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
         <div className="rounded-xl p-8 max-w-sm w-full text-center bg-surface border border-border" onClick={e => e.stopPropagation()}>
-          <div className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center bg-border text-primary text-xl">
-            🔒
+          <div className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center bg-border text-primary">
+            <Lock size={20} />
           </div>
           <h3 className="text-primary font-medium text-lg mb-2">Sign in to apply</h3>
           <p className="text-secondary text-sm mb-6">Create a free account to apply to projects and build your team.</p>
@@ -46,8 +47,8 @@ const ApplyModal = ({ project, onClose, isAuth }) => {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
         <div className="rounded-xl p-8 max-w-sm w-full text-center bg-surface border border-border" onClick={e => e.stopPropagation()}>
-          <div className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center bg-border text-primary text-xl">
-            ✓
+          <div className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center bg-border text-primary">
+            <Check size={20} />
           </div>
           <h3 className="text-primary font-medium text-lg mb-2">Application sent!</h3>
           <p className="text-secondary text-sm mb-2">Your application to <span className="text-primary">{project.title}</span> has been submitted.</p>
@@ -309,7 +310,7 @@ const ProjectsFeedPage = () => {
               onClick={() => setIsMatchMode(true)}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${isMatchMode ? 'bg-border text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
             >
-              <span className={isMatchMode ? "text-accent" : ""}>✨</span> Recommended for You
+              <span className={isMatchMode ? "text-accent" : ""}><Sparkles size={16} /></span> Recommended for You
             </button>
           </div>
         )}
@@ -369,7 +370,7 @@ const ProjectsFeedPage = () => {
           </div>
         ) : status === "failed" ? (
           <div className="text-center py-20 border border-border rounded-xl bg-surface">
-            <div className="text-2xl mb-2">⚠️</div>
+            <div className="flex justify-center mb-2 text-primary"><AlertTriangle size={24} /></div>
             <h3 className="font-medium mb-1">Failed to load</h3>
             <p className="text-sm text-secondary mb-4">{error}</p>
             <button onClick={() => isMatchMode ? dispatch(fetchMatchedProjects()) : dispatch(fetchProjects({ page: 1, limit: 50 }))} className="text-sm font-medium px-4 py-2 border border-border rounded-md hover:bg-surfaceHover transition-colors">Retry</button>
@@ -380,7 +381,7 @@ const ProjectsFeedPage = () => {
           </div>
         ) : (
           <div className="text-center py-20 border border-border rounded-xl bg-surface text-secondary">
-            <div className="text-2xl mb-2">🔍</div>
+            <div className="flex justify-center mb-2 text-primary"><Search size={24} /></div>
             <h3 className="font-medium text-primary mb-1">
               {isMatchMode && !search && activeCategory === "All" ? "No matches found yet" : "No projects found"}
             </h3>

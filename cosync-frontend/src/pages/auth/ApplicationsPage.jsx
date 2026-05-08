@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchMyApplications } from "../../store/projectsSlice";
 import { APP_STATUS } from '../../lib/utils';
 import StatusBadge from "../../components/ui/StatusBadge";
+import { Mail } from "lucide-react";
 
 // ── Detail modal ──────────────────────────────────────────────────────────────
 const DetailModal = ({ app, onClose }) => {
@@ -15,10 +16,10 @@ const DetailModal = ({ app, onClose }) => {
       style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}
       onClick={onClose}>
       <div className="w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-2xl"
-        style={{ background: "#0a0520", border: "1px solid rgba(139,92,246,0.25)", animation: "modalIn 0.25s ease both" }}
+        style={{ background: "#0a0520", border: "1px solid rgba(0,112,243,0.25)", animation: "modalIn 0.25s ease both" }}
         onClick={e => e.stopPropagation()}>
 
-        <div className="p-1 rounded-t-2xl" style={{ background: "rgba(0,0,0,0.2)", borderBottom: `1px solid ${s.color || "rgba(139,92,246,0.1)"}` }}>
+        <div className="p-1 rounded-t-2xl" style={{ background: "rgba(0,0,0,0.2)", borderBottom: `1px solid ${s.color || "rgba(0,112,243,0.1)"}` }}>
           <div className="flex items-center justify-center gap-2 py-2">
             <span style={{ color: s.color, fontSize: 16 }}>●</span>
             <span className="text-sm font-semibold" style={{ color: s.color }}>
@@ -31,7 +32,7 @@ const DetailModal = ({ app, onClose }) => {
           <div className="flex items-start justify-between mb-5">
             <div>
               <h3 className="text-xl font-bold text-white mb-1">{project.title}</h3>
-              <p className="text-sm" style={{ color: "#a78bfa" }}>{app.role || 'Contributor'}</p>
+              <p className="text-sm" style={{ color: "#3291FF" }}>{app.role || 'Contributor'}</p>
               <p className="text-xs mt-1" style={{ color: "#4b5563" }}>by {project.owner?.fullName || 'Project Owner'} · Applied {new Date(app.createdAt).toLocaleDateString()}</p>
             </div>
             <button onClick={onClose}
@@ -41,11 +42,11 @@ const DetailModal = ({ app, onClose }) => {
           <div className="flex flex-wrap gap-1.5 mb-5">
             {project.stack?.map((s, i) => (
               <span key={i} className="text-xs px-2.5 py-1 rounded-lg font-medium"
-                style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa" }}>{s}</span>
+                style={{ background: "rgba(0,112,243,0.1)", border: "1px solid rgba(0,112,243,0.2)", color: "#3291FF" }}>{s}</span>
             ))}
           </div>
 
-          <div className="rounded-xl p-4 mb-5" style={{ background: "rgba(139,92,246,0.05)", border: "1px solid rgba(139,92,246,0.1)" }}>
+          <div className="rounded-xl p-4 mb-5" style={{ background: "rgba(0,112,243,0.05)", border: "1px solid rgba(0,112,243,0.1)" }}>
             <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#4b5563" }}>Your application message</p>
             <p className="text-sm leading-relaxed" style={{ color: "#9ca3af" }}>{app.message || "No cover letter provided."}</p>
           </div>
@@ -79,8 +80,8 @@ const AppCard = ({ app, index, onClick }) => {
     <div
       className="rounded-2xl border transition-all duration-300 overflow-hidden cursor-pointer"
       style={{
-        background: hovered ? "rgba(20,12,50,0.95)" : "rgba(12,8,32,0.85)",
-        borderColor: hovered ? s.color : "rgba(139,92,246,0.12)",
+        background: hovered ? "rgba(22,22,26,0.95)" : "rgba(12,12,15,0.85)",
+        borderColor: hovered ? s.color : "rgba(0,112,243,0.12)",
         transform: hovered ? "translateY(-2px)" : "none",
         boxShadow: hovered ? `0 16px 40px rgba(0,0,0,0.3)` : "none",
         animation: `fadeUp 0.5s ease both`,
@@ -90,13 +91,13 @@ const AppCard = ({ app, index, onClick }) => {
       onMouseLeave={() => setHovered(false)}
       onClick={() => onClick(app)}
     >
-      <div className="h-0.5" style={{ background: s.color || "rgba(139,92,246,0.1)" }} />
+      <div className="h-0.5" style={{ background: s.color || "rgba(0,112,243,0.1)" }} />
 
       <div className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
-              style={{ background: "rgba(139,92,246,0.1)", color: "#a78bfa", border: `1px solid rgba(139,92,246,0.2)` }}>
+              style={{ background: "rgba(0,112,243,0.1)", color: "#3291FF", border: `1px solid rgba(0,112,243,0.2)` }}>
               {project.title?.[0] || "?"}
             </div>
             <div>
@@ -107,9 +108,9 @@ const AppCard = ({ app, index, onClick }) => {
           <StatusBadge status={app.status} />
         </div>
 
-        <div className="rounded-lg px-3 py-2 mb-3" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.1)" }}>
+        <div className="rounded-lg px-3 py-2 mb-3" style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.1)" }}>
           <p className="text-xs" style={{ color: "#6b7280" }}>Applied for role</p>
-          <p className="text-sm font-medium" style={{ color: "#a78bfa" }}>{app.role || 'Contributor'}</p>
+          <p className="text-sm font-medium" style={{ color: "#3291FF" }}>{app.role || 'Contributor'}</p>
         </div>
 
         <div className="flex flex-wrap gap-1 mb-4">
@@ -121,7 +122,7 @@ const AppCard = ({ app, index, onClick }) => {
 
         <div className="flex items-center justify-between text-xs" style={{ color: "#374151" }}>
           <span>Applied {new Date(app.createdAt).toLocaleDateString()}</span>
-          <span style={{ color: "#a78bfa" }}>View details →</span>
+          <span style={{ color: "#3291FF" }}>View details →</span>
         </div>
       </div>
     </div>
@@ -159,24 +160,24 @@ const ApplicationsPage = () => {
       <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
-          style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
+          style={{ background: "rgba(4,4,6,0.92)", borderBottom: "1px solid rgba(0,112,243,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
               <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>
-            <span className="text-sm font-medium" style={{ color: "#a78bfa" }}>Applications</span>
+            <span className="text-sm font-medium" style={{ color: "#3291FF" }}>Applications</span>
           </div>
           <div className="flex gap-3">
             <button onClick={() => navigate("/dashboard")}
               className="text-sm px-3 py-1.5 rounded-lg"
-              style={{ background: "none", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280", cursor: "pointer" }}>
+              style={{ background: "none", border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280", cursor: "pointer" }}>
               ← Dashboard
             </button>
             <button onClick={() => navigate("/feed")}
               className="text-sm px-4 py-1.5 rounded-lg font-semibold"
-              style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
+              style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: "pointer" }}>
               Browse Projects
             </button>
           </div>
@@ -195,8 +196,8 @@ const ApplicationsPage = () => {
               { label: "rejected", value: counts.rejected },
             ].map(s => (
               <div key={s.label} className="rounded-2xl p-5 text-center"
-                style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${APP_STATUS[s.label]?.color || "rgba(139,92,246,0.2)"}` }}>
-                <p className="text-3xl font-bold mb-1" style={{ color: APP_STATUS[s.label]?.color || "#a78bfa" }}>{s.value}</p>
+                style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${APP_STATUS[s.label]?.color || "rgba(0,112,243,0.2)"}` }}>
+                <p className="text-3xl font-bold mb-1" style={{ color: APP_STATUS[s.label]?.color || "#3291FF" }}>{s.value}</p>
                 <p className="text-sm capitalize" style={{ color: "#6b7280" }}>{APP_STATUS[s.label]?.label || s.label}</p>
               </div>
             ))}
@@ -206,9 +207,9 @@ const ApplicationsPage = () => {
             {FILTERS.map(f => (
               <button key={f} className="filter-btn capitalize" onClick={() => setFilter(f)}
                 style={{
-                  background: filter === f ? "rgba(124,58,237,0.18)" : "rgba(12,8,32,0.85)",
-                  border: `1px solid ${filter === f ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.12)"}`,
-                  color: filter === f ? "#a78bfa" : "#4b5563",
+                  background: filter === f ? "rgba(0,100,220,0.18)" : "rgba(12,12,15,0.85)",
+                  border: `1px solid ${filter === f ? "rgba(0,112,243,0.5)" : "rgba(0,112,243,0.12)"}`,
+                  color: filter === f ? "#3291FF" : "#4b5563",
                 }}>
                 {APP_STATUS[f]?.label || f} {f !== "All" && `(${counts[f] || 0})`}
               </button>
@@ -221,15 +222,15 @@ const ApplicationsPage = () => {
             </div>
           ) : (
             <div className="text-center py-24">
-              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.12)" }}>
-                <span style={{ fontSize: 24 }}>📨</span>
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center text-primary"
+                style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.12)" }}>
+                <Mail size={24} />
               </div>
               <h3 className="text-white font-semibold mb-2">No {filter !== "All" ? filter : ""} applications</h3>
               <p className="text-sm mb-5" style={{ color: "#374151" }}>Browse projects and apply to join a team</p>
               <button onClick={() => navigate("/feed")}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold"
-                style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
+                style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: "pointer" }}>
                 Browse Projects
               </button>
             </div>

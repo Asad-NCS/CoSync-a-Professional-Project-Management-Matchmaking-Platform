@@ -4,18 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import api from "../../lib/api";
 import { updateUser } from "../../store/authSlice";
-
-const SKILL_COLORS = ["#61dafb","#a78bfa","#4ade80","#fb923c","#f472b6","#34d399","#60a5fa","#fbbf24","#e879f9","#38bdf8"];
+import { SKILL_COLORS } from "../../lib/utils";
+import { Award, Star } from "lucide-react";
 const ROLES = ["Developer","Designer","Project Manager","ML Engineer","DevOps","Mobile Developer","Other"];
 const DEGREES = ["BS Computer Science","BS Software Engineering","BS AI","BS Data Science","MS Computer Science","Other"];
 const UNIVERSITIES = ["NUST","FAST-NUCES","LUMS","COMSATS","UET Lahore","IBA Karachi","Other"];
 
 const inputStyle = (focused, error) => ({
-  background: "rgba(15,10,40,0.8)",
-  border: `1px solid ${error ? "#ef4444" : focused ? "rgba(139,92,246,0.6)" : "rgba(139,92,246,0.15)"}`,
+  background: "rgba(18,18,22,0.8)",
+  border: `1px solid ${error ? "#ef4444" : focused ? "rgba(0,112,243,0.6)" : "rgba(0,112,243,0.15)"}`,
   borderRadius: 10, color: "#fff", fontSize: "0.875rem", outline: "none",
   transition: "all 0.2s", width: "100%", fontFamily: "inherit",
-  boxShadow: focused && !error ? "0 0 0 3px rgba(139,92,246,0.1)" : "none",
+  boxShadow: focused && !error ? "0 0 0 3px rgba(0,112,243,0.1)" : "none",
   padding: "0.625rem 0.875rem",
 });
 
@@ -126,25 +126,25 @@ const ProfilePage = () => {
       <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
-          style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
+          style={{ background: "rgba(4,4,6,0.92)", borderBottom: "1px solid rgba(0,112,243,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
               <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>
-            <span className="text-sm font-medium" style={{ color: "#a78bfa" }}>Profile</span>
+            <span className="text-sm font-medium" style={{ color: "#3291FF" }}>Profile</span>
           </div>
           <div className="flex gap-3">
             <button onClick={() => navigate("/dashboard")}
               className="text-sm px-3 py-1.5 rounded-lg"
-              style={{ background: "none", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280", cursor: "pointer" }}>
+              style={{ background: "none", border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280", cursor: "pointer" }}>
               ← Dashboard
             </button>
             <div className="flex flex-col items-end">
               <button onClick={handleSave} disabled={saving}
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-all duration-300"
-                style={{ background: saveSuccess ? "rgba(74,222,128,0.15)" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color: saveSuccess ? "#4ade80" : "#fff", border: saveSuccess ? "1px solid rgba(74,222,128,0.3)" : "none", cursor: saving ? "wait" : "pointer", opacity: saving ? 0.7 : 1 }}>
+                style={{ background: saveSuccess ? "rgba(74,222,128,0.15)" : "linear-gradient(135deg,#0064dc,#0050b4)", color: saveSuccess ? "#4ade80" : "#fff", border: saveSuccess ? "1px solid rgba(74,222,128,0.3)" : "none", cursor: saving ? "wait" : "pointer", opacity: saving ? 0.7 : 1 }}>
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
               {saveSuccess && <p className="text-green-400 text-sm mt-2">Profile saved successfully!</p>}
@@ -155,12 +155,12 @@ const ProfilePage = () => {
 
         <div className="max-w-5xl mx-auto px-6 py-10">
 
-          <div className="rounded-2xl p-6 mb-6 relative overflow-hidden" style={{ background: "rgba(12,8,32,0.9)", border: "1px solid rgba(139,92,246,0.15)", animation: "fadeUp 0.5s ease both" }}>
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 0% 50%, rgba(109,40,217,0.12) 0%, transparent 60%)" }} />
+          <div className="rounded-2xl p-6 mb-6 relative overflow-hidden" style={{ background: "rgba(12,12,15,0.9)", border: "1px solid rgba(0,112,243,0.15)", animation: "fadeUp 0.5s ease both" }}>
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 0% 50%, rgba(0,80,180,0.12) 0%, transparent 60%)" }} />
             <div className="relative flex items-start gap-5 flex-wrap">
               <div className="relative">
                 <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold"
-                  style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff" }}>
+                  style={{ background: "linear-gradient(135deg,#0064dc,#3291FF)", color: "#fff" }}>
                   {fullName?.[0]?.toUpperCase() || "?"}
                 </div>
               </div>
@@ -169,7 +169,7 @@ const ProfilePage = () => {
                 <div className="flex items-start justify-between flex-wrap gap-3">
                   <div>
                     <h1 className="text-2xl font-bold text-white mb-0.5" style={{ letterSpacing: "-0.02em" }}>{fullName}</h1>
-                    <p style={{ color: "#a78bfa", fontSize: "0.9rem" }}>{role} {university ? `· ${university}` : ''}</p>
+                    <p style={{ color: "#3291FF", fontSize: "0.9rem" }}>{role} {university ? `· ${university}` : ''}</p>
                     <p className="text-sm mt-1" style={{ color: "#4b5563" }}>{degree}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -177,13 +177,13 @@ const ProfilePage = () => {
                       style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80" }}>
                       ● {availability}
                     </span>
-                    <span className="text-xs px-3 py-1.5 rounded-full font-medium"
-                      style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}>
-                      🏆 {user?.completedProjects || 0} Completed
+                    <span className="text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5"
+                      style={{ background: "rgba(0,112,243,0.1)", border: "1px solid rgba(0,112,243,0.25)", color: "#3291FF" }}>
+                      <Award size={14} /> {user?.completedProjects || 0} Completed
                     </span>
-                    <span className="text-xs px-3 py-1.5 rounded-full font-medium"
+                    <span className="text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5"
                       style={{ background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.25)", color: "#fb923c" }}>
-                      ⭐ {user?.rating || 5.0} Reputation
+                      <Star size={14} /> {user?.rating || 5.0} Reputation
                     </span>
                   </div>
                 </div>
@@ -204,14 +204,14 @@ const ProfilePage = () => {
 
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <div className="flex gap-1 mb-5 p-1 rounded-xl" style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.1)" }}>
+              <div className="flex gap-1 mb-5 p-1 rounded-xl" style={{ background: "rgba(12,12,15,0.8)", border: "1px solid rgba(0,112,243,0.1)" }}>
                 {TABS.map(t => (
                   <button key={t} onClick={() => setActiveTab(t)}
                     className="flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all duration-200"
                     style={{
-                      background: activeTab === t ? "rgba(124,58,237,0.2)" : "transparent",
-                      border: activeTab === t ? "1px solid rgba(139,92,246,0.3)" : "1px solid transparent",
-                      color: activeTab === t ? "#a78bfa" : "#4b5563",
+                      background: activeTab === t ? "rgba(0,100,220,0.2)" : "transparent",
+                      border: activeTab === t ? "1px solid rgba(0,112,243,0.3)" : "1px solid transparent",
+                      color: activeTab === t ? "#3291FF" : "#4b5563",
                       cursor: "pointer",
                     }}>
                     {t}
@@ -274,7 +274,7 @@ const ProfilePage = () => {
                         <button key={s} type="button"
                           onClick={() => setSkills(p => [...p, s])}
                           className="text-xs px-2.5 py-1 rounded-lg transition-all duration-150"
-                          style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.12)", color: "#4b5563", cursor: "pointer" }}>
+                          style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.12)", color: "#4b5563", cursor: "pointer" }}>
                           + {s}
                         </button>
                       ))}
@@ -307,13 +307,13 @@ const ProfilePage = () => {
                 <div className="mt-3">
                   <div className="flex justify-between mb-1.5 text-xs" style={{ color: "#374151" }}>
                     <span>Completeness</span>
-                    <span style={{ color: "#a78bfa" }}>
+                    <span style={{ color: "#3291FF" }}>
                       {Math.round(([!!fullName, !!bio, !!university, skills.length >= 3, !!github].filter(Boolean).length / 5) * 100)}%
                     </span>
                   </div>
-                  <div className="h-1.5 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
+                  <div className="h-1.5 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
                     <div className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.round(([!!fullName, !!bio, !!university, skills.length >= 3, !!github].filter(Boolean).length / 5) * 100)}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
+                      style={{ width: `${Math.round(([!!fullName, !!bio, !!university, skills.length >= 3, !!github].filter(Boolean).length / 5) * 100)}%`, background: "linear-gradient(90deg,#0064dc,#3291FF)" }} />
                   </div>
                 </div>
               </div>

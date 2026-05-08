@@ -25,7 +25,7 @@ exports.addResource = async (req, res) => {
       name,
       type,
       url: finalUrl,
-      addedBy: req.user._id
+      addedBy: req.user.id
     });
     
     const populated = await resource.populate('addedBy', 'fullName email');

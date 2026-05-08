@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import api from "../../lib/api";
-
+import { User, Check, X, MessageSquare, Rocket, Users, Calendar, Bell } from "lucide-react";
 const TYPE_FILTERS = ["All", "Applications", "Accepted", "Messages", "System"];
 const TYPE_MAP = { 
   application_received: "Applications", 
@@ -15,20 +15,20 @@ const TYPE_MAP = {
 };
 
 const ICON_MAP = {
-  application_received: "👤",
-  application_accepted: "🎉",
-  application_rejected: "❌",
-  new_message: "💬",
-  project_published: "🚀",
-  team_formed: "👥",
-  deadline_reminder: "📅"
+  application_received: <User size={16} />,
+  application_accepted: <Check size={16} />,
+  application_rejected: <X size={16} />,
+  new_message: <MessageSquare size={16} />,
+  project_published: <Rocket size={16} />,
+  team_formed: <Users size={16} />,
+  deadline_reminder: <Calendar size={16} />
 };
 
 const COLOR_MAP = {
   application_received: "#61dafb",
   application_accepted: "#4ade80",
   application_rejected: "#f87171",
-  new_message: "#a78bfa",
+  new_message: "#3291FF",
   project_published: "#fb923c",
   team_formed: "#34d399",
   deadline_reminder: "#fbbf24"
@@ -91,23 +91,23 @@ const NotificationsPage = () => {
 
         {/* Navbar */}
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
-          style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
+          style={{ background: "rgba(4,4,6,0.92)", borderBottom: "1px solid rgba(0,112,243,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
               <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>
-            <span className="text-sm font-medium" style={{ color: "#a78bfa" }}>Notifications</span>
+            <span className="text-sm font-medium" style={{ color: "#3291FF" }}>Notifications</span>
             {unread > 0 && (
               <span className="text-xs px-2 py-0.5 rounded-full font-bold"
-                style={{ background: "#7c3aed", color: "#fff" }}>{unread}</span>
+                style={{ background: "#0064dc", color: "#fff" }}>{unread}</span>
             )}
           </div>
           <div className="flex gap-3">
             <button onClick={() => navigate("/dashboard")}
               className="text-sm px-3 py-1.5 rounded-lg"
-              style={{ background: "none", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280", cursor: "pointer" }}>
+              style={{ background: "none", border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280", cursor: "pointer" }}>
               ← Dashboard
             </button>
           </div>
@@ -120,15 +120,15 @@ const NotificationsPage = () => {
             <div>
               <h1 className="text-3xl font-bold mb-2" style={{ letterSpacing: "-0.025em" }}>Notifications</h1>
               <p style={{ color: "#4b5563" }}>
-                {unread > 0 ? <><span style={{ color: "#a78bfa", fontWeight: 600 }}>{unread} unread</span> notifications</> : "You're all caught up!"}
+                {unread > 0 ? <><span style={{ color: "#3291FF", fontWeight: 600 }}>{unread} unread</span> notifications</> : "You're all caught up!"}
               </p>
             </div>
             {unread > 0 && (
               <button onClick={markAllRead}
                 className="text-sm px-4 py-2 rounded-xl transition-all duration-200"
-                style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa", cursor: "pointer" }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(139,92,246,0.15)"}
-                onMouseLeave={e => e.currentTarget.style.background = "rgba(139,92,246,0.08)"}>
+                style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.2)", color: "#3291FF", cursor: "pointer" }}
+                onMouseEnter={e => e.currentTarget.style.background = "rgba(0,112,243,0.15)"}
+                onMouseLeave={e => e.currentTarget.style.background = "rgba(0,112,243,0.08)"}>
                 Mark all read
               </button>
             )}
@@ -139,9 +139,9 @@ const NotificationsPage = () => {
             {TYPE_FILTERS.map(f => (
               <button key={f} className="filter-btn" onClick={() => setFilter(f)}
                 style={{
-                  background: filter === f ? "rgba(124,58,237,0.18)" : "rgba(12,8,32,0.85)",
-                  border: `1px solid ${filter === f ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.12)"}`,
-                  color: filter === f ? "#a78bfa" : "#4b5563",
+                  background: filter === f ? "rgba(0,100,220,0.18)" : "rgba(12,12,15,0.85)",
+                  border: `1px solid ${filter === f ? "rgba(0,112,243,0.5)" : "rgba(0,112,243,0.12)"}`,
+                  color: filter === f ? "#3291FF" : "#4b5563",
                 }}>
                 {f}
               </button>
@@ -159,8 +159,8 @@ const NotificationsPage = () => {
                 key={n._id}
                 className="flex items-start gap-4 p-4 rounded-2xl transition-all duration-200 group"
                 style={{
-                  background: n.read ? "rgba(12,8,32,0.6)" : "rgba(20,12,50,0.9)",
-                  border: `1px solid ${n.read ? "rgba(139,92,246,0.08)" : "rgba(139,92,246,0.2)"}`,
+                  background: n.read ? "rgba(12,12,15,0.6)" : "rgba(22,22,26,0.9)",
+                  border: `1px solid ${n.read ? "rgba(0,112,243,0.08)" : "rgba(0,112,243,0.2)"}`,
                   animation: `fadeUp 0.4s ease both`,
                   animationDelay: `${i * 0.05}s`,
                   cursor: "pointer",
@@ -168,9 +168,9 @@ const NotificationsPage = () => {
                 onClick={() => markRead(n._id)}
               >
                 {/* Icon */}
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
-                  style={{ background: `${COLOR_MAP[n.type] || "#a78bfa"}15`, border: `1px solid ${COLOR_MAP[n.type] || "#a78bfa"}25` }}>
-                  {ICON_MAP[n.type] || "🔔"}
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-primary"
+                  style={{ background: `${COLOR_MAP[n.type] || "#3291FF"}15`, border: `1px solid ${COLOR_MAP[n.type] || "#3291FF"}25` }}>
+                  {ICON_MAP[n.type] || <Bell size={18} />}
                 </div>
 
                 {/* Content */}
@@ -178,7 +178,7 @@ const NotificationsPage = () => {
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-semibold" style={{ color: n.read ? "#9ca3af" : "#fff" }}>{n.title}</p>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {!n.read && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#7c3aed" }} />}
+                      {!n.read && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#0064dc" }} />}
                       <button
                         onClick={e => { e.stopPropagation(); deleteNote(n._id); }}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-xs"
@@ -195,9 +195,9 @@ const NotificationsPage = () => {
 
             {!loading && filtered.length === 0 && (
               <div className="text-center py-20">
-                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.12)" }}>
-                  <span style={{ fontSize: 24 }}>🔔</span>
+                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center text-primary"
+                  style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.12)" }}>
+                  <Bell size={24} />
                 </div>
                 <p className="text-white font-semibold mb-2">No notifications</p>
                 <p className="text-sm" style={{ color: "#374151" }}>You're all caught up!</p>

@@ -88,8 +88,8 @@
 }
 .section-card {
   border-radius: 16px;
-  background: rgba(12, 8, 32, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.1);
+  background: rgba(12,12,15, 0.8);
+  border: 1px solid rgba(0,112,243, 0.1);
   padding: 20px;
   margin-bottom: 16px;
 }

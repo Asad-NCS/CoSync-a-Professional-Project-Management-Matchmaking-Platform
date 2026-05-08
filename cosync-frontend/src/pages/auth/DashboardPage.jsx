@@ -7,19 +7,20 @@ import { fetchMatchedProjects } from "../../store/projectsSlice";
 import api from "../../lib/api";
 import { PROJECT_STATUS, APP_STATUS, ROLE_COLORS } from "../../lib/utils";
 import StatusBadge from "../../components/ui/StatusBadge";
+import { LayoutDashboard, Search, Folder, Mail, User, Bell, LogOut, FolderOpen, Award, Zap, Star, Plus } from "lucide-react";
 
 // ── Sidebar nav items ─────────────────────────────────────────────────────────
-const NAV = [
-  { icon: "⊞", label: "Dashboard", path: "/dashboard", active: true },
-  { icon: "🔍", label: "Browse Projects", path: "/feed", active: false },
-  { icon: "📁", label: "My Projects", path: "/my-projects", active: false },
-  { icon: "📨", label: "Applications", path: "/applications", active: false },
-  { icon: "👤", label: "Profile", path: "/profile", active: false },
-  { icon: "🔔", label: "Notifications", path: "/notifications", badge: 3, active: false },
+const NAV_ITEMS = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", active: true },
+  { icon: Search, label: "Browse Projects", path: "/feed", active: false },
+  { icon: Folder, label: "My Projects", path: "/my-projects", active: false },
+  { icon: Mail, label: "Applications", path: "/applications", active: false },
+  { icon: User, label: "Profile", path: "/profile", active: false },
+  { icon: Bell, label: "Notifications", path: "/notifications", active: false },
 ];
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
-const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
+const Sidebar = ({ collapsed, setCollapsed, onLogout, unreadCount = 0 }) => {
   const navigate = useNavigate();
   const { user } = useSelector(s => s.auth);
   const displayName = user?.fullName || user?.name || "User";
@@ -29,12 +30,12 @@ const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
       className="flex flex-col h-screen sticky top-0 transition-all duration-300 flex-shrink-0"
       style={{
         width: collapsed ? 64 : 240,
-        background: "rgba(8,5,25,0.98)",
-        borderRight: "1px solid rgba(139,92,246,0.1)",
+        background: "rgba(4,4,6,0.98)",
+        borderRight: "1px solid rgba(0,112,243,0.1)",
       }}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between px-4 py-5" style={{ borderBottom: "1px solid rgba(139,92,246,0.08)" }}>
+      <div className="flex items-center justify-between px-4 py-5" style={{ borderBottom: "1px solid rgba(0,112,243,0.08)" }}>
         {!collapsed && (
           <div className="flex items-center gap-2">
             <Logo className="w-7 h-7 flex-shrink-0" />
@@ -57,31 +58,31 @@ const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
 
       {/* Nav items */}
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-        {NAV.map((item) => (
+        {NAV_ITEMS.map((item) => (
           <button
             key={item.label}
             onClick={() => navigate(item.path)}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative"
             style={{
-              background: item.active ? "rgba(124,58,237,0.15)" : "transparent",
-              border: item.active ? "1px solid rgba(139,92,246,0.25)" : "1px solid transparent",
-              color: item.active ? "#a78bfa" : "#4b5563",
+              background: item.active ? "rgba(0,100,220,0.15)" : "transparent",
+              border: item.active ? "1px solid rgba(0,112,243,0.25)" : "1px solid transparent",
+              color: item.active ? "#3291FF" : "#4b5563",
               cursor: "pointer",
               justifyContent: collapsed ? "center" : "flex-start",
             }}
-            onMouseEnter={e => { if (!item.active) { e.currentTarget.style.background = "rgba(139,92,246,0.08)"; e.currentTarget.style.color = "#9ca3af"; } }}
+            onMouseEnter={e => { if (!item.active) { e.currentTarget.style.background = "rgba(0,112,243,0.08)"; e.currentTarget.style.color = "#9ca3af"; } }}
             onMouseLeave={e => { if (!item.active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#4b5563"; } }}
           >
-            <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
+            <item.icon size={18} className="flex-shrink-0" strokeWidth={item.active ? 2.5 : 2} />
             {!collapsed && <span className="text-sm font-medium flex-1 text-left">{item.label}</span>}
-            {!collapsed && item.badge && (
+            {!collapsed && item.label === "Notifications" && unreadCount > 0 && (
               <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
-                style={{ background: "#7c3aed", color: "#fff", fontSize: 10 }}>{item.badge}</span>
+                style={{ background: "#0064dc", color: "#fff", fontSize: 10 }}>{unreadCount}</span>
             )}
             {/* Tooltip on collapse */}
             {collapsed && (
               <div className="absolute left-14 bg-gray-900 text-white text-xs px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50"
-                style={{ border: "1px solid rgba(139,92,246,0.2)" }}>
+                style={{ border: "1px solid rgba(0,112,243,0.2)" }}>
                 {item.label}
               </div>
             )}
@@ -90,12 +91,12 @@ const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
       </nav>
 
       {/* User + logout */}
-      <div className="px-2 pb-4" style={{ borderTop: "1px solid rgba(139,92,246,0.08)", paddingTop: 12 }}>
+      <div className="px-2 pb-4" style={{ borderTop: "1px solid rgba(0,112,243,0.08)", paddingTop: 12 }}>
         {!collapsed && (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl mb-2"
-            style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.1)" }}>
+            style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.1)" }}>
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-              style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff" }}>
+              style={{ background: "linear-gradient(135deg,#0064dc,#3291FF)", color: "#fff" }}>
               {displayName[0]?.toUpperCase() || "U"}
             </div>
             <div className="flex-1 min-w-0">
@@ -111,7 +112,7 @@ const Sidebar = ({ collapsed, setCollapsed, onLogout }) => {
           onMouseEnter={e => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.background = "rgba(248,113,113,0.08)"; }}
           onMouseLeave={e => { e.currentTarget.style.color = "#4b5563"; e.currentTarget.style.background = "none"; }}
         >
-          <span style={{ fontSize: 15 }}>⎋</span>
+          <LogOut size={18} />
           {!collapsed && <span className="text-sm font-medium">Sign out</span>}
         </button>
       </div>
@@ -126,8 +127,8 @@ const StatCard = ({ stat, index }) => {
     <div
       className="rounded-2xl p-5 transition-all duration-300"
       style={{
-        background: hovered ? "rgba(20,12,50,0.9)" : "rgba(12,8,32,0.8)",
-        border: `1px solid ${hovered ? "rgba(139,92,246,0.3)" : "rgba(139,92,246,0.1)"}`,
+        background: hovered ? "rgba(22,22,26,0.9)" : "rgba(12,12,15,0.8)",
+        border: `1px solid ${hovered ? "rgba(0,112,243,0.3)" : "rgba(0,112,243,0.1)"}`,
         transform: hovered ? "translateY(-2px)" : "none",
         animation: `fadeUp 0.5s ease both`,
         animationDelay: `${index * 0.08}s`,
@@ -136,8 +137,8 @@ const StatCard = ({ stat, index }) => {
       onMouseLeave={() => setHovered(false)}
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base"
-          style={{ background: stat.bg }}>
+        <div className="w-9 h-9 rounded-lg border flex items-center justify-center text-primary"
+          style={{ background: stat.bg, borderColor: "rgba(255,255,255,0.05)" }}>
           {stat.icon}
         </div>
         <span className="text-xs" style={{ color: "#374151" }}>↑ this week</span>
@@ -156,10 +157,10 @@ const MyProjectCard = ({ project }) => {
     <div
       className="rounded-2xl p-5 transition-all duration-300 cursor-pointer"
       style={{
-        background: hovered ? "rgba(20,12,50,0.95)" : "rgba(12,8,32,0.8)",
-        border: `1px solid ${hovered ? "rgba(139,92,246,0.35)" : "rgba(139,92,246,0.1)"}`,
+        background: hovered ? "rgba(22,22,26,0.95)" : "rgba(12,12,15,0.8)",
+        border: `1px solid ${hovered ? "rgba(0,112,243,0.35)" : "rgba(0,112,243,0.1)"}`,
         transform: hovered ? "translateY(-2px)" : "none",
-        boxShadow: hovered ? "0 16px 40px rgba(109,40,217,0.15)" : "none",
+        boxShadow: hovered ? "0 16px 40px rgba(0,80,180,0.15)" : "none",
       }}
       onClick={() => navigate(`/projects/${project._id}`)}
       onMouseEnter={() => setHovered(true)}
@@ -167,7 +168,7 @@ const MyProjectCard = ({ project }) => {
     >
       {/* Top line on hover */}
       <div className="h-px mb-4 rounded-full transition-opacity duration-300"
-        style={{ background: "linear-gradient(90deg,transparent,rgba(139,92,246,0.6),transparent)", opacity: hovered ? 1 : 0 }} />
+        style={{ background: "linear-gradient(90deg,transparent,rgba(0,112,243,0.6),transparent)", opacity: hovered ? 1 : 0 }} />
 
       <div className="flex items-start justify-between mb-3">
         <div>
@@ -193,11 +194,11 @@ const MyProjectCard = ({ project }) => {
       <div className="mb-4">
         <div className="flex justify-between mb-1.5">
           <span className="text-xs" style={{ color: "#374151" }}>Project progress</span>
-          <span className="text-xs font-medium" style={{ color: "#a78bfa" }}>{project.progress ?? 0}%</span>
+          <span className="text-xs font-medium" style={{ color: "#3291FF" }}>{project.progress ?? 0}%</span>
         </div>
-        <div className="h-1.5 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
+        <div className="h-1.5 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
           <div className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${project.progress ?? 0}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
+            style={{ width: `${project.progress ?? 0}%`, background: "linear-gradient(90deg,#0064dc,#3291FF)" }} />
         </div>
       </div>
 
@@ -209,7 +210,7 @@ const MyProjectCard = ({ project }) => {
         ))}
       </div>
 
-      <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(139,92,246,0.08)" }}>
+      <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(0,112,243,0.08)" }}>
         <div className="flex items-center gap-3">
           <span className="text-xs" style={{ color: "#4b5563" }}>
             <span style={{ color: "#6b7280" }}>{project.applicationCount ?? 0}</span> applicants
@@ -226,12 +227,12 @@ const MyProjectCard = ({ project }) => {
 const AppliedRow = ({ project, index }) => {
   const pData = project.project || project;
   const title = pData.title || "Project";
-  const color = pData.color || "#a78bfa";
+  const color = pData.color || "#3291FF";
   return (
     <div
       className="flex items-center justify-between py-3.5 transition-all duration-200"
       style={{
-        borderBottom: "1px solid rgba(139,92,246,0.06)",
+        borderBottom: "1px solid rgba(0,112,243,0.06)",
         animation: `fadeUp 0.5s ease both`,
         animationDelay: `${index * 0.07}s`,
       }}
@@ -256,15 +257,15 @@ const AppliedRow = ({ project, index }) => {
 // ── Empty state ───────────────────────────────────────────────────────────────
 const EmptyState = ({ icon, title, desc, action, onAction }) => (
   <div className="text-center py-10">
-    <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-      style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.12)" }}>
-      <span style={{ fontSize: 20 }}>{icon}</span>
+    <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center text-primary"
+      style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.12)" }}>
+      {typeof icon === "string" ? <span style={{ fontSize: 20 }}>{icon}</span> : icon}
     </div>
     <p className="text-white text-sm font-medium mb-1">{title}</p>
     <p className="text-xs mb-4" style={{ color: "#374151" }}>{desc}</p>
     {action && (
       <button onClick={onAction} className="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
-        style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
+        style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: "pointer" }}>
         {action}
       </button>
     )}
@@ -276,6 +277,7 @@ const DashboardPage = () => {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -296,6 +298,11 @@ const DashboardPage = () => {
     }
     fetchDashboard()
     dispatch(fetchMatchedProjects())
+    // Fetch unread notification count
+    api.get('/notifications').then(res => {
+      const unread = (res.data.data || []).filter(n => !n.read).length;
+      setUnreadCount(unread);
+    }).catch(() => {})
   }, [dispatch])
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -316,10 +323,10 @@ const DashboardPage = () => {
     : 0;
 
   const STATS = [
-    { label: "Projects Posted", value: dashboard.stats.projectsPosted || 0, icon: "📁", color: "#7c3aed", bg: "rgba(124,58,237,0.12)" },
-    { label: "Completed Projects", value: user?.completedProjects || 0, icon: "🏆", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
-    { label: "Match Score", value: `${avgMatch}%`, icon: "⚡", color: "#fb923c", bg: "rgba(251,146,60,0.12)" },
-    { label: "Reputation", value: user?.rating || 5.0, icon: "⭐", color: "#61dafb", bg: "rgba(97,218,251,0.12)" },
+    { label: "Projects Posted", value: dashboard.stats.projectsPosted || 0, icon: <FolderOpen size={18} />, color: "#0064dc", bg: "rgba(0,100,220,0.12)" },
+    { label: "Completed Projects", value: user?.completedProjects || 0, icon: <Award size={18} />, color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
+    { label: "Match Score", value: `${avgMatch}%`, icon: <Zap size={18} />, color: "#fb923c", bg: "rgba(251,146,60,0.12)" },
+    { label: "Reputation", value: user?.rating || 5.0, icon: <Star size={18} />, color: "#61dafb", bg: "rgba(97,218,251,0.12)" },
   ];
 
   return (
@@ -329,7 +336,7 @@ const DashboardPage = () => {
       <div className="flex min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif" }}>
 
         {/* ── Sidebar ── */}
-        <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} onLogout={handleLogout} />
+        <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} onLogout={handleLogout} unreadCount={unreadCount} />
 
         {/* ── Main content ── */}
         <div className="flex-1 flex flex-col min-w-0">
@@ -338,8 +345,8 @@ const DashboardPage = () => {
           <header
             className="flex items-center justify-between px-6 py-4 sticky top-0 z-30"
             style={{
-              background: "rgba(5,3,15,0.9)",
-              borderBottom: "1px solid rgba(139,92,246,0.08)",
+              background: "rgba(4,4,6,0.9)",
+              borderBottom: "1px solid rgba(0,112,243,0.08)",
               backdropFilter: "blur(20px)",
               animation: "slideDown 0.4s ease both",
             }}
@@ -352,29 +359,32 @@ const DashboardPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => navigate("/notifications")}
                 className="topbar-btn relative"
-                style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280" }}
+                style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280" }}
               >
-                <span style={{ fontSize: 14 }}>🔔</span>
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold"
-                  style={{ background: "#7c3aed", color: "#fff", fontSize: 9 }}>3</span>
+                <Bell size={16} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold"
+                    style={{ background: "#0064dc", color: "#fff", fontSize: 9 }}>{unreadCount}</span>
+                )}
               </button>
 
               <button
                 onClick={() => navigate("/feed")}
-                className="topbar-btn"
-                style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)", color: "#9ca3af" }}
+                className="topbar-btn glass-panel text-secondary hover:text-primary transition-colors"
+                style={{ padding: "6px 12px", background: "rgba(255,255,255,0.03)" }}
               >
-                <span style={{ fontSize: 12 }}>🔍</span>
+                <Search size={14} />
                 Browse
               </button>
 
               <button
                 onClick={() => navigate("/projects/create")}
-                className="topbar-btn"
-                style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff" }}
+                className="topbar-btn bg-primary text-background hover:bg-white/90 font-medium"
+                style={{ padding: "6px 14px", border: "none" }}
               >
-                <span style={{ fontSize: 12 }}>+</span>
+                <Plus size={14} />
                 New Project
               </button>
             </div>
@@ -387,13 +397,13 @@ const DashboardPage = () => {
             <div
               className="rounded-2xl p-6 relative overflow-hidden"
               style={{
-                background: "rgba(12,8,32,0.9)",
-                border: "1px solid rgba(139,92,246,0.15)",
+                background: "rgba(12,12,15,0.9)",
+                border: "1px solid rgba(0,112,243,0.15)",
                 animation: "fadeUp 0.5s ease both",
               }}
             >
               <div className="absolute inset-0 pointer-events-none"
-                style={{ background: "radial-gradient(ellipse 70% 80% at 0% 50%, rgba(109,40,217,0.15) 0%, transparent 60%)" }} />
+                style={{ background: "radial-gradient(ellipse 70% 80% at 0% 50%, rgba(0,80,180,0.15) 0%, transparent 60%)" }} />
               <div className="relative">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: "#4ade80", boxShadow: "0 0 8px #4ade80" }} />
@@ -403,22 +413,20 @@ const DashboardPage = () => {
                   Ready to build something great?
                 </h2>
                 <p className="text-sm mb-4" style={{ color: "#4b5563" }}>
-                  You have <span style={{ color: "#a78bfa" }}>{dashboard.stats.applicationsSubmitted || 0} applications</span> submitted and <span style={{ color: "#4ade80" }}>{dashboard.stats.activeTeams || 0} active teams</span>.
+                  You have <span style={{ color: "#3291FF" }}>{dashboard.stats.applicationsSubmitted || 0} applications</span> submitted and <span style={{ color: "#4ade80" }}>{dashboard.stats.activeTeams || 0} active teams</span>.
                 </p>
                 <div className="flex gap-3 flex-wrap">
                   <button
                     onClick={() => navigate("/projects/create")}
-                    className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
-                    style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}
+                    className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary text-background hover:bg-white/90 transition-all flex items-center gap-2"
                   >
-                    + Post a new project
+                    <Plus size={16} /> Post a new project
                   </button>
                   <button
                     onClick={() => navigate("/feed")}
-                    className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                    style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", color: "#9ca3af", cursor: "pointer" }}
+                    className="px-4 py-2 rounded-xl text-sm font-medium glass-panel border border-border/60 hover:bg-surface transition-all text-secondary hover:text-primary flex items-center gap-2"
                   >
-                    Browse projects →
+                    Browse projects <span style={{ fontFamily: "serif" }}>→</span>
                   </button>
                 </div>
               </div>
@@ -436,10 +444,10 @@ const DashboardPage = () => {
                 <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.2s" }}>
                   <div className="section-title">
                     <div className="flex items-center gap-2">
-                      <span style={{ fontSize: 14 }}>📁</span>
+                      <Folder size={16} className="text-secondary" />
                       My Projects
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+                        style={{ background: "rgba(0,112,243,0.15)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
                         {dashboard.recentProjects.length}
                       </span>
                     </div>
@@ -458,10 +466,10 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <EmptyState
-                      icon="📁"
+                      icon={<FolderOpen size={24} />}
                       title="No projects yet"
                       desc="Post your first project and start finding teammates"
-                      action="+ Post a project"
+                      action="Post a project"
                       onAction={() => navigate("/projects/create")}
                     />
                   )}
@@ -486,9 +494,9 @@ const DashboardPage = () => {
                       {matchedProjects.slice(0, 4).map((p, i) => (
                         <div key={p._id} onClick={() => navigate(`/projects/${p._id}`)}
                           className="flex items-center justify-between p-4 rounded-xl transition-all duration-200 cursor-pointer group"
-                          style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.1)", animation: `fadeUp 0.4s ease both`, animationDelay: `${i * 0.06}s` }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; e.currentTarget.style.background = "rgba(20,12,50,0.9)"; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.1)"; e.currentTarget.style.background = "rgba(139,92,246,0.04)"; }}>
+                          style={{ background: "rgba(0,112,243,0.04)", border: "1px solid rgba(0,112,243,0.1)", animation: `fadeUp 0.4s ease both`, animationDelay: `${i * 0.06}s` }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,112,243,0.3)"; e.currentTarget.style.background = "rgba(22,22,26,0.9)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(0,112,243,0.1)"; e.currentTarget.style.background = "rgba(0,112,243,0.04)"; }}>
                           <div className="flex items-center gap-3 flex-1 min-w-0">
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
                               style={{ background: `${ROLE_COLORS[i % ROLE_COLORS.length]}18`, border: `1px solid ${ROLE_COLORS[i % ROLE_COLORS.length]}30`, color: ROLE_COLORS[i % ROLE_COLORS.length] }}>
@@ -506,12 +514,12 @@ const DashboardPage = () => {
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 ml-3">
                             <div className="text-right">
-                              <span className="text-sm font-bold" style={{ color: p.matchPercentage >= 70 ? "#4ade80" : p.matchPercentage >= 40 ? "#fbbf24" : "#a78bfa" }}>
+                              <span className="text-sm font-bold" style={{ color: p.matchPercentage >= 70 ? "#4ade80" : p.matchPercentage >= 40 ? "#fbbf24" : "#3291FF" }}>
                                 {p.matchPercentage}%
                               </span>
                               <p className="text-xs" style={{ color: "#374151" }}>match</p>
                             </div>
-                            <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "#a78bfa" }}>→</span>
+                            <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "#3291FF" }}>→</span>
                           </div>
                         </div>
                       ))}
@@ -522,10 +530,10 @@ const DashboardPage = () => {
                 <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.3s" }}>
                   <div className="section-title">
                     <div className="flex items-center gap-2">
-                      <span style={{ fontSize: 14 }}>📨</span>
+                      <Mail size={16} className="text-secondary" />
                       Applied Projects
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+                        style={{ background: "rgba(0,112,243,0.15)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
                         {dashboard.recentApplications.length}
                       </span>
                     </div>
@@ -544,7 +552,7 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <EmptyState
-                      icon="📨"
+                      icon={<Mail size={24} />}
                       title="No applications yet"
                       desc="Browse open projects and apply to join a team"
                       action="Browse projects"
@@ -561,20 +569,20 @@ const DashboardPage = () => {
                   </div>
                   <div className="space-y-2">
                     {[
-                      { icon: "➕", label: "Post a project", desc: "Find your team", action: () => navigate("/projects/create"), color: "#7c3aed" },
-                      { icon: "🔍", label: "Browse projects", desc: "Find work to join", action: () => navigate("/feed"), color: "#61dafb" },
-                      { icon: "👤", label: "Edit profile", desc: "Update your skills", action: () => navigate("/profile"), color: "#4ade80" },
-                      { icon: "🔔", label: "Notifications", desc: "3 unread alerts", action: () => { }, color: "#fb923c" },
+                      { icon: <Plus size={16} />, label: "Post a project", desc: "Find your team", action: () => navigate("/projects/create"), color: "#0064dc" },
+                      { icon: <Search size={16} />, label: "Browse projects", desc: "Find work to join", action: () => navigate("/feed"), color: "#61dafb" },
+                      { icon: <User size={16} />, label: "Edit profile", desc: "Update your skills", action: () => navigate("/profile"), color: "#4ade80" },
+                      { icon: <Bell size={16} />, label: "Notifications", desc: unreadCount > 0 ? `${unreadCount} unread alerts` : "No unread alerts", action: () => navigate("/notifications"), color: "#fb923c" },
                     ].map(item => (
                       <button
                         key={item.label}
                         onClick={item.action}
                         className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 text-left"
-                        style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.08)", cursor: "pointer" }}
+                        style={{ background: "rgba(0,112,243,0.04)", border: "1px solid rgba(0,112,243,0.08)", cursor: "pointer" }}
                       >
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-primary"
                           style={{ background: `${item.color}15` }}>
-                          <span style={{ fontSize: 14 }}>{item.icon}</span>
+                          {item.icon}
                         </div>
                         <div>
                           <p className="text-white text-xs font-medium">{item.label}</p>
@@ -589,16 +597,16 @@ const DashboardPage = () => {
                   <div className="section-card" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.35s" }}>
                     <div className="section-title">
                       <div className="flex items-center gap-2">
-                        <span style={{ fontSize: 14 }}>⚡</span>
+                        <Zap size={16} className="text-secondary" />
                         Recent Activity
                       </div>
                     </div>
                     <div className="space-y-4">
                       {dashboard.recentApplications.map((a, i) => (
                         <div key={i} className="flex gap-3" style={{ animation: `fadeUp 0.5s ease both`, animationDelay: `${i * 0.07}s` }}>
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs"
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-primary"
                             style={{ background: "rgba(97,218,251,0.12)", border: "1px solid rgba(97,218,251,0.25)" }}>
-                            📨
+                            <Mail size={12} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-white leading-relaxed">Applied to {a.project?.title || 'Project'}</p>
@@ -616,7 +624,7 @@ const DashboardPage = () => {
                 >
                   <div className="relative w-24 h-24 mx-auto mb-3">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(139,92,246,0.1)" strokeWidth="8" />
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(0,112,243,0.1)" strokeWidth="8" />
                       <circle cx="50" cy="50" r="42" fill="none"
                         stroke="url(#scoreGrad)" strokeWidth="8"
                         strokeLinecap="round"
@@ -624,8 +632,8 @@ const DashboardPage = () => {
                       />
                       <defs>
                         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#7c3aed" />
-                          <stop offset="100%" stopColor="#a78bfa" />
+                          <stop offset="0%" stopColor="#0064dc" />
+                          <stop offset="100%" stopColor="#3291FF" />
                         </linearGradient>
                       </defs>
                     </svg>
@@ -640,7 +648,7 @@ const DashboardPage = () => {
                   <button
                     onClick={() => navigate("/profile")}
                     className="text-xs px-3 py-1.5 rounded-lg w-full transition-all duration-200"
-                    style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa", cursor: "pointer" }}
+                    style={{ background: "rgba(0,112,243,0.1)", border: "1px solid rgba(0,112,243,0.2)", color: "#3291FF", cursor: "pointer" }}
                   >
                     Improve your profile →
                   </button>

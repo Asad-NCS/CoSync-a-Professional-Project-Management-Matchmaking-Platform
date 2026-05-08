@@ -8,6 +8,7 @@ import KanbanColumn from "./KanbanColumn";
 import TaskCard    from "./TaskCard";
 import AddTaskModal from "./AddTaskModal";
 import api from "../../lib/api";
+import { LayoutDashboard, List } from "lucide-react";
 
 const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsChange, projectId, members = [] }) => {
   const [activeTask, setActiveTask] = useState(null);
@@ -141,23 +142,23 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
         .scrollbar-hide::-webkit-scrollbar { display:none; }
         .scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none; }
         .board-scroll::-webkit-scrollbar { height:4px; }
-        .board-scroll::-webkit-scrollbar-track { background:rgba(139,92,246,0.05); }
-        .board-scroll::-webkit-scrollbar-thumb { background:rgba(139,92,246,0.2); border-radius:2px; }
+        .board-scroll::-webkit-scrollbar-track { background:rgba(0,112,243,0.05); }
+        .board-scroll::-webkit-scrollbar-thumb { background:rgba(0,112,243,0.2); border-radius:2px; }
       `}</style>
 
       <div className="flex flex-col h-full" style={{ background: "transparent" }}>
 
         {/* ── Board header ── */}
-        <div className="px-6 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(139,92,246,0.08)" }}>
+        <div className="px-6 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(0,112,243,0.08)" }}>
 
           {/* Title row */}
           <div className="flex items-start justify-between mb-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span style={{ fontSize: 18 }}>⊞</span>
+              <div className="flex items-center gap-2 mb-1 text-primary">
+                <LayoutDashboard size={20} />
                 <h2 className="text-xl font-bold text-white" style={{ letterSpacing: "-0.02em" }}>Kanban Board</h2>
                 <span className="text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(139,92,246,0.12)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+                  style={{ background: "rgba(0,112,243,0.12)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
                   {workspaceTitle}
                 </span>
               </div>
@@ -168,17 +169,17 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
 
             <div className="flex items-center gap-2">
               {/* View toggle */}
-              <div className="flex p-0.5 rounded-lg" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.12)" }}>
+              <div className="flex p-0.5 rounded-lg" style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.12)" }}>
                 {["board", "list"].map(v => (
                   <button key={v} onClick={() => setViewMode(v)}
-                    className="px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all duration-200"
+                    className="px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all duration-200 flex items-center gap-1.5"
                     style={{
-                      background: viewMode === v ? "rgba(124,58,237,0.2)" : "transparent",
-                      border: viewMode === v ? "1px solid rgba(139,92,246,0.3)" : "1px solid transparent",
-                      color: viewMode === v ? "#a78bfa" : "#4b5563",
+                      background: viewMode === v ? "rgba(0,100,220,0.2)" : "transparent",
+                      border: viewMode === v ? "1px solid rgba(0,112,243,0.3)" : "1px solid transparent",
+                      color: viewMode === v ? "#3291FF" : "#4b5563",
                       cursor: "pointer",
                     }}>
-                    {v === "board" ? "⊞" : "☰"} {v}
+                    {v === "board" ? <LayoutDashboard size={14} /> : <List size={14} />} {v}
                   </button>
                 ))}
               </div>
@@ -186,8 +187,8 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
               {/* Add task */}
               <button onClick={() => setModal({ column: "todo" })}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
-                style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 20px rgba(124,58,237,0.4)"}
+                style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: "pointer" }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,100,220,0.4)"}
                 onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
                 + New Task
               </button>
@@ -197,7 +198,7 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
           {/* Stats row */}
           <div className="flex items-center gap-4 mb-4">
             {[
-              { label: "Total", value: stats.total, color: "#a78bfa" },
+              { label: "Total", value: stats.total, color: "#3291FF" },
               { label: "Done", value: `${stats.done}/${stats.total}`, color: "#4ade80" },
               { label: "Urgent", value: stats.urgent, color: "#f87171" },
               { label: "My tasks", value: stats.mine, color: "#61dafb" },
@@ -210,9 +211,9 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
 
             {/* Progress bar */}
             <div className="flex-1 flex items-center gap-2 ml-2">
-              <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
+              <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
                 <div className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${stats.total ? (stats.done / stats.total) * 100 : 0}%`, background: "linear-gradient(90deg,#7c3aed,#4ade80)" }} />
+                  style={{ width: `${stats.total ? (stats.done / stats.total) * 100 : 0}%`, background: "linear-gradient(90deg,#0064dc,#4ade80)" }} />
               </div>
               <span className="text-xs font-medium" style={{ color: "#4b5563" }}>
                 {stats.total ? Math.round((stats.done / stats.total) * 100) : 0}%
@@ -223,7 +224,7 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
           {/* Stats row */}
           <div className="flex items-center gap-4">
             {[
-              { label: "Total", value: stats.total, color: "#a78bfa" },
+              { label: "Total", value: stats.total, color: "#3291FF" },
               { label: "Done", value: `${stats.done}/${stats.total}`, color: "#4ade80" },
               { label: "Urgent", value: stats.urgent, color: "#f87171" },
               { label: "My tasks", value: stats.mine, color: "#61dafb" },
@@ -236,9 +237,9 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
 
             {/* Progress bar */}
             <div className="flex-1 flex items-center gap-2 ml-2">
-              <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
+              <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
                 <div className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${stats.total ? (stats.done / stats.total) * 100 : 0}%`, background: "linear-gradient(90deg,#7c3aed,#4ade80)" }} />
+                  style={{ width: `${stats.total ? (stats.done / stats.total) * 100 : 0}%`, background: "linear-gradient(90deg,#0064dc,#4ade80)" }} />
               </div>
               <span className="text-xs font-medium" style={{ color: "#4b5563" }}>
                 {stats.total ? Math.round((stats.done / stats.total) * 100) : 0}%
@@ -294,20 +295,20 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
                   {col.tasks?.map((task, i) => (
                     <div key={task.id || task._id}
                       className="flex items-center justify-between px-4 py-3 rounded-xl mb-1.5 transition-all duration-200"
-                      style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.1)", animation: `slideIn 0.3s ease both`, animationDelay: `${i * 0.04}s` }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; e.currentTarget.style.background = "rgba(20,12,50,0.9)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.1)"; e.currentTarget.style.background = "rgba(12,8,32,0.8)"; }}>
+                      style={{ background: "rgba(12,12,15,0.8)", border: "1px solid rgba(0,112,243,0.1)", animation: `slideIn 0.3s ease both`, animationDelay: `${i * 0.04}s` }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,112,243,0.3)"; e.currentTarget.style.background = "rgba(22,22,26,0.9)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(0,112,243,0.1)"; e.currentTarget.style.background = "rgba(12,12,15,0.8)"; }}>
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <span className="text-xs px-2 py-0.5 rounded-md" style={{ background: "rgba(139,92,246,0.1)", color: "#a78bfa", flexShrink: 0 }}>{task.type}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-md" style={{ background: "rgba(0,112,243,0.1)", color: "#3291FF", flexShrink: 0 }}>{task.type}</span>
                         <p className="text-white text-sm font-medium truncate">{task.title}</p>
                         {task.tags?.slice(0, 2).map(tag => (
-                          <span key={tag} className="text-xs px-2 py-0.5 rounded-full hidden md:block" style={{ background: "rgba(139,92,246,0.08)", color: "#4b5563", flexShrink: 0 }}>{tag}</span>
+                          <span key={tag} className="text-xs px-2 py-0.5 rounded-full hidden md:block" style={{ background: "rgba(0,112,243,0.08)", color: "#4b5563", flexShrink: 0 }}>{tag}</span>
                         ))}
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0 ml-3">
                         {task.assignee && (
                           <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                            style={{ background: (task.assignee.color || "#a78bfa") + "30", color: task.assignee.color || "#a78bfa" }}>
+                            style={{ background: (task.assignee.color || "#3291FF") + "30", color: task.assignee.color || "#3291FF" }}>
                             {(task.assignee.name || "U")[0]}
                           </div>
                         )}
@@ -318,7 +319,7 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
                         {task.dueDate && <span className="text-xs" style={{ color: "#374151" }}>{task.dueDate}</span>}
                         <button onClick={() => setModal({ column: col.id, task })}
                           className="text-xs px-2 py-1 rounded-lg transition-all duration-200"
-                          style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)", color: "#a78bfa", cursor: "pointer" }}>
+                          style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.15)", color: "#3291FF", cursor: "pointer" }}>
                           Edit
                         </button>
                       </div>

@@ -11,8 +11,8 @@ const StatusBadge = ({ status, type = 'project' }) => {
       className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
       style={{
         background: "rgba(0,0,0,0.2)",
-        border: `1px solid ${s.color || "rgba(139,92,246,0.2)"}`,
-        color: s.color || "#a78bfa",
+        border: `1px solid ${s.color || "rgba(0,112,243,0.2)"}`,
+        color: s.color || "#3291FF",
       }}
     >
       ● {s.label || status}

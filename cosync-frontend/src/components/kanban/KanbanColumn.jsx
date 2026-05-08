@@ -15,12 +15,12 @@ const COLUMN_CONFIG = {
   },
   inprogress: {
     label: "In Progress",
-    color: "#a78bfa",
-    bg: "rgba(167,139,250,0.06)",
-    border: "rgba(167,139,250,0.15)",
-    glow: "rgba(167,139,250,0.08)",
+    color: "#3291FF",
+    bg: "rgba(50,145,255,0.06)",
+    border: "rgba(50,145,255,0.15)",
+    glow: "rgba(50,145,255,0.08)",
     icon: "◑",
-    dot: "#a78bfa",
+    dot: "#3291FF",
   },
   review: {
     label: "In Review",
@@ -54,7 +54,7 @@ const KanbanColumn = ({ id, title, tasks, onAddTask, onEditTask, onDeleteTask })
       style={{
         width: 300,
         background: isOver ? config.glow : "rgba(10,6,28,0.7)",
-        border: `1px solid ${isOver ? config.border : "rgba(139,92,246,0.1)"}`,
+        border: `1px solid ${isOver ? config.border : "rgba(0,112,243,0.1)"}`,
         boxShadow: isOver ? `0 0 30px ${config.glow}` : "none",
         transition: "all 0.2s ease",
       }}
@@ -63,7 +63,7 @@ const KanbanColumn = ({ id, title, tasks, onAddTask, onEditTask, onDeleteTask })
     >
       {/* Column header */}
       <div className="px-4 pt-4 pb-3 flex-shrink-0"
-        style={{ borderBottom: "1px solid rgba(139,92,246,0.08)" }}>
+        style={{ borderBottom: "1px solid rgba(0,112,243,0.08)" }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2.5">
             {/* Status dot */}
@@ -136,7 +136,7 @@ const KanbanColumn = ({ id, title, tasks, onAddTask, onEditTask, onDeleteTask })
           <div
             className="flex flex-col items-center justify-center rounded-xl py-10 transition-all duration-200"
             style={{
-              border: `1px dashed ${isOver ? config.border : "rgba(139,92,246,0.1)"}`,
+              border: `1px dashed ${isOver ? config.border : "rgba(0,112,243,0.1)"}`,
               background: isOver ? config.glow : "transparent",
             }}
           >
@@ -148,13 +148,13 @@ const KanbanColumn = ({ id, title, tasks, onAddTask, onEditTask, onDeleteTask })
               onClick={() => onAddTask(id)}
               className="mt-3 text-xs px-3 py-1.5 rounded-lg transition-all duration-200"
               style={{
-                background: "rgba(139,92,246,0.06)",
-                border: "1px solid rgba(139,92,246,0.15)",
+                background: "rgba(0,112,243,0.06)",
+                border: "1px solid rgba(0,112,243,0.15)",
                 color: "#4b5563",
                 cursor: "pointer",
               }}
               onMouseEnter={e => { e.currentTarget.style.color = config.color; e.currentTarget.style.borderColor = config.border; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#4b5563"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.15)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#4b5563"; e.currentTarget.style.borderColor = "rgba(0,112,243,0.15)"; }}
             >
               + Add first task
             </button>
@@ -169,7 +169,7 @@ const KanbanColumn = ({ id, title, tasks, onAddTask, onEditTask, onDeleteTask })
           className="w-full py-2.5 rounded-xl text-xs font-medium transition-all duration-200 flex items-center justify-center gap-2"
           style={{
             background: "transparent",
-            border: `1px dashed rgba(139,92,246,0.15)`,
+            border: `1px dashed rgba(0,112,243,0.15)`,
             color: "#374151",
             cursor: "pointer",
           }}
@@ -180,7 +180,7 @@ const KanbanColumn = ({ id, title, tasks, onAddTask, onEditTask, onDeleteTask })
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.borderColor = "rgba(139,92,246,0.15)";
+            e.currentTarget.style.borderColor = "rgba(0,112,243,0.15)";
             e.currentTarget.style.color = "#374151";
           }}
         >

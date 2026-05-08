@@ -2,39 +2,53 @@ import { useState, useEffect } from "react";
 import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { removeProject, fetchMyProjects } from "../../store/projectsSlice";
-import { PROJECT_STATUS, ROLE_COLORS } from "../../lib/utils";
+import { removeProject, fetchMyProjects, updateApplicationStatus } from "../../store/projectsSlice";
+import { PROJECT_STATUS, ROLE_COLORS, SKILL_COLORS } from "../../lib/utils";
 import StatusBadge from "../../components/ui/StatusBadge";
-
-const SKILL_COLORS = ["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6", "#34d399", "#60a5fa", "#fbbf24"];
-
+import api from "../../lib/api";
+import { LayoutDashboard, Trash2, Search, FolderOpen, User } from "lucide-react";
 // ── Applicant row ─────────────────────────────────────────────────────────────
 const ApplicantRow = ({ a }) => {
   const [status, setStatus] = useState(a.status);
+  const [updating, setUpdating] = useState(false);
+  const applicant = a.applicant || a.user || {};
+
+  const handleStatusChange = async (newStatus) => {
+    setUpdating(true);
+    try {
+      await api.put(`/applications/${a._id}`, { status: newStatus });
+      setStatus(newStatus);
+    } catch (err) {
+      console.error('Failed to update application:', err);
+      alert('Failed to update application status.');
+    }
+    setUpdating(false);
+  };
+
   return (
     <div className="flex items-center justify-between py-3"
-      style={{ borderBottom: "1px solid rgba(139,92,246,0.06)" }}>
+      style={{ borderBottom: "1px solid rgba(0,112,243,0.06)" }}>
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-          style={{ background: "rgba(139,92,246,0.1)", color: "#a78bfa", border: `1px solid rgba(139,92,246,0.2)` }}>
-          {a.user?.fullName?.[0] || a.user?.name?.[0] || "?"}
+          style={{ background: "rgba(0,112,243,0.1)", color: "#3291FF", border: `1px solid rgba(0,112,243,0.2)` }}>
+          {applicant.fullName?.[0] || applicant.name?.[0] || "?"}
         </div>
         <div>
-          <p className="text-white text-sm font-medium">{a.user?.fullName || a.user?.name}</p>
+          <p className="text-white text-sm font-medium">{applicant.fullName || applicant.name}</p>
           <p className="text-xs" style={{ color: "#4b5563" }}>{a.role || 'Applicant'} · {new Date(a.createdAt).toLocaleDateString()}</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
         {status === "pending" ? (
           <>
-            <button onClick={() => setStatus("accepted")}
+            <button onClick={() => handleStatusChange("accepted")} disabled={updating}
               className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
-              style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", cursor: "pointer" }}>
+              style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", cursor: updating ? "wait" : "pointer", opacity: updating ? 0.6 : 1 }}>
               Accept
             </button>
-            <button onClick={() => setStatus("rejected")}
+            <button onClick={() => handleStatusChange("rejected")} disabled={updating}
               className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
-              style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171", cursor: "pointer" }}>
+              style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171", cursor: updating ? "wait" : "pointer", opacity: updating ? 0.6 : 1 }}>
               Decline
             </button>
           </>
@@ -63,7 +77,7 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
       style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}
       onClick={onClose}>
       <div className="w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl"
-        style={{ background: "#0a0520", border: "1px solid rgba(139,92,246,0.25)", animation: "modalIn 0.25s ease both" }}
+        style={{ background: "#0a0520", border: "1px solid rgba(0,112,243,0.25)", animation: "modalIn 0.25s ease both" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
@@ -73,7 +87,7 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
               <div className="flex items-center gap-2 mb-2">
                 <StatusBadge status={project.status} />
                 <span className="text-xs px-2 py-0.5 rounded-md"
-                  style={{ background: "rgba(139,92,246,0.12)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+                  style={{ background: "rgba(0,112,243,0.12)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
                   {project.category}
                 </span>
               </div>
@@ -85,14 +99,14 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1" style={{ borderBottom: "1px solid rgba(139,92,246,0.1)" }}>
+          <div className="flex gap-1" style={{ borderBottom: "1px solid rgba(0,112,243,0.1)" }}>
             {TABS.map(t => (
               <button key={t} onClick={() => setTab(t)}
                 className="px-4 py-2.5 text-sm font-medium capitalize transition-all duration-200"
                 style={{
                   background: "none", border: "none", cursor: "pointer",
-                  color: tab === t ? "#a78bfa" : "#4b5563",
-                  borderBottom: tab === t ? "2px solid #7c3aed" : "2px solid transparent",
+                  color: tab === t ? "#3291FF" : "#4b5563",
+                  borderBottom: tab === t ? "2px solid #0064dc" : "2px solid transparent",
                   marginBottom: -1,
                 }}>
                 {t}
@@ -116,7 +130,7 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
                   { label: "Remote", value: project.isRemote ? "Yes" : "No" },
                 ].map(({ label, value }) => (
                   <div key={label} className="rounded-xl p-3"
-                    style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.1)" }}>
+                    style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.1)" }}>
                     <p className="text-xs mb-1" style={{ color: "#4b5563" }}>{label}</p>
                     <p className="text-sm font-medium text-white">{value || "—"}</p>
                   </div>
@@ -151,10 +165,10 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#374151" }}>Progress</p>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-2 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
-                    <div className="h-full rounded-full" style={{ width: `${project.progress || 0}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
+                  <div className="flex-1 h-2 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
+                    <div className="h-full rounded-full" style={{ width: `${project.progress || 0}%`, background: "linear-gradient(90deg,#0064dc,#3291FF)" }} />
                   </div>
-                  <span className="text-sm font-medium" style={{ color: "#a78bfa" }}>{project.progress || 0}%</span>
+                  <span className="text-sm font-medium" style={{ color: "#3291FF" }}>{project.progress || 0}%</span>
                 </div>
               </div>
             </div>
@@ -184,10 +198,10 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
               <div className="space-y-3">
                 {project.members?.map((m, i) => (
                   <div key={i} className="flex items-center justify-between px-4 py-3 rounded-xl"
-                    style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.1)" }}>
+                    style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.1)" }}>
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
-                        style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed", border: `1px solid rgba(124,58,237,0.2)` }}>
+                        style={{ background: "rgba(0,100,220,0.1)", color: "#0064dc", border: `1px solid rgba(0,100,220,0.2)` }}>
                         {m.fullName?.[0] || m.name?.[0] || "U"}
                       </div>
                       <div>
@@ -205,15 +219,15 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
           {tab === "settings" && (
             <div className="space-y-4">
               <div className="rounded-xl p-4 space-y-3"
-                style={{ background: "rgba(139,92,246,0.05)", border: "1px solid rgba(139,92,246,0.12)" }}>
+                style={{ background: "rgba(0,112,243,0.05)", border: "1px solid rgba(0,112,243,0.12)" }}>
                 {[
-                  { label: "Mark as Active", desc: "Move project from recruiting to active development", color: "#a78bfa" },
+                  { label: "Mark as Active", desc: "Move project from recruiting to active development", color: "#3291FF" },
                   { label: "Mark as Completed", desc: "Archive this project as successfully finished", color: "#4ade80" },
                   { label: "Pause Recruiting", desc: "Stop accepting new applications temporarily", color: "#fbbf24" },
                 ].map(item => (
                   <button key={item.label}
                     className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 text-left"
-                    style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.1)", cursor: "pointer" }}>
+                    style={{ background: "rgba(0,112,243,0.04)", border: "1px solid rgba(0,112,243,0.1)", cursor: "pointer" }}>
                     <div>
                       <p className="text-sm font-medium" style={{ color: item.color }}>{item.label}</p>
                       <p className="text-xs mt-0.5" style={{ color: "#374151" }}>{item.desc}</p>
@@ -245,10 +259,10 @@ const ProjectCard = ({ project, onManage, onDelete, onWorkspace, index }) => {
     <div
       className="rounded-2xl border relative overflow-hidden transition-all duration-300 flex flex-col"
       style={{
-        background: hovered ? "rgba(20,12,50,0.95)" : "rgba(12,8,32,0.85)",
-        borderColor: hovered ? "rgba(139,92,246,0.4)" : "rgba(139,92,246,0.12)",
+        background: hovered ? "rgba(22,22,26,0.95)" : "rgba(12,12,15,0.85)",
+        borderColor: hovered ? "rgba(0,112,243,0.4)" : "rgba(0,112,243,0.12)",
         transform: hovered ? "translateY(-3px)" : "none",
-        boxShadow: hovered ? "0 20px 50px rgba(109,40,217,0.2)" : "none",
+        boxShadow: hovered ? "0 20px 50px rgba(0,80,180,0.2)" : "none",
         animation: `fadeUp 0.5s ease both`,
         animationDelay: `${index * 0.07}s`,
       }}
@@ -256,7 +270,7 @@ const ProjectCard = ({ project, onManage, onDelete, onWorkspace, index }) => {
       onMouseLeave={() => setHovered(false)}
     >
       <div className="h-px transition-opacity duration-300"
-        style={{ background: "linear-gradient(90deg,transparent,rgba(139,92,246,0.6),transparent)", opacity: hovered ? 1 : 0 }} />
+        style={{ background: "linear-gradient(90deg,transparent,rgba(0,112,243,0.6),transparent)", opacity: hovered ? 1 : 0 }} />
 
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-start justify-between mb-3">
@@ -264,7 +278,7 @@ const ProjectCard = ({ project, onManage, onDelete, onWorkspace, index }) => {
             <div className="flex items-center gap-2 mb-2">
               <StatusBadge status={project.status} />
               <span className="text-xs px-2 py-0.5 rounded-md"
-                style={{ background: "rgba(139,92,246,0.1)", color: "#6b7280", border: "1px solid rgba(139,92,246,0.15)" }}>
+                style={{ background: "rgba(0,112,243,0.1)", color: "#6b7280", border: "1px solid rgba(0,112,243,0.15)" }}>
                 {project.category}
               </span>
             </div>
@@ -293,43 +307,43 @@ const ProjectCard = ({ project, onManage, onDelete, onWorkspace, index }) => {
         <div className="mb-4">
           <div className="flex justify-between mb-1.5">
             <span className="text-xs" style={{ color: "#374151" }}>Current team</span>
-            <span className="text-xs font-medium" style={{ color: "#a78bfa" }}>{memberCount} members</span>
+            <span className="text-xs font-medium" style={{ color: "#3291FF" }}>{memberCount} members</span>
           </div>
-          <div className="h-1.5 rounded-full" style={{ background: "rgba(139,92,246,0.1)" }}>
-            <div className="h-full rounded-full" style={{ width: `${Math.min(fillPct, 100)}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
+          <div className="h-1.5 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
+            <div className="h-full rounded-full" style={{ width: `${Math.min(fillPct, 100)}%`, background: "linear-gradient(90deg,#0064dc,#3291FF)" }} />
           </div>
         </div>
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { label: "Applicants", value: project.applicationCount || 0, color: "#a78bfa" },
+            { label: "Applicants", value: project.applicationCount || 0, color: "#3291FF" },
             { label: "Progress", value: `${project.progress || 0}%`, color: "#4ade80" },
             { label: "Deadline", value: project.deadline ? new Date(project.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "—", color: "#60a5fa" },
           ].map(s => (
             <div key={s.label} className="text-center rounded-xl py-2"
-              style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.08)" }}>
+              style={{ background: "rgba(0,112,243,0.04)", border: "1px solid rgba(0,112,243,0.08)" }}>
               <p className="text-sm font-bold" style={{ color: s.color }}>{s.value}</p>
               <p className="text-xs" style={{ color: "#374151" }}>{s.label}</p>
             </div>
           ))}
         </div>
 
-        <div className="flex gap-2 mt-auto pt-3" style={{ borderTop: "1px solid rgba(139,92,246,0.08)" }}>
+        <div className="flex gap-2 mt-auto pt-3" style={{ borderTop: "1px solid rgba(0,112,243,0.08)" }}>
           <button onClick={() => onWorkspace(project._id)}
-            className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-200"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
-            ⊞ Workspace
+            className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
+            style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: "pointer" }}>
+            <LayoutDashboard size={14} /> Workspace
           </button>
           <button onClick={() => onManage(project)}
             className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-200"
-            style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa", cursor: "pointer" }}>
+            style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.2)", color: "#3291FF", cursor: "pointer" }}>
             Manage
           </button>
           <button onClick={() => onDelete(project._id)}
-            className="px-3 py-2 rounded-xl text-xs transition-all duration-200"
+            className="px-3 py-2 rounded-xl text-xs transition-all duration-200 flex items-center justify-center"
             style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.15)", color: "#f87171", cursor: "pointer" }}>
-            🗑
+            <Trash2 size={16} />
           </button>
         </div>
       </div>
@@ -352,7 +366,7 @@ const MyProjectsPage = () => {
     dispatch(fetchMyProjects());
   }, [dispatch]);
 
-  const FILTERS = ["All", "open", "closed", "completed", "paused"];
+  const FILTERS = ["All", "open", "closed", "completed"];
 
   const filtered = myProjects.filter(p => {
     const matchFilter = filter === "All" || p.status === filter;
@@ -377,24 +391,24 @@ const MyProjectsPage = () => {
       <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
-          style={{ background: "rgba(5,3,15,0.92)", borderBottom: "1px solid rgba(139,92,246,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
+          style={{ background: "rgba(4,4,6,0.92)", borderBottom: "1px solid rgba(0,112,243,0.08)", backdropFilter: "blur(20px)", animation: "slideDown 0.4s ease both" }}>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
               <Logo className="w-7 h-7" />
               <span className="font-semibold text-white">CoSync</span>
             </button>
             <span style={{ color: "#374151" }}>›</span>
-            <span className="text-sm" style={{ color: "#a78bfa", fontWeight: 500 }}>My Projects</span>
+            <span className="text-sm" style={{ color: "#3291FF", fontWeight: 500 }}>My Projects</span>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/dashboard")}
               className="text-sm px-3 py-1.5 rounded-lg transition-all duration-200"
-              style={{ background: "none", border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280", cursor: "pointer" }}>
+              style={{ background: "none", border: "1px solid rgba(0,112,243,0.15)", color: "#6b7280", cursor: "pointer" }}>
               ← Dashboard
             </button>
             <button onClick={() => navigate("/projects/create")}
               className="text-sm px-4 py-1.5 rounded-lg font-semibold"
-              style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
+              style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: "pointer" }}>
               + New Project
             </button>
           </div>
@@ -412,12 +426,12 @@ const MyProjectsPage = () => {
               </div>
               <div className="flex gap-3 flex-wrap">
                 {[
-                  { label: "Total", value: myProjects.length, color: "#a78bfa" },
+                  { label: "Total", value: myProjects.length, color: "#3291FF" },
                   { label: "Recruiting", value: myProjects.filter(p => p.status === "open").length, color: "#4ade80" },
                   { label: "Active", value: myProjects.filter(p => p.status === "closed").length, color: "#60a5fa" },
                 ].map(s => (
                   <div key={s.label} className="text-center px-4 py-2 rounded-xl"
-                    style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.12)" }}>
+                    style={{ background: "rgba(12,12,15,0.8)", border: "1px solid rgba(0,112,243,0.12)" }}>
                     <p className="text-lg font-bold" style={{ color: s.color }}>{s.value}</p>
                     <p className="text-xs" style={{ color: "#374151" }}>{s.label}</p>
                   </div>
@@ -428,28 +442,28 @@ const MyProjectsPage = () => {
 
           <div className="mb-6 space-y-3" style={{ animation: "fadeUp 0.5s ease both", animationDelay: "0.1s" }}>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: searchFocused ? "#a78bfa" : "#374151", fontSize: 15 }}>⌕</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: searchFocused ? "#3291FF" : "#374151" }}><Search size={16} /></span>
               <input type="text" placeholder="Search your projects..." value={search}
                 onChange={e => setSearch(e.target.value)}
                 onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
                 className="w-full rounded-xl text-sm text-white placeholder-gray-600 outline-none transition-all duration-200"
                 style={{
-                  background: "rgba(12,8,32,0.85)", padding: "0.875rem 1rem 0.875rem 2.75rem",
-                  border: `1px solid ${searchFocused ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.12)"}`,
+                  background: "rgba(12,12,15,0.85)", padding: "0.875rem 1rem 0.875rem 2.75rem",
+                  border: `1px solid ${searchFocused ? "rgba(0,112,243,0.5)" : "rgba(0,112,243,0.12)"}`,
                 }} />
             </div>
             <div className="flex gap-2 flex-wrap">
               {FILTERS.map(f => (
                 <button key={f} className="filter-btn capitalize" onClick={() => setFilter(f)}
                   style={{
-                    background: filter === f ? "rgba(124,58,237,0.18)" : "rgba(12,8,32,0.85)",
-                    border: `1px solid ${filter === f ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.12)"}`,
-                    color: filter === f ? "#a78bfa" : "#4b5563",
+                    background: filter === f ? "rgba(0,100,220,0.18)" : "rgba(12,12,15,0.85)",
+                    border: `1px solid ${filter === f ? "rgba(0,112,243,0.5)" : "rgba(0,112,243,0.12)"}`,
+                    color: filter === f ? "#3291FF" : "#4b5563",
                   }}>
                   {PROJECT_STATUS[f]?.label || f}
                   {f !== "All" && (
                     <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
-                      style={{ background: filter === f ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.08)", color: filter === f ? "#a78bfa" : "#374151" }}>
+                      style={{ background: filter === f ? "rgba(0,112,243,0.2)" : "rgba(0,112,243,0.08)", color: filter === f ? "#3291FF" : "#374151" }}>
                       {myProjects.filter(p => p.status === f).length}
                     </span>
                   )}
@@ -469,9 +483,9 @@ const MyProjectsPage = () => {
             </div>
           ) : (
             <div className="text-center py-24" style={{ animation: "fadeUp 0.4s ease both" }}>
-              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.12)" }}>
-                <span style={{ fontSize: 24 }}>📁</span>
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center text-primary"
+                style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.12)" }}>
+                <FolderOpen size={24} />
               </div>
               <h3 className="text-white font-semibold mb-2">No projects found</h3>
               <p className="text-sm mb-5" style={{ color: "#374151" }}>
@@ -479,7 +493,7 @@ const MyProjectsPage = () => {
               </p>
               <button onClick={() => navigate("/projects/create")}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold"
-                style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}>
+                style={{ background: "linear-gradient(135deg,#0064dc,#0050b4)", color: "#fff", border: "none", cursor: "pointer" }}>
                 + Post a Project
               </button>
             </div>
