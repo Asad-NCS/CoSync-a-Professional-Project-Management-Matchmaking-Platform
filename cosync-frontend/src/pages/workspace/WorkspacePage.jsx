@@ -174,55 +174,69 @@ const ResourcesTab = ({ workspace }) => {
   );
 };
 
-const TeamTab = ({ workspace }) => (
-  <div className="flex-1 p-6 overflow-auto">
-    <div className="mb-6">
-      <h2 className="text-xl font-bold text-white mb-1">Team Members</h2>
-      <p style={{ color: "#4b5563", fontSize: "0.875rem" }}>{workspace.members.length} members</p>
-    </div>
-    <div className="space-y-3 max-w-2xl">
-      {workspace.members.map((m, i) => (
-        <div key={m.id} className="flex items-center justify-between p-4 rounded-2xl transition-all duration-200"
-          style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.12)" }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; e.currentTarget.style.background = "rgba(20,12,50,0.9)"; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)"; e.currentTarget.style.background = "rgba(12,8,32,0.8)"; }}>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
-                style={{ background: m.avatar + "25", color: m.avatar, border: `1px solid ${m.avatar}35` }}>
-                {m.name[0]}
+// ── FIX: TeamTab — use fullName instead of name, removed broken avatar/online fields ──
+const TeamTab = ({ workspace }) => {
+  const members = workspace?.members || [];
+
+  return (
+    <div className="flex-1 p-6 overflow-auto">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-1">Team Members</h2>
+        <p style={{ color: "#4b5563", fontSize: "0.875rem" }}>{members.length} members</p>
+      </div>
+      <div className="space-y-3 max-w-2xl">
+        {members.map((m, i) => {
+          // Backend populates with fullName — support both just in case
+          const displayName = m.fullName || m.name || "Member";
+          const initial = displayName[0].toUpperCase();
+          // Generate a consistent color from the member id
+          const colors = ["#a78bfa", "#61dafb", "#4ade80", "#fb923c", "#f472b6", "#34d399"];
+          const color = colors[(m._id || "").charCodeAt(0) % colors.length] || "#a78bfa";
+
+          return (
+            <div key={m._id || i} className="flex items-center justify-between p-4 rounded-2xl transition-all duration-200"
+              style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.12)" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; e.currentTarget.style.background = "rgba(20,12,50,0.9)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)"; e.currentTarget.style.background = "rgba(12,8,32,0.8)"; }}>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
+                    style={{ background: color + "25", color: color, border: `1px solid ${color}35` }}>
+                    {initial}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-white text-sm font-semibold">{displayName}</p>
+                  {/* role comes from project populate — show if available */}
+                  <p className="text-xs" style={{ color: "#4b5563" }}>{m.role || "Team Member"}</p>
+                </div>
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
-                style={{ background: m.online ? "#4ade80" : "#374151", borderColor: "#05030f" }} />
+              {i === 0 && (
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+                  style={{ background: "rgba(139,92,246,0.12)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+                  Lead
+                </span>
+              )}
+            </div>
+          );
+        })}
+
+        <div className="p-4 rounded-2xl" style={{ background: "rgba(139,92,246,0.03)", border: "1px dashed rgba(139,92,246,0.2)" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)" }}>
+              <span style={{ color: "#a78bfa", fontSize: 18 }}>+</span>
             </div>
             <div>
-              <p className="text-white text-sm font-semibold">{m.name}</p>
-              <p className="text-xs" style={{ color: "#4b5563" }}>{m.role} · {m.online ? "Online" : "Offline"}</p>
+              <p className="text-white text-sm font-medium">Invite a member</p>
+              <p className="text-xs" style={{ color: "#374151" }}>Accept from applications or share workspace link</p>
             </div>
-          </div>
-          {i === 0 && (
-            <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-              style={{ background: "rgba(139,92,246,0.12)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
-              Lead
-            </span>
-          )}
-        </div>
-      ))}
-      <div className="p-4 rounded-2xl" style={{ background: "rgba(139,92,246,0.03)", border: "1px dashed rgba(139,92,246,0.2)" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)" }}>
-            <span style={{ color: "#a78bfa", fontSize: 18 }}>+</span>
-          </div>
-          <div>
-            <p className="text-white text-sm font-medium">Invite a member</p>
-            <p className="text-xs" style={{ color: "#374151" }}>Accept from applications or share workspace link</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const NAV_ITEMS = [
   { id: "kanban",     icon: "⊞", label: "Kanban Board",  desc: "Tasks & progress"  },
@@ -234,65 +248,73 @@ const NAV_ITEMS = [
 
 const WorkspacePage = () => {
   const { user } = useSelector(s => s.auth);
-  const [columns, setColumns] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+
+  // ── FIX: actually call useParams() to get projectId from the URL ──
+  const { projectId } = useParams();
+
+  const [columns, setColumns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("kanban");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [workspace, setWorkspace] = useState(null);
 
   useEffect(() => {
+    if (!projectId) return;
     const fetchWorkspace = async () => {
       try {
-        const res = await api.get(`/workspaces/${projectId}`)
+        const res = await api.get(`/workspaces/${projectId}`);
         const data = res.data.data;
-        // Merge project details into a flat workspace object for easier UI access
         const flatWorkspace = {
           ...data,
           title: data.project?.title,
           owner: data.project?.owner,
           status: data.project?.status,
-          deadline: data.project?.deadline ? new Date(data.project.deadline).toLocaleDateString() : '—',
+          deadline: data.project?.deadline ? new Date(data.project.deadline).toLocaleDateString() : "—",
           members: data.project?.members || [],
           progress: calculateProgress(data.columns),
-          tasksDone: data.columns.find(c => c.title === 'Done')?.tasks?.length || 0,
-          tasksTotal: data.columns.reduce((acc, col) => acc + col.tasks.length, 0)
+          tasksDone: data.columns.find(c => c.title === "Done")?.tasks?.length || 0,
+          tasksTotal: data.columns.reduce((acc, col) => acc + col.tasks.length, 0),
         };
         setWorkspace(flatWorkspace);
-        setColumns(data.columns)
-        setLoading(false)
+        setColumns(data.columns);
+        setLoading(false);
       } catch (err) {
-        setError('Failed to load workspace.')
-        setLoading(false)
+        setError("Failed to load workspace.");
+        setLoading(false);
       }
-    }
-    fetchWorkspace()
-  }, [projectId])
+    };
+    fetchWorkspace();
+  }, [projectId]);
 
   const calculateProgress = (cols) => {
     const total = cols.reduce((acc, col) => acc + col.tasks.length, 0);
-    const done = cols.find(c => c.title === 'Done')?.tasks?.length || 0;
+    const done = cols.find(c => c.title === "Done")?.tasks?.length || 0;
     return total === 0 ? 0 : Math.round((done / total) * 100);
   };
 
   const handleComplete = async () => {
     if (!window.confirm("Mark this project as completed? This will award reputation to team members and close the project.")) return;
     try {
-      const res = await api.put(`/projects/${projectId}/complete`);
-      setWorkspace(prev => ({ ...prev, status: 'completed' }));
+      await api.put(`/projects/${projectId}/complete`);
+      setWorkspace(prev => ({ ...prev, status: "completed" }));
       alert("Project completed! Congratulations to the team.");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to complete project");
     }
   };
 
-  const isOwner = workspace?.owner === user?._id;
+  // ── FIX: compare _id properly — owner is a populated object from the backend ──
+  const isOwner =
+    workspace?.owner?._id === user?._id ||
+    workspace?.owner?._id === user?.id ||
+    workspace?.owner === user?._id ||
+    workspace?.owner === user?.id;
 
   const renderContent = () => {
     if (loading) return <div className="p-6 text-gray-400">Loading workspace...</div>;
-    
+
     switch (activeTab) {
       case "kanban":     return <KanbanBoard workspaceTitle={workspace?.title} columns={columns} onColumnsChange={setColumns} projectId={projectId} members={workspace?.members} />;
       case "discussion": return <DiscussionTab workspace={workspace} />;
@@ -303,13 +325,11 @@ const WorkspacePage = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-20"><p className="text-gray-400">Loading workspace...</p></div>
-  if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>
+  if (loading) return <div className="flex justify-center p-20"><p className="text-gray-400">Loading workspace...</p></div>;
+  if (error)   return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>;
 
   return (
     <>
-
-
       <div className="flex h-screen overflow-hidden"
         style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
@@ -336,7 +356,7 @@ const WorkspacePage = () => {
               <div className="rounded-xl p-3" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.12)" }}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff" }}>
-                    {workspace.title[0]}
+                    {workspace.title?.[0] || "W"}
                   </div>
                   <p className="text-white text-xs font-semibold truncate">{workspace.title}</p>
                 </div>
@@ -385,21 +405,22 @@ const WorkspacePage = () => {
             ))}
           </nav>
 
-          {!sidebarCollapsed && workspace && workspace.members && (
+          {!sidebarCollapsed && workspace?.members?.length > 0 && (
             <div className="px-4 pb-4" style={{ borderTop: "1px solid rgba(139,92,246,0.08)", paddingTop: 12 }}>
               <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#374151" }}>Team</p>
               <div className="space-y-2 mb-3">
-                {workspace.members.slice(0, 3).map(m => (
-                  <div key={m.id || m._id} className="flex items-center gap-2">
-                    <div className="relative">
+                {workspace.members.slice(0, 3).map(m => {
+                  const displayName = m.fullName || m.name || "Member";
+                  return (
+                    <div key={m._id} className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{ background: (m.avatar || "#a78bfa") + "25", color: m.avatar || "#a78bfa" }}>{(m.name || "U")[0]}</div>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border"
-                        style={{ background: m.online ? "#4ade80" : "#374151", borderColor: "#08051a" }} />
+                        style={{ background: "rgba(139,92,246,0.2)", color: "#a78bfa" }}>
+                        {displayName[0].toUpperCase()}
+                      </div>
+                      <p className="text-xs truncate" style={{ color: "#4b5563" }}>{displayName}</p>
                     </div>
-                    <p className="text-xs truncate" style={{ color: "#4b5563" }}>{m.name || m.fullName}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <button className="nav-btn text-left w-full text-xs" style={{ color: "#374151" }}
                 onClick={() => navigate("/dashboard")}>← Back to Dashboard</button>
@@ -423,34 +444,37 @@ const WorkspacePage = () => {
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2">
                 <div className="flex -space-x-2">
-                  {workspace?.members?.map(m => (
-                    <div key={m.id || m._id} className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2"
-                      style={{ background: (m.avatar || "#a78bfa") + "30", color: m.avatar || "#a78bfa", borderColor: "#05030f" }} title={m.name || m.fullName}>
-                      {(m.name || "U")[0]}
-                    </div>
-                  ))}
+                  {workspace?.members?.map(m => {
+                    const displayName = m.fullName || m.name || "U";
+                    return (
+                      <div key={m._id} className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2"
+                        style={{ background: "rgba(139,92,246,0.3)", color: "#a78bfa", borderColor: "#05030f" }} title={displayName}>
+                        {displayName[0].toUpperCase()}
+                      </div>
+                    );
+                  })}
                 </div>
-                <span className="text-xs" style={{ color: "#374151" }}>{workspace?.members?.filter(m => m.online).length || 0} online</span>
+                <span className="text-xs" style={{ color: "#374151" }}>{workspace?.members?.length || 0} members</span>
               </div>
               <div className="w-px h-5" style={{ background: "rgba(139,92,246,0.15)" }} />
               <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                style={{ 
-                  background: workspace?.status === 'completed' ? "rgba(74,222,128,0.1)" : "rgba(139,92,246,0.1)", 
-                  border: `1px solid ${workspace?.status === 'completed' ? "rgba(74,222,128,0.25)" : "rgba(139,92,246,0.25)"}`, 
-                  color: workspace?.status === 'completed' ? "#4ade80" : "#a78bfa" 
+                style={{
+                  background: workspace?.status === "completed" ? "rgba(74,222,128,0.1)" : "rgba(139,92,246,0.1)",
+                  border: `1px solid ${workspace?.status === "completed" ? "rgba(74,222,128,0.25)" : "rgba(139,92,246,0.25)"}`,
+                  color: workspace?.status === "completed" ? "#4ade80" : "#a78bfa"
                 }}>
-                ● {workspace?.status === 'completed' ? 'Completed' : 'Active'}
+                ● {workspace?.status === "completed" ? "Completed" : "Active"}
               </span>
-              
-              {isOwner && workspace?.status !== 'completed' && (
-                <button 
+
+              {isOwner && workspace?.status !== "completed" && (
+                <button
                   onClick={handleComplete}
                   className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
                   style={{ background: "linear-gradient(135deg,#4ade80,#34d399)", color: "#05030f", border: "none", cursor: "pointer" }}>
                   Mark as Completed
                 </button>
               )}
-              
+
               <button className="nav-btn px-3 py-1.5 rounded-lg text-sm"
                 style={{ border: "1px solid rgba(139,92,246,0.15)", color: "#6b7280" }}>⚙</button>
             </div>

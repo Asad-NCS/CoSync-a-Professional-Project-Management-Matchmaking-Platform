@@ -5,37 +5,63 @@ import { useSelector, useDispatch } from "react-redux";
 import { removeProject, fetchMyProjects } from "../../store/projectsSlice";
 import { PROJECT_STATUS, ROLE_COLORS } from "../../lib/utils";
 import StatusBadge from "../../components/ui/StatusBadge";
+import api from "../../lib/api";
 
 const SKILL_COLORS = ["#61dafb", "#a78bfa", "#4ade80", "#fb923c", "#f472b6", "#34d399", "#60a5fa", "#fbbf24"];
 
-// ── Applicant row ─────────────────────────────────────────────────────────────
-const ApplicantRow = ({ a }) => {
+// ── Applicant row — FIX: calls PUT /api/applications/:id on accept/decline ────
+const ApplicantRow = ({ a, onStatusChange }) => {
   const [status, setStatus] = useState(a.status);
+  const [loading, setLoading] = useState(false);
+
+  const handleStatusUpdate = async (newStatus) => {
+    setLoading(true);
+    try {
+      await api.put(`/applications/${a._id}`, { status: newStatus });
+      setStatus(newStatus);
+      if (onStatusChange) onStatusChange(a._id, newStatus);
+    } catch (err) {
+      console.error("Failed to update application status:", err);
+      alert(err.response?.data?.message || "Failed to update status");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applicantName = a.applicant?.fullName || a.user?.fullName || a.user?.name || "Applicant";
+  const applicantInitial = applicantName[0] || "?";
+
   return (
     <div className="flex items-center justify-between py-3"
       style={{ borderBottom: "1px solid rgba(139,92,246,0.06)" }}>
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-          style={{ background: "rgba(139,92,246,0.1)", color: "#a78bfa", border: `1px solid rgba(139,92,246,0.2)` }}>
-          {a.user?.fullName?.[0] || a.user?.name?.[0] || "?"}
+          style={{ background: "rgba(139,92,246,0.1)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+          {applicantInitial}
         </div>
         <div>
-          <p className="text-white text-sm font-medium">{a.user?.fullName || a.user?.name}</p>
-          <p className="text-xs" style={{ color: "#4b5563" }}>{a.role || 'Applicant'} · {new Date(a.createdAt).toLocaleDateString()}</p>
+          <p className="text-white text-sm font-medium">{applicantName}</p>
+          <p className="text-xs" style={{ color: "#4b5563" }}>
+            {a.role || "Applicant"} · {new Date(a.createdAt).toLocaleDateString()}
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-2">
         {status === "pending" ? (
           <>
-            <button onClick={() => setStatus("accepted")}
+            <button
+              onClick={() => handleStatusUpdate("accepted")}
+              disabled={loading}
               className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
-              style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", cursor: "pointer" }}>
-              Accept
+              style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", cursor: loading ? "wait" : "pointer", opacity: loading ? 0.6 : 1 }}>
+              {loading ? "..." : "Accept"}
             </button>
-            <button onClick={() => setStatus("rejected")}
+            <button
+              onClick={() => handleStatusUpdate("rejected")}
+              disabled={loading}
               className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
-              style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171", cursor: "pointer" }}>
-              Decline
+              style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171", cursor: loading ? "wait" : "pointer", opacity: loading ? 0.6 : 1 }}>
+              {loading ? "..." : "Decline"}
             </button>
           </>
         ) : (
@@ -54,9 +80,65 @@ const ApplicantRow = ({ a }) => {
 };
 
 // ── Project detail panel ──────────────────────────────────────────────────────
-const ProjectPanel = ({ project, onClose, onDelete }) => {
+const ProjectPanel = ({ project, onClose, onDelete, onProjectUpdate }) => {
   const [tab, setTab] = useState("overview");
+  const [settingsLoading, setSettingsLoading] = useState(null);
   const TABS = ["overview", "applicants", "team", "settings"];
+
+  // ── FIX: Settings tab buttons call PUT /api/projects/:id ──
+  const handleStatusChange = async (newStatus) => {
+    setSettingsLoading(newStatus);
+    try {
+      await api.put(`/projects/${project._id}`, { status: newStatus });
+      if (onProjectUpdate) onProjectUpdate(project._id, { status: newStatus });
+      onClose();
+    } catch (err) {
+      console.error("Failed to update project status:", err);
+      alert(err.response?.data?.message || "Failed to update project");
+    } finally {
+      setSettingsLoading(null);
+    }
+  };
+
+  // ── FIX: Complete calls PUT /api/projects/:id/complete ──
+  const handleComplete = async () => {
+    if (!window.confirm("Mark this project as completed? This can't be undone.")) return;
+    setSettingsLoading("completed");
+    try {
+      await api.put(`/projects/${project._id}/complete`);
+      if (onProjectUpdate) onProjectUpdate(project._id, { status: "completed" });
+      onClose();
+    } catch (err) {
+      console.error("Failed to complete project:", err);
+      alert(err.response?.data?.message || "Failed to complete project");
+    } finally {
+      setSettingsLoading(null);
+    }
+  };
+
+  const SETTINGS_ACTIONS = [
+    {
+      label: "Mark as Active",
+      desc: "Move project from recruiting to active development",
+      color: "#a78bfa",
+      statusKey: "closed",
+      onClick: () => handleStatusChange("closed"),
+    },
+    {
+      label: "Mark as Completed",
+      desc: "Archive this project as successfully finished",
+      color: "#4ade80",
+      statusKey: "completed",
+      onClick: handleComplete,
+    },
+    {
+      label: "Pause Recruiting",
+      desc: "Stop accepting new applications temporarily",
+      color: "#fbbf24",
+      statusKey: "paused",
+      onClick: () => handleStatusChange("paused"),
+    },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -112,7 +194,7 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
               <div className="grid grid-cols-2 gap-4">
                 {[
                   { label: "Team Size", value: `${project.members?.length ?? 0} members` },
-                  { label: "Deadline", value: project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline' },
+                  { label: "Deadline", value: project.deadline ? new Date(project.deadline).toLocaleDateString() : "No deadline" },
                   { label: "Remote", value: project.isRemote ? "Yes" : "No" },
                 ].map(({ label, value }) => (
                   <div key={label} className="rounded-xl p-3"
@@ -137,14 +219,13 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
                 <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#374151" }}>Roles Needed</p>
                 <div className="flex flex-wrap gap-2">
                   {project.roles?.map((r, i) => {
-                    const title = r.title;
                     const color = ROLE_COLORS[i % ROLE_COLORS.length];
                     return (
                       <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
                         style={{ background: `${color}12`, border: `1px solid ${color}30`, color: color }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />{title}
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />{r.title}
                       </span>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -167,7 +248,9 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
                 <p className="text-sm font-semibold text-white">{project.applications?.length || 0} applicants</p>
               </div>
               {project.applications?.length > 0 ? (
-                project.applications.map((a, i) => <ApplicantRow key={i} a={a} />)
+                project.applications.map((a, i) => (
+                  <ApplicantRow key={a._id || i} a={a} />
+                ))
               ) : (
                 <div className="text-center py-10">
                   <p className="text-white text-sm mb-1">No applicants yet</p>
@@ -183,16 +266,16 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
               <p className="text-sm font-semibold text-white mb-4">{project.members?.length || 0} members</p>
               <div className="space-y-3">
                 {project.members?.map((m, i) => (
-                  <div key={i} className="flex items-center justify-between px-4 py-3 rounded-xl"
+                  <div key={m._id || i} className="flex items-center justify-between px-4 py-3 rounded-xl"
                     style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.1)" }}>
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
-                        style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed", border: `1px solid rgba(124,58,237,0.2)` }}>
-                        {m.fullName?.[0] || m.name?.[0] || "U"}
+                        style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.2)" }}>
+                        {(m.fullName || m.name || "U")[0]}
                       </div>
                       <div>
                         <p className="text-white text-sm font-medium">{m.fullName || m.name}</p>
-                        <p className="text-xs" style={{ color: "#4b5563" }}>{m.role || 'Member'}</p>
+                        <p className="text-xs" style={{ color: "#4b5563" }}>{m.role || "Member"}</p>
                       </div>
                     </div>
                   </div>
@@ -201,28 +284,34 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
             </div>
           )}
 
-          {/* Settings tab */}
+          {/* Settings tab — FIX: buttons now call the backend ── */}
           {tab === "settings" && (
             <div className="space-y-4">
               <div className="rounded-xl p-4 space-y-3"
                 style={{ background: "rgba(139,92,246,0.05)", border: "1px solid rgba(139,92,246,0.12)" }}>
-                {[
-                  { label: "Mark as Active", desc: "Move project from recruiting to active development", color: "#a78bfa" },
-                  { label: "Mark as Completed", desc: "Archive this project as successfully finished", color: "#4ade80" },
-                  { label: "Pause Recruiting", desc: "Stop accepting new applications temporarily", color: "#fbbf24" },
-                ].map(item => (
+                {SETTINGS_ACTIONS.map(item => (
                   <button key={item.label}
+                    onClick={item.onClick}
+                    disabled={settingsLoading !== null}
                     className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 text-left"
-                    style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.1)", cursor: "pointer" }}>
+                    style={{
+                      background: "rgba(139,92,246,0.04)",
+                      border: "1px solid rgba(139,92,246,0.1)",
+                      cursor: settingsLoading ? "wait" : "pointer",
+                      opacity: settingsLoading === item.statusKey ? 0.6 : 1,
+                    }}>
                     <div>
                       <p className="text-sm font-medium" style={{ color: item.color }}>{item.label}</p>
                       <p className="text-xs mt-0.5" style={{ color: "#374151" }}>{item.desc}</p>
                     </div>
-                    <span style={{ color: "#374151" }}>›</span>
+                    <span style={{ color: "#374151" }}>
+                      {settingsLoading === item.statusKey ? "..." : "›"}
+                    </span>
                   </button>
                 ))}
               </div>
-              <button onClick={() => { onDelete(project._id); onClose(); }}
+              <button
+                onClick={() => { onDelete(project._id); onClose(); }}
                 className="w-full px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
                 style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", cursor: "pointer" }}>
                 🗑 Delete Project
@@ -249,7 +338,7 @@ const ProjectCard = ({ project, onManage, onDelete, onWorkspace, index }) => {
         borderColor: hovered ? "rgba(139,92,246,0.4)" : "rgba(139,92,246,0.12)",
         transform: hovered ? "translateY(-3px)" : "none",
         boxShadow: hovered ? "0 20px 50px rgba(109,40,217,0.2)" : "none",
-        animation: `fadeUp 0.5s ease both`,
+        animation: "fadeUp 0.5s ease both",
         animationDelay: `${index * 0.07}s`,
       }}
       onMouseEnter={() => setHovered(true)}
@@ -278,18 +367,16 @@ const ProjectCard = ({ project, onManage, onDelete, onWorkspace, index }) => {
 
         <div className="flex flex-wrap gap-1.5 mb-4">
           {project.roles?.map((r, i) => {
-             const title = r.title;
-             const color = ROLE_COLORS[i % ROLE_COLORS.length];
-             return (
+            const color = ROLE_COLORS[i % ROLE_COLORS.length];
+            return (
               <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium"
                 style={{ background: `${color}12`, border: `1px solid ${color}30`, color: color }}>
-                <span className="w-1 h-1 rounded-full" style={{ background: color }} />{title}
+                <span className="w-1 h-1 rounded-full" style={{ background: color }} />{r.title}
               </span>
-            )
+            );
           })}
         </div>
 
-        {/* Team fill */}
         <div className="mb-4">
           <div className="flex justify-between mb-1.5">
             <span className="text-xs" style={{ color: "#374151" }}>Current team</span>
@@ -300,12 +387,11 @@ const ProjectCard = ({ project, onManage, onDelete, onWorkspace, index }) => {
           </div>
         </div>
 
-        {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
             { label: "Applicants", value: project.applicationCount || 0, color: "#a78bfa" },
             { label: "Progress", value: `${project.progress || 0}%`, color: "#4ade80" },
-            { label: "Deadline", value: project.deadline ? new Date(project.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "—", color: "#60a5fa" },
+            { label: "Deadline", value: project.deadline ? new Date(project.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—", color: "#60a5fa" },
           ].map(s => (
             <div key={s.label} className="text-center rounded-xl py-2"
               style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.08)" }}>
@@ -347,33 +433,53 @@ const MyProjectsPage = () => {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
   const [searchFocused, setSearchFocused] = useState(false);
+  // Local copy of projects so Settings/status changes reflect immediately without a refetch
+  const [localProjects, setLocalProjects] = useState([]);
 
   useEffect(() => {
     dispatch(fetchMyProjects());
   }, [dispatch]);
 
+  useEffect(() => {
+    setLocalProjects(myProjects);
+  }, [myProjects]);
+
   const FILTERS = ["All", "open", "closed", "completed", "paused"];
 
-  const filtered = myProjects.filter(p => {
+  const filtered = localProjects.filter(p => {
     const matchFilter = filter === "All" || p.status === filter;
     const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this project?")) {
+  // ── FIX: delete calls DELETE /api/projects/:id ──
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this project?")) return;
+    try {
+      await api.delete(`/projects/${id}`);
       dispatch(removeProject(id));
+      setLocalProjects(prev => prev.filter(p => (p._id || p.id) !== id));
       setSelected(null);
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      alert(err.response?.data?.message || "Failed to delete project");
     }
   };
 
-  if (status === 'loading') return <div className="flex justify-center p-20"><p className="text-gray-400">Loading your projects...</p></div>
-  if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>
+  // Called by ProjectPanel when a status change succeeds — updates local state immediately
+  const handleProjectUpdate = (id, updates) => {
+    setLocalProjects(prev =>
+      prev.map(p => ((p._id || p.id) === id ? { ...p, ...updates } : p))
+    );
+    // Also update selected if the panel is open
+    setSelected(prev => prev && (prev._id || prev.id) === id ? { ...prev, ...updates } : prev);
+  };
+
+  if (status === "loading") return <div className="flex justify-center p-20"><p className="text-gray-400">Loading your projects...</p></div>;
+  if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>;
 
   return (
     <>
-
-
       <div className="min-h-screen" style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: "#fff" }}>
 
         <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-3.5"
@@ -412,9 +518,9 @@ const MyProjectsPage = () => {
               </div>
               <div className="flex gap-3 flex-wrap">
                 {[
-                  { label: "Total", value: myProjects.length, color: "#a78bfa" },
-                  { label: "Recruiting", value: myProjects.filter(p => p.status === "open").length, color: "#4ade80" },
-                  { label: "Active", value: myProjects.filter(p => p.status === "closed").length, color: "#60a5fa" },
+                  { label: "Total", value: localProjects.length, color: "#a78bfa" },
+                  { label: "Recruiting", value: localProjects.filter(p => p.status === "open").length, color: "#4ade80" },
+                  { label: "Active", value: localProjects.filter(p => p.status === "closed").length, color: "#60a5fa" },
                 ].map(s => (
                   <div key={s.label} className="text-center px-4 py-2 rounded-xl"
                     style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.12)" }}>
@@ -450,7 +556,7 @@ const MyProjectsPage = () => {
                   {f !== "All" && (
                     <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
                       style={{ background: filter === f ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.08)", color: filter === f ? "#a78bfa" : "#374151" }}>
-                      {myProjects.filter(p => p.status === f).length}
+                      {localProjects.filter(p => p.status === f).length}
                     </span>
                   )}
                 </button>
@@ -464,7 +570,7 @@ const MyProjectsPage = () => {
                 <ProjectCard key={p._id} project={p} index={i}
                   onManage={setSelected}
                   onDelete={handleDelete}
-                  onWorkspace={(id) => navigate(`/projects/${id}`)} />
+                  onWorkspace={(id) => navigate(`/workspace/${id}`)} />
               ))}
             </div>
           ) : (
@@ -488,7 +594,12 @@ const MyProjectsPage = () => {
       </div>
 
       {selected && (
-        <ProjectPanel project={selected} onClose={() => setSelected(null)} onDelete={handleDelete} />
+        <ProjectPanel
+          project={selected}
+          onClose={() => setSelected(null)}
+          onDelete={handleDelete}
+          onProjectUpdate={handleProjectUpdate}
+        />
       )}
     </>
   );
