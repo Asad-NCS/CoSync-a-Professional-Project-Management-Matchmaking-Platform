@@ -188,12 +188,12 @@ const getMatchedProjects = async (req, res) => {
     const matchedProjects = projects.map(project => {
       let score = 0;
       let matchedSkills = [];
+      const userSkillsLower = userSkills.map(s => s.toLowerCase());
 
-      // Weight logic:
       // +2 points for every user skill that matches the project's core stack
       if (project.stack && project.stack.length > 0) {
         project.stack.forEach(tech => {
-          if (userSkills.some(us => us.toLowerCase() === tech.toLowerCase())) {
+          if (userSkillsLower.includes(tech.toLowerCase())) {
             score += 2;
             matchedSkills.push(tech);
           }
@@ -205,8 +205,9 @@ const getMatchedProjects = async (req, res) => {
         project.roles.forEach(role => {
           if (role.skills && role.skills.length > 0) {
             role.skills.forEach(skill => {
-              if (userSkills.some(us => us.toLowerCase() === skill.toLowerCase())) {
-                if (!matchedSkills.includes(skill)) {
+              const skillLower = skill.toLowerCase();
+              if (userSkillsLower.includes(skillLower)) {
+                if (!matchedSkills.some(s => s.toLowerCase() === skillLower)) {
                   score += 1;
                   matchedSkills.push(skill);
                 }

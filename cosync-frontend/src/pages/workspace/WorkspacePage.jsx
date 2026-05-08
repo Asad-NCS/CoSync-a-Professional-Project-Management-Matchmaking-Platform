@@ -324,10 +324,10 @@ const WorkspacePage = () => {
           <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: "1px solid rgba(0,112,243,0.08)" }}>
             {!sidebarCollapsed ? (
               <>
-                <button className="nav-btn flex items-center gap-2" onClick={() => navigate("/dashboard")}>
-                  <Logo className="w-6 h-6" />
-                  <span className="text-sm font-semibold text-white">CoSync</span>
-                </button>
+                <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate("/")}>
+                  <Logo className="w-8 h-8 group-hover:scale-110 transition-transform" />
+                  <h1 className="text-xl font-bold text-white group-hover:text-accent transition-colors">CoSync</h1>
+                </div>
                 <button className="nav-btn" onClick={() => setSidebarCollapsed(true)} style={{ color: "#374151", fontSize: 16 }}>‹</button>
               </>
             ) : (

@@ -9,6 +9,7 @@ import api from './lib/api'
 import LandingPage from './pages/public/LandingPage'
 import LoginPage from './pages/public/LoginPage'
 import RegisterPage from './pages/public/RegisterPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ProjectsFeedPage from './pages/public/ProjectsFeedPage'
 
 import DashboardPage from './pages/auth/DashboardPage'
@@ -52,6 +53,7 @@ function App() {
         <Route path="/feed" element={<ProjectsFeedPage />} />
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
 
         {/* ── Project routes (public — no auth needed to view) ── */}
         <Route path="/projects/:id" element={<ProjectDetailPage />} />

@@ -37,13 +37,15 @@ const Sidebar = ({ collapsed, setCollapsed, onLogout, unreadCount = 0 }) => {
       {/* Logo */}
       <div className="flex items-center justify-between px-4 py-5" style={{ borderBottom: "1px solid rgba(0,112,243,0.08)" }}>
         {!collapsed && (
-          <div className="flex items-center gap-2">
-            <Logo className="w-7 h-7 flex-shrink-0" />
-            <span className="font-semibold text-white tracking-tight">CoSync</span>
+          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate("/")}>
+            <Logo className="w-7 h-7 flex-shrink-0 group-hover:scale-110 transition-transform" />
+            <span className="font-semibold text-white tracking-tight group-hover:text-accent transition-colors">CoSync</span>
           </div>
         )}
         {collapsed && (
-          <Logo className="w-7 h-7 mx-auto" />
+          <div className="cursor-pointer mx-auto" onClick={() => navigate("/")}>
+            <Logo className="w-7 h-7" />
+          </div>
         )}
         {!collapsed && (
           <button onClick={() => setCollapsed(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "#374151", fontSize: 16 }}>‹</button>

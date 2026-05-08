@@ -229,7 +229,11 @@ const LoginPage = () => {
                   <input type="checkbox" className="w-3.5 h-3.5 rounded border-border bg-surface accent-accent cursor-pointer" />
                   <span className="text-xs text-secondary group-hover:text-primary transition-colors">Remember me</span>
                 </label>
-                <button type="button" className="text-xs text-secondary hover:text-primary transition-colors">
+                <button 
+                  type="button" 
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-xs text-secondary hover:text-primary transition-colors"
+                >
                   Forgot password?
                 </button>
               </div>

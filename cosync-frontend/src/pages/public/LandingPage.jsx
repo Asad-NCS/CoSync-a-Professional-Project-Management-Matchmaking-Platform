@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 // ── Feature card with mouse-following glow ───────────────────────────────────
 const FeatureCard = ({ icon, title, desc, delay }) => {
@@ -147,6 +148,7 @@ const Stat = ({ value, label }) => (
 // ── Main Landing Page ─────────────────────────────────────────────────────────
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { user } = useSelector(s => s.auth);
 
   return (
     <>
@@ -180,16 +182,31 @@ const LandingPage = () => {
           </div>
 
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button className="text-secondary hover:text-primary transition-colors" onClick={() => navigate("/login")}>
-              Sign in
-            </button>
-            <button
-              className="relative overflow-hidden group bg-primary text-background px-4 py-1.5 rounded-md hover:bg-white/90 transition-transform active:scale-95"
-              onClick={() => navigate("/register")}
-            >
-              <span className="relative z-10">Get started</span>
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-            </button>
+            {user ? (
+              <button 
+                onClick={() => navigate("/dashboard")}
+                className="flex items-center gap-2.5 pl-3 pr-1 py-1 rounded-full border border-border bg-surface/50 hover:border-accent/50 transition-all group"
+              >
+                <span className="text-secondary group-hover:text-primary transition-colors pl-1">Dashboard</span>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{ background: "linear-gradient(135deg,#0064dc,#3291FF)", color: "#fff" }}>
+                  {(user.fullName || user.name || "U")[0].toUpperCase()}
+                </div>
+              </button>
+            ) : (
+              <>
+                <button className="text-secondary hover:text-primary transition-colors" onClick={() => navigate("/login")}>
+                  Sign in
+                </button>
+                <button
+                  className="relative overflow-hidden group bg-primary text-background px-4 py-1.5 rounded-md hover:bg-white/90 transition-transform active:scale-95"
+                  onClick={() => navigate("/register")}
+                >
+                  <span className="relative z-10">Get started</span>
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                </button>
+              </>
+            )}
           </div>
         </nav>
 
