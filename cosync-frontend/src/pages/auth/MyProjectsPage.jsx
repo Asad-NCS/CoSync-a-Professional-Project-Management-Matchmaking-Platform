@@ -478,7 +478,7 @@ const MyProjectsPage = () => {
                 <ProjectCard key={p._id} project={p} index={i}
                   onManage={setSelected}
                   onDelete={handleDelete}
-                  onWorkspace={(id) => navigate(`/projects/${id}`)} />
+                  onWorkspace={(id) => navigate(`/workspace/${id}`)} />
               ))}
             </div>
           ) : (

@@ -16,6 +16,12 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [viewMode, setViewMode]             = useState("board"); // board | list
 
+  // Missing state for filters
+  const [search, setSearch] = useState("");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [filterAssignee, setFilterAssignee] = useState("all");
+  const [filterType, setFilterType] = useState("all");
+
   // Sensors — require 5px movement to start drag
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -221,31 +227,6 @@ const KanbanBoard = ({ workspaceTitle = "AI Chess Bot", columns = [], onColumnsC
             </div>
           </div>
 
-          {/* Stats row */}
-          <div className="flex items-center gap-4">
-            {[
-              { label: "Total", value: stats.total, color: "#3291FF" },
-              { label: "Done", value: `${stats.done}/${stats.total}`, color: "#4ade80" },
-              { label: "Urgent", value: stats.urgent, color: "#f87171" },
-              { label: "My tasks", value: stats.mine, color: "#61dafb" },
-            ].map(s => (
-              <div key={s.label} className="flex items-center gap-1.5">
-                <span className="text-sm font-bold" style={{ color: s.color }}>{s.value}</span>
-                <span className="text-xs" style={{ color: "#374151" }}>{s.label}</span>
-              </div>
-            ))}
-
-            {/* Progress bar */}
-            <div className="flex-1 flex items-center gap-2 ml-2">
-              <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
-                <div className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${stats.total ? (stats.done / stats.total) * 100 : 0}%`, background: "linear-gradient(90deg,#0064dc,#4ade80)" }} />
-              </div>
-              <span className="text-xs font-medium" style={{ color: "#4b5563" }}>
-                {stats.total ? Math.round((stats.done / stats.total) * 100) : 0}%
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* ── Board / List view ── */}

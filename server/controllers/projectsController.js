@@ -92,7 +92,8 @@ const createProject = async (req, res) => {
       teamSize, duration, difficulty, stack, stack_details,
       deadline, perks, applicationQuestion, github, figma,
       website, isRemote, isPublic, requireCoverLetter,
-      owner: req.user.id
+      owner: req.user.id,
+      members: [req.user.id] // Owner is also the first member
     });
     
     await newProject.save();

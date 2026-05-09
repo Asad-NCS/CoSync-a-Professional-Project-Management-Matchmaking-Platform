@@ -60,10 +60,16 @@ const ActivityTab = ({ workspace }) => {
                 <h2 className="text-lg font-bold text-white">Activity Feed</h2>
                 <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>Everything happening in this workspace</p>
               </div>
-              <span className="text-xs px-3 py-1.5 rounded-full"
-                style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", color: "#4ade80" }}>
-                ● Live
-              </span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-yellow-500/20 bg-yellow-500/10 text-yellow-500 animate-pulse">
+                <span className="text-xs font-bold uppercase tracking-wider">Example Data</span>
+              </div>
+            </div>
+
+            <div className="mb-4 p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
+               <p className="text-xs text-blue-400/80 leading-relaxed">
+                 <span className="font-semibold">Note:</span> These entries are generated for demonstration purposes to show the feed layout. 
+                 Real activity will appear here automatically as your team starts moving tasks, adding members, and commenting.
+               </p>
             </div>
 
             {/* Filters */}

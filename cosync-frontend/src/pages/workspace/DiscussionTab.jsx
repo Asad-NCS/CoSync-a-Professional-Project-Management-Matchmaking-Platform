@@ -113,7 +113,10 @@ const DiscussionTab = ({ workspace }) => {
     newSocket.emit('join_project', projectId);
 
     newSocket.on('new_message', (msg) => {
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        if (prev.some(m => m._id === msg._id)) return prev;
+        return [...prev, msg];
+      });
     });
 
     return () => {
@@ -134,8 +137,9 @@ const DiscussionTab = ({ workspace }) => {
     setInput(""); // Clear immediately for UX
     
     try {
-      await api.post(`/messages/${projectId}`, { content: text });
-      // The message will be appended via socket event 'new_message'
+      const res = await api.post(`/messages/${projectId}`, { content: text });
+      // Append the new message immediately for the sender
+      setMessages((prev) => [...prev, res.data.data]);
     } catch (error) {
       console.error("Failed to send message:", error);
     }

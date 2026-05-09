@@ -4,12 +4,18 @@ const Notification = require('../models/Notification');
 
 // Helper function to check if user has access to project
 const checkAccess = async (projectId, userId) => {
+  console.log(`Checking access: project=${projectId}, user=${userId}`);
   const project = await Project.findById(projectId);
-  if (!project) return { error: 'Project not found', status: 404 };
+  if (!project) {
+    console.log(`Access Denied: Project ${projectId} not found`);
+    return { error: 'Project not found', status: 404 };
+  }
   
   const isOwner = project.owner.toString() === userId;
   const isMember = project.members.some(memberId => memberId.toString() === userId);
   
+  console.log(`Access result: isOwner=${isOwner}, isMember=${isMember}`);
+
   if (!isOwner && !isMember) {
     return { error: 'Not authorized to access this workspace', status: 403 };
   }
@@ -33,6 +39,7 @@ const getWorkspace = async (req, res) => {
       });
 
     if (!workspace) {
+      console.log(`Workspace not found for project ${projectId}. Creating auto-workspace...`);
       // Auto-create workspace if it doesn't exist
       workspace = new Workspace({
         project: projectId,
@@ -43,12 +50,19 @@ const getWorkspace = async (req, res) => {
         ]
       });
       await workspace.save();
+      console.log(`Workspace created successfully: ${workspace._id}`);
+    } else {
+      console.log(`Found existing workspace: ${workspace._id}`);
     }
 
     await workspace.populate([
       { path: 'project', select: 'title owner status deadline members', populate: { path: 'members', select: 'fullName avatar role' } },
       { path: 'columns.tasks.assignee', select: 'fullName avatar' }
     ]);
+
+    if (!workspace.project) {
+      console.error(`CRITICAL: Workspace ${workspace._id} project population failed. Project ID: ${projectId}`);
+    }
 
     res.status(200).json({ success: true, data: workspace });
   } catch (error) {

@@ -211,15 +211,19 @@ const TeamTab = ({ workspace }) => (
           </div>
         );
       })}
-      <div className="p-4 rounded-2xl" style={{ background: "rgba(0,112,243,0.03)", border: "1px dashed rgba(0,112,243,0.2)" }}>
+      <div 
+        className="p-4 rounded-2xl cursor-pointer group hover:bg-blue-500/10 transition-colors" 
+        style={{ background: "rgba(0,112,243,0.03)", border: "1px dashed rgba(0,112,243,0.2)" }}
+        onClick={() => navigate("/applications")}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
             style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.15)" }}>
             <span style={{ color: "#3291FF", fontSize: 18 }}>+</span>
           </div>
           <div>
-            <p className="text-white text-sm font-medium">Invite a member</p>
-            <p className="text-xs" style={{ color: "#374151" }}>Accept from applications or share workspace link</p>
+            <p className="text-white text-sm font-medium">Manage Applications</p>
+            <p className="text-xs" style={{ color: "#374151" }}>Click to view and accept new team members</p>
           </div>
         </div>
       </div>
@@ -268,8 +272,9 @@ const WorkspacePage = () => {
         setColumns(data.columns)
         setLoading(false)
       } catch (err) {
-        setError('Failed to load workspace.')
-        setLoading(false)
+        console.error("Workspace fetch error:", err);
+        setError(err.response?.data?.message || 'Failed to load workspace.');
+        setLoading(false);
       }
     }
     fetchWorkspace()
@@ -307,8 +312,32 @@ const WorkspacePage = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-20"><p className="text-gray-400">Loading workspace...</p></div>
-  if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-20 gap-4">
+      <div className="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+      <p className="text-gray-400 font-medium">Loading workspace...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center p-20 gap-6">
+      <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div className="text-center">
+        <h2 className="text-xl font-bold text-white mb-2">Workspace Error</h2>
+        <p className="text-red-400 max-w-md mx-auto">{error}</p>
+      </div>
+      <div className="flex gap-4">
+        <button onClick={() => window.location.reload()} className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+          Retry Loading
+        </button>
+        <button onClick={() => navigate('/dashboard')} className="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 font-semibold hover:bg-white/10 transition-colors">
+          Back to Dashboard
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -340,7 +369,7 @@ const WorkspacePage = () => {
               <div className="rounded-xl p-3" style={{ background: "rgba(0,112,243,0.06)", border: "1px solid rgba(0,112,243,0.12)" }}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: "linear-gradient(135deg,#0064dc,#3291FF)", color: "#fff" }}>
-                    {workspace.title[0]}
+                    {workspace.title ? workspace.title[0] : '?'}
                   </div>
                   <p className="text-white text-xs font-semibold truncate">{workspace.title}</p>
                 </div>
@@ -377,6 +406,7 @@ const WorkspacePage = () => {
                 </div>
                 {!sidebarCollapsed && (
                   <div className="text-left">
+
                     <p className="text-sm font-medium leading-tight">{item.label}</p>
                     <p className="text-xs leading-tight" style={{ color: activeTab === item.id ? "#0064dc" : "#374151" }}>{item.desc}</p>
                   </div>

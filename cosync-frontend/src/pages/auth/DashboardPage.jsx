@@ -164,7 +164,7 @@ const MyProjectCard = ({ project }) => {
         transform: hovered ? "translateY(-2px)" : "none",
         boxShadow: hovered ? "0 16px 40px rgba(0,80,180,0.15)" : "none",
       }}
-      onClick={() => navigate(`/projects/${project._id}`)}
+      onClick={() => navigate(`/workspace/${project._id}`)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
