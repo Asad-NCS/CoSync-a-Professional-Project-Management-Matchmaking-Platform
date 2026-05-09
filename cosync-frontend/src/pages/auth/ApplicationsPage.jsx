@@ -9,6 +9,7 @@ import { Mail } from "lucide-react";
 
 // ── Detail modal ──────────────────────────────────────────────────────────────
 const DetailModal = ({ app, onClose }) => {
+  const navigate = useNavigate();
   const s = APP_STATUS[app.status] || APP_STATUS.pending;
   const project = app.project || {};
   return (
@@ -60,8 +61,16 @@ const DetailModal = ({ app, onClose }) => {
 
           {app.status === "accepted" && (
             <div className="rounded-xl p-4 mt-2" style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)" }}>
-              <p className="text-xs font-semibold mb-1" style={{ color: "#4ade80" }}>🎉 You're on the team!</p>
-              <p className="text-xs" style={{ color: "#6b7280" }}>Your workspace has been unlocked. Head to your dashboard to access the team tools.</p>
+              <p className="text-xs font-semibold mb-2" style={{ color: "#4ade80" }}>🎉 You're on the team!</p>
+              <p className="text-xs mb-3" style={{ color: "#6b7280" }}>Your workspace has been unlocked. Click below to access the team Kanban, Discussion, and Resources.</p>
+              <button
+                onClick={() => navigate(`/workspace/${app.project?._id}`)}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", color: "#fff", border: "none", cursor: "pointer" }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 25px rgba(124,58,237,0.4)"}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+                ⊞ Open Workspace →
+              </button>
             </div>
           )}
         </div>

@@ -175,61 +175,82 @@ const ResourcesTab = ({ workspace, projectId }) => {
   );
 };
 
-const TeamTab = ({ workspace }) => (
-  <div className="flex-1 p-6 overflow-auto">
-    <div className="mb-6">
-      <h2 className="text-xl font-bold text-white mb-1">Team Members</h2>
-      <p style={{ color: "#4b5563", fontSize: "0.875rem" }}>{workspace.members?.length || 0} members</p>
-    </div>
-    <div className="space-y-3 max-w-2xl">
-      {workspace.members?.map((m, i) => {
-        const name = m.fullName || m.name || 'User';
-        const avatarColor = '#3291FF';
-        return (
-          <div key={m._id || m.id || i} className="flex items-center justify-between p-4 rounded-2xl transition-all duration-200"
-            style={{ background: "rgba(12,12,15,0.8)", border: "1px solid rgba(0,112,243,0.12)" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,112,243,0.3)"; e.currentTarget.style.background = "rgba(22,22,26,0.9)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(0,112,243,0.12)"; e.currentTarget.style.background = "rgba(12,12,15,0.8)"; }}>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
-                  style={{ background: `${avatarColor}25`, color: avatarColor, border: `1px solid ${avatarColor}35` }}>
-                  {name[0]}
+const getWorkspaceMembers = (workspace) => {
+  const owner = workspace?.project?.owner || workspace?.owner;
+  const members = workspace?.project?.members || workspace?.members || [];
+
+  return owner
+    ? [owner, ...members.filter(m =>
+      (m._id || m.id)?.toString() !== (owner._id || owner.id)?.toString()
+    )]
+    : members;
+};
+
+const TeamTab = ({ workspace }) => {
+  const allMembers = getWorkspaceMembers(workspace);
+
+  return (
+    <div className="flex-1 p-6 overflow-auto">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-1">Team Members</h2>
+        <p style={{ color: "#4b5563", fontSize: "0.875rem" }}>
+          {allMembers.length} members
+        </p>
+      </div>
+      <div className="space-y-3 max-w-2xl">
+        {allMembers.map((m, i) => {
+          const isOwner = i === 0;
+          return (
+            <div key={m._id || m.id || i}
+              className="flex items-center justify-between p-4 rounded-2xl transition-all duration-200"
+              style={{ background: "rgba(12,8,32,0.8)", border: "1px solid rgba(139,92,246,0.12)" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.3)"; e.currentTarget.style.background = "rgba(20,12,50,0.9)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)"; e.currentTarget.style.background = "rgba(12,8,32,0.8)"; }}>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
+                    style={{ background: "rgba(124,58,237,0.25)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.35)" }}>
+                    {(m.fullName || m.name || "U")[0].toUpperCase()}
+                  </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
+                    style={{ background: "#4ade80", borderColor: "#05030f" }} />
+                </div>
+                <div>
+                  <p className="text-white text-sm font-semibold">{m.fullName || m.name}</p>
+                  <p className="text-xs" style={{ color: "#4b5563" }}>
+                    {m.skills?.[0] || m.role || (isOwner ? "Project Creator" : "Contributor")}
+                  </p>
                 </div>
               </div>
-              <div>
-                <p className="text-white text-sm font-semibold">{name}</p>
-                <p className="text-xs" style={{ color: "#4b5563" }}>{m.role || 'Member'}</p>
-              </div>
+              {isOwner && (
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+                  style={{ background: "rgba(139,92,246,0.12)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>
+                  Lead
+                </span>
+              )}
             </div>
-            {i === 0 && (
-              <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                style={{ background: "rgba(0,112,243,0.12)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
-                Lead
-              </span>
-            )}
-          </div>
-        );
-      })}
-      <div 
-        className="p-4 rounded-2xl cursor-pointer group hover:bg-blue-500/10 transition-colors" 
-        style={{ background: "rgba(0,112,243,0.03)", border: "1px dashed rgba(0,112,243,0.2)" }}
-        onClick={() => navigate("/applications")}
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
-            style={{ background: "rgba(0,112,243,0.08)", border: "1px solid rgba(0,112,243,0.15)" }}>
-            <span style={{ color: "#3291FF", fontSize: 18 }}>+</span>
-          </div>
-          <div>
-            <p className="text-white text-sm font-medium">Manage Applications</p>
-            <p className="text-xs" style={{ color: "#374151" }}>Click to view and accept new team members</p>
+          );
+        })}
+
+        <div className="p-4 rounded-2xl"
+          style={{ background: "rgba(139,92,246,0.03)", border: "1px dashed rgba(139,92,246,0.2)" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)" }}>
+              <span style={{ color: "#a78bfa", fontSize: 18 }}>+</span>
+            </div>
+            <div>
+              <p className="text-white text-sm font-medium">Invite a member</p>
+              <p className="text-xs" style={{ color: "#374151" }}>
+                Accept from applications or share workspace link
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const NAV_ITEMS = [
   { id: "kanban", icon: <LayoutDashboard size={16} />, label: "Kanban Board", desc: "Tasks & progress" },
@@ -421,14 +442,14 @@ const WorkspacePage = () => {
             ))}
           </nav>
 
-          {!sidebarCollapsed && workspace && workspace.members && (
+          {!sidebarCollapsed && workspace && (
             <div className="px-4 pb-4" style={{ borderTop: "1px solid rgba(0,112,243,0.08)", paddingTop: 12 }}>
               <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#374151" }}>Team</p>
               <div className="space-y-2 mb-3">
-                {workspace.members.slice(0, 3).map(m => {
+                {getWorkspaceMembers(workspace).slice(0, 3).map((m, i) => {
                   const memberName = m.fullName || m.name || 'User';
                   return (
-                    <div key={m._id || m.id} className="flex items-center gap-2">
+                    <div key={m._id || m.id || i} className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                         style={{ background: "rgba(50,145,255,0.25)", color: "#3291FF" }}>{memberName[0]}</div>
                       <p className="text-xs truncate" style={{ color: "#4b5563" }}>{memberName}</p>
@@ -441,6 +462,7 @@ const WorkspacePage = () => {
             </div>
           )}
         </aside>
+
 
         {/* Main content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -458,14 +480,14 @@ const WorkspacePage = () => {
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2">
                 <div className="flex -space-x-2">
-                  {workspace?.members?.map(m => (
-                    <div key={m._id || m.id} className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2"
+                  {getWorkspaceMembers(workspace).map((m, i) => (
+                    <div key={m._id || m.id || i} className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2"
                       style={{ background: "rgba(50,145,255,0.30)", color: "#3291FF", borderColor: "#05030f" }} title={m.fullName || m.name || 'User'}>
                       {(m.fullName || m.name || "U")[0]}
                     </div>
                   ))}
                 </div>
-                <span className="text-xs" style={{ color: "#374151" }}>{workspace?.members?.length || 0} members</span>
+                <span className="text-xs" style={{ color: "#374151" }}>{getWorkspaceMembers(workspace).length} members</span>
               </div>
               <div className="w-px h-5" style={{ background: "rgba(0,112,243,0.15)" }} />
               <span className="text-xs px-2.5 py-1 rounded-full font-medium"

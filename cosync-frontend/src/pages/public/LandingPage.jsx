@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import Logo from "../../components/ui/Logo";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Logo from "../../components/ui/Logo";
+import Spline from "@splinetool/react-spline";
 
 // ── Feature card with mouse-following glow ───────────────────────────────────
 const FeatureCard = ({ icon, title, desc, delay }) => {
@@ -153,13 +154,26 @@ const LandingPage = () => {
   return (
     <>
       <style>{`
+        :root {
+          --background: #000000;
+          --surface: #0a0a0a;
+          --surfaceHover: #111111;
+          --border: #1f1f1f;
+          --primary: #ffffff;
+          --secondary: #a1a1aa;
+          --accent: #00f0ff;
+        }
+        body {
+          background-color: var(--background);
+          color: var(--primary);
+        }
         @keyframes gridMove {
           0% { transform: translateY(-40px); }
           100% { transform: translateY(0); }
         }
         @keyframes floatDown {
           0%, 100% { transform: translateY(0px); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-          50% { transform: translateY(-12px); box-shadow: 0 20px 25px rgba(0,112,243,0.15); border-color: rgba(0,112,243,0.6); }
+          50% { transform: translateY(-12px); box-shadow: 0 20px 25px rgba(0,240,255,0.15); border-color: rgba(0,240,255,0.4); }
         }
         .perspective-1000 { perspective: 1000px; }
         .rotate-x-2 { transform: rotateX(2deg); }
@@ -183,7 +197,7 @@ const LandingPage = () => {
 
           <div className="flex items-center gap-4 text-sm font-medium">
             {user ? (
-              <button 
+              <button
                 onClick={() => navigate("/dashboard")}
                 className="flex items-center gap-2.5 pl-3 pr-1 py-1 rounded-full border border-border bg-surface/50 hover:border-accent/50 transition-all group"
               >
@@ -211,34 +225,46 @@ const LandingPage = () => {
         </nav>
 
         {/* ── Hero ── */}
-        <main className="relative z-10 flex-1 pt-32 pb-24 px-6 max-w-5xl mx-auto w-full flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border border-border bg-surface/50 backdrop-blur text-secondary mb-8 animate-fade-in hover:border-secondary/50 transition-colors cursor-default">
-            <span className="w-2 h-2 rounded-full bg-accent shadow-[0_0_8px_rgba(0,112,243,0.8)] animate-pulse-slow"></span>
-            CoSync Beta is now live at NUST SEECS
-          </div>
+        <main className="relative z-10 flex-1 pt-32 pb-24 px-6 max-w-7xl mx-auto w-full flex flex-col items-center text-left">
+          <div className="flex flex-col md:flex-row items-center justify-between w-full gap-12 mb-16">
+            <div className="flex-1 flex flex-col items-start animate-fade-in-up">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border border-border bg-surface/50 backdrop-blur text-secondary mb-8 hover:border-accent/50 transition-colors cursor-default">
+                <span className="w-2 h-2 rounded-full bg-accent shadow-[0_0_8px_var(--accent)] animate-pulse-slow"></span>
+                CoSync Beta is now live at NUST SEECS
+              </div>
 
-          <h1 className="text-5xl md:text-7xl font-medium tracking-tighter leading-tight mb-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-            Build teams.<br />
-            <span className="text-secondary inline-block hover:text-primary transition-colors duration-500 cursor-default">Ship projects faster.</span>
-          </h1>
+              <h1 className="text-5xl md:text-7xl font-semibold tracking-tighter leading-tight mb-6 text-primary">
+                Build teams.<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#0070f3] inline-block">Ship projects faster.</span>
+              </h1>
 
-          <p className="text-secondary text-lg md:text-xl max-w-2xl mb-10 animate-fade-up leading-relaxed" style={{ animationDelay: '0.2s' }}>
-            The professional matchmaking and management platform for student developers, designers, and project leads. No more siloed talent.
-          </p>
+              <p className="text-secondary text-lg md:text-xl max-w-xl mb-10 leading-relaxed">
+                The professional matchmaking and management platform for student developers, designers, and project leads. No more siloed talent.
+              </p>
 
-          <div className="flex items-center gap-4 animate-fade-up" style={{ animationDelay: '0.3s' }}>
-            <button
-              className="bg-primary text-background px-6 py-3 rounded-lg font-medium hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
-              onClick={() => navigate("/register")}
-            >
-              Start building
-            </button>
-            <button
-              className="bg-surface/50 backdrop-blur border border-border text-primary px-6 py-3 rounded-lg font-medium hover:bg-surfaceHover active:scale-95 transition-all"
-              onClick={() => navigate("/feed")}
-            >
-              Browse projects
-            </button>
+              <div className="flex items-center gap-4">
+                <button
+                  className="bg-primary text-background px-8 py-4 rounded-lg font-medium hover:bg-white/90 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.12)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                  onClick={() => navigate("/register")}
+                >
+                  Start building
+                </button>
+                <button
+                  className="bg-surface/50 backdrop-blur border border-border text-primary px-8 py-4 rounded-lg font-medium hover:bg-surfaceHover active:scale-95 transition-all"
+                  onClick={() => navigate("/feed")}
+                >
+                  Browse projects
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 w-full flex items-center justify-center md:justify-end relative animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              {/* Spline Container */}
+              <div className="w-full max-w-xl h-[400px] md:h-[450px] relative bg-gradient-to-b from-[#00f0ff]/5 to-transparent rounded-2xl border border-border overflow-hidden group">
+                <Spline scene="https://prod.spline.design/3c3rOBJxzYuK8lDA/scene.splinecode" />
+                <div className="absolute inset-0 pointer-events-none rounded-2xl ring-1 ring-inset ring-white/5 group-hover:ring-[#00f0ff]/20 transition-all duration-500"></div>
+              </div>
+            </div>
           </div>
 
           <MockKanban />

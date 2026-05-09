@@ -15,6 +15,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/geist": "^5.2.8",
     "@reduxjs/toolkit": "^2.11.2",
+    "@splinetool/react-spline": "^4.1.0",
     "axios": "^1.15.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

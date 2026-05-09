@@ -56,7 +56,14 @@ const getWorkspace = async (req, res) => {
     }
 
     await workspace.populate([
-      { path: 'project', select: 'title owner status deadline members', populate: { path: 'members', select: 'fullName avatar role' } },
+      {
+        path: 'project',
+        select: 'title owner status deadline members',
+        populate: [
+          { path: 'owner', select: 'fullName avatar role skills' },
+          { path: 'members', select: 'fullName avatar role skills' }
+        ]
+      },
       { path: 'columns.tasks.assignee', select: 'fullName avatar' }
     ]);
 
