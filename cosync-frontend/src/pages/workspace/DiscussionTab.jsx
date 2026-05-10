@@ -3,8 +3,9 @@ import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import api from "../../lib/api";
 
-const Avatar = ({ member, size = 8, showOnline = false }) => {
-  const name = member?.name || member?.fullName || "User";
+// ── Avatar ────────────────────────────────────────────────────────────────────
+const Avatar = ({ member, size = 8, showOnline = false, isOnline = false }) => {
+  const name = member?.fullName || member?.name || "User";
   const avatarBg = member?.avatar || "#3291FF";
   return (
     <div className="relative flex-shrink-0">
@@ -20,19 +21,23 @@ const Avatar = ({ member, size = 8, showOnline = false }) => {
       </div>
       {showOnline && (
         <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
-          style={{ background: member?.online ? "#4ade80" : "#374151", borderColor: "#05030f" }} />
+          style={{ background: isOnline ? "#4ade80" : "#374151", borderColor: "#05030f" }} />
       )}
     </div>
   );
 };
 
+// ── Message item ──────────────────────────────────────────────────────────────
 const MessageItem = ({ msg, meId, membersMap }) => {
-  const senderId = msg.sender?._id?.toString() || msg.sender?.id?.toString() || msg.sender?.toString();
-  const isMe = senderId === meId?.toString();
+  const senderId =
+    msg.sender?._id?.toString() ||
+    msg.sender?.id?.toString() ||
+    msg.sender?.toString();
+  const isMe       = senderId === meId?.toString();
   const authorData = membersMap[senderId] || msg.sender || {};
-  const authorColor = authorData.avatar || authorData.color || "#3291FF";
-  const authorName = authorData.fullName || authorData.name || "User";
-  const timeStr = msg.createdAt
+  const authorColor = authorData.avatar || "#3291FF";
+  const authorName  = authorData.fullName || authorData.name || "User";
+  const timeStr     = msg.createdAt
     ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     : "";
 
@@ -50,7 +55,7 @@ const MessageItem = ({ msg, meId, membersMap }) => {
             border: `1px solid ${isMe ? "rgba(0,112,243,0.35)" : "rgba(0,112,243,0.12)"}`,
             color: "#e5e7eb",
             borderTopRightRadius: isMe ? 4 : 16,
-            borderTopLeftRadius: isMe ? 16 : 4,
+            borderTopLeftRadius:  isMe ? 16 : 4,
           }}>
           {msg.content}
         </div>
@@ -59,48 +64,55 @@ const MessageItem = ({ msg, meId, membersMap }) => {
   );
 };
 
+// ── Main component ────────────────────────────────────────────────────────────
 const DiscussionTab = ({ workspace }) => {
   const { user } = useSelector(s => s.auth);
+
   const [messages, setMessages]         = useState([]);
   const [input, setInput]               = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
+  const [onlineIds, setOnlineIds]       = useState(new Set()); // tracks who is online
   const socketRef                       = useRef(null);
   const bottomRef                       = useRef(null);
 
-  // ── Get correct projectId ─────────────────────────────────────────────────
-  // workspace.project._id  (when workspace is populated from API)
-  // workspace.project      (when it's just the id string)
-  // workspace._id          (fallback)
+  // ── projectId extraction ─────────────────────────────────────────────────
   const projectId =
     workspace?.project?._id ||
     (typeof workspace?.project === "string" ? workspace.project : null) ||
     workspace?._id ||
     workspace?.id;
 
-  // ── Build membersMap for quick lookup ────────────────────────────────────
+  const myId = (user?._id || user?.id)?.toString();
+
+  // ── Build all members including owner ────────────────────────────────────
+  const owner   = workspace?.project?.owner || workspace?.owner;
+  const members = workspace?.project?.members || workspace?.members || [];
+
+  const allMembers = (() => {
+    if (!owner) return members;
+    const ownerId  = (owner._id || owner.id || owner)?.toString();
+    const filtered = members.filter(m => (m._id || m.id)?.toString() !== ownerId);
+    return [owner, ...filtered];
+  })();
+
+  // ── Build membersMap ─────────────────────────────────────────────────────
   const membersMap = {};
-  const allMembers = [
-    ...(workspace?.project?.members || workspace?.members || []),
-  ];
-  const owner = workspace?.project?.owner || workspace?.owner;
-  if (owner) allMembers.push(owner);
   allMembers.forEach(m => {
-    const id = m?._id?.toString() || m?.id?.toString();
+    const id = (m._id || m.id)?.toString();
     if (id) membersMap[id] = m;
   });
-  if (user) {
-    const myId = (user._id || user.id)?.toString();
-    if (myId) membersMap[myId] = user;
-  }
+  // Always include current user in map (for optimistic messages)
+  if (myId) membersMap[myId] = { ...user, ...(membersMap[myId] || {}) };
 
-  // ── Fetch + socket setup ─────────────────────────────────────────────────
+  // ── Fetch messages + socket ──────────────────────────────────────────────
   useEffect(() => {
     if (!projectId) return;
     setLoading(true);
     setError(null);
 
+    // Fetch messages
     api.get(`/messages/${projectId}`)
       .then(res => {
         const data = res.data?.data || res.data || [];
@@ -108,24 +120,47 @@ const DiscussionTab = ({ workspace }) => {
       })
       .catch(err => {
         console.error("Fetch messages error:", err);
-        setError("Could not load messages. Make sure you are a team member.");
+        setError("Could not load messages.");
       })
       .finally(() => setLoading(false));
 
+    // Socket setup
     const socketUrl =
       import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000";
+
     const sock = io(socketUrl, { withCredentials: true });
     socketRef.current = sock;
 
-    sock.emit("join_project", projectId);
+    // Join room — send user info for presence
+    sock.emit("join_project", {
+      projectId,
+      userId:   myId,
+      userName: user?.fullName || user?.name || "User",
+    });
 
+    // Mark myself as online immediately
+    setOnlineIds(prev => new Set([...prev, myId]));
+
+    // Someone else came online
+    sock.on("user_online", ({ userId }) => {
+      setOnlineIds(prev => new Set([...prev, userId?.toString()]));
+    });
+
+    // Someone went offline
+    sock.on("user_offline", ({ userId }) => {
+      setOnlineIds(prev => {
+        const next = new Set(prev);
+        next.delete(userId?.toString());
+        return next;
+      });
+    });
+
+    // New message from others
     sock.on("new_message", (msg) => {
       const incomingSenderId =
         msg.sender?._id?.toString() ||
         msg.sender?.id?.toString() ||
         msg.sender?.toString();
-      const myId = (user?._id || user?.id)?.toString();
-      // Only add messages from OTHER users (my messages are added optimistically)
       if (incomingSenderId !== myId) {
         setMessages(prev => {
           if (prev.some(m => m._id === msg._id)) return prev;
@@ -136,6 +171,7 @@ const DiscussionTab = ({ workspace }) => {
 
     return () => {
       sock.emit("leave_project", projectId);
+      setOnlineIds(new Set());
       sock.disconnect();
     };
   }, [projectId]);
@@ -145,27 +181,22 @@ const DiscussionTab = ({ workspace }) => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ── Send ──────────────────────────────────────────────────────────────────
+  // ── Send ─────────────────────────────────────────────────────────────────
   const send = async () => {
     const text = input.trim();
     if (!text || !projectId) return;
     setInput("");
 
-    // Optimistic update
-    const tempId = `temp-${Date.now()}`;
+    const tempId    = `temp-${Date.now()}`;
     const optimistic = {
-      _id: tempId,
-      content: text,
-      sender: user,
-      createdAt: new Date().toISOString(),
-      project: projectId,
+      _id: tempId, content: text,
+      sender: user, createdAt: new Date().toISOString(), project: projectId,
     };
     setMessages(prev => [...prev, optimistic]);
 
     try {
-      const res = await api.post(`/messages/${projectId}`, { content: text });
+      const res   = await api.post(`/messages/${projectId}`, { content: text });
       const saved = res.data?.data;
-      // Replace temp with real
       setMessages(prev => prev.map(m => m._id === tempId ? saved : m));
     } catch (err) {
       console.error("Send message error:", err);
@@ -174,20 +205,18 @@ const DiscussionTab = ({ workspace }) => {
     }
   };
 
-  const activeMembers = workspace?.project?.members || workspace?.members || [];
-
   return (
     <>
       <style>{`
         @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes spin    { to{transform:rotate(360deg)} }
         .chat-scroll::-webkit-scrollbar { width:3px; }
         .chat-scroll::-webkit-scrollbar-thumb { background:rgba(0,112,243,0.2); border-radius:2px; }
       `}</style>
 
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Messages area */}
+        {/* ── Messages area ── */}
         <div className="flex-1 flex flex-col overflow-hidden">
 
           {/* Header */}
@@ -196,20 +225,25 @@ const DiscussionTab = ({ workspace }) => {
               <div>
                 <h2 className="text-lg font-bold text-white">Team Discussion</h2>
                 <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>
-                  {messages.length} messages · {activeMembers.length} members
+                  {messages.length} messages · {allMembers.length} members · {onlineIds.size} online
                 </p>
               </div>
+              {/* Avatar stack — all members */}
               <div className="flex -space-x-2">
-                {activeMembers.slice(0, 5).map((m, i) => (
-                  <div key={m._id || m.id || i} title={m.fullName || m.name}>
-                    <Avatar member={m} size={7} showOnline />
-                  </div>
-                ))}
+                {allMembers.slice(0, 5).map((m, i) => {
+                  const mId      = (m._id || m.id)?.toString();
+                  const isOnline = onlineIds.has(mId);
+                  return (
+                    <div key={mId || i} title={`${m.fullName || m.name || "User"} — ${isOnline ? "Online" : "Offline"}`}>
+                      <Avatar member={m} size={7} showOnline isOnline={isOnline} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Messages */}
+          {/* Messages list */}
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 chat-scroll">
             {loading && (
               <div className="text-center py-10">
@@ -240,20 +274,16 @@ const DiscussionTab = ({ workspace }) => {
             )}
             {!loading && !error && messages.map(msg => (
               <div key={msg._id} style={{ animation: "slideUp 0.3s ease both" }}>
-                <MessageItem
-                  msg={msg}
-                  meId={(user?._id || user?.id)?.toString()}
-                  membersMap={membersMap}
-                />
+                <MessageItem msg={msg} meId={myId} membersMap={membersMap} />
               </div>
             ))}
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
+          {/* Input area */}
           <div className="px-6 pb-5 pt-3 flex-shrink-0" style={{ borderTop: "1px solid rgba(0,112,243,0.08)" }}>
             <div className="flex items-end gap-3">
-              <Avatar member={user} size={8} />
+              <Avatar member={user} size={8} showOnline isOnline={true} />
               <div className="flex-1 relative">
                 <textarea
                   value={input}
@@ -289,24 +319,37 @@ const DiscussionTab = ({ workspace }) => {
           </div>
         </div>
 
-        {/* Right sidebar */}
+        {/* ── Right sidebar — all members with real online status ── */}
         <div className="hidden xl:flex flex-col w-56 flex-shrink-0 p-4"
           style={{ borderLeft: "1px solid rgba(0,112,243,0.08)" }}>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: "#374151" }}>Members</p>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: "#374151" }}>
+            Members ({allMembers.length})
+          </p>
           <div className="space-y-3">
-            {activeMembers.map((m, i) => (
-              <div key={m._id || m.id || i} className="flex items-center gap-2.5">
-                <Avatar member={m} size={7} showOnline />
-                <div>
-                  <p className="text-xs font-medium text-white">
-                    {(m.fullName || m.name || "User").split(" ")[0]}
-                  </p>
-                  <p className="text-xs" style={{ color: m.online ? "#4ade80" : "#374151" }}>
-                    {m.online ? "Online" : "Offline"}
-                  </p>
+            {allMembers.map((m, i) => {
+              const mId      = (m._id || m.id)?.toString();
+              const isOnline = onlineIds.has(mId);
+              const name     = m.fullName || m.name || "User";
+              return (
+                <div key={mId || i} className="flex items-center gap-2.5">
+                  <Avatar member={m} size={7} showOnline isOnline={isOnline} />
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-medium text-white">{name.split(" ")[0]}</p>
+                      {i === 0 && (
+                        <span className="text-xs px-1.5 py-0.5 rounded"
+                          style={{ background: "rgba(0,112,243,0.12)", color: "#3291FF", fontSize: 9 }}>
+                          Lead
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs" style={{ color: isOnline ? "#4ade80" : "#374151" }}>
+                      {isOnline ? "● Online" : "○ Offline"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

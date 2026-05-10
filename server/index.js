@@ -29,13 +29,21 @@ io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
   // Join a project-specific room
-  socket.on('join_project', (projectId) => {
+  socket.on('join_project', ({ projectId, userId, userName }) => {
     socket.join(projectId);
+    socket.projectId = projectId;
+    socket.userId = userId;
+    // Notify others in room that this user is online
+    socket.to(projectId).emit('user_online', { userId, userName });
     console.log(`User ${socket.id} joined project room: ${projectId}`);
   });
 
   socket.on('leave_project', (projectId) => {
     socket.leave(projectId);
+    // Notify others this user went offline
+    if (socket.userId) {
+      socket.to(projectId).emit('user_offline', { userId: socket.userId });
+    }
     console.log(`User ${socket.id} left project room: ${projectId}`);
   });
 
@@ -49,6 +57,10 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    // Notify room when user disconnects
+    if (socket.projectId && socket.userId) {
+      socket.to(socket.projectId).emit('user_offline', { userId: socket.userId });
+    }
     console.log(`User disconnected: ${socket.id}`);
   });
 });
