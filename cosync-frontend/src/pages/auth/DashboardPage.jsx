@@ -227,9 +227,11 @@ const MyProjectCard = ({ project }) => {
 
 // ── Applied Project Row ───────────────────────────────────────────────────────
 const AppliedRow = ({ project, index }) => {
+  const navigate = useNavigate();
   const pData = project.project || project;
   const title = pData.title || "Project";
   const color = pData.color || "#3291FF";
+  const workspaceId = project.projectId || pData._id;
   return (
     <div
       className="flex items-center justify-between py-3.5 transition-all duration-200"
@@ -251,7 +253,17 @@ const AppliedRow = ({ project, index }) => {
           </p>
         </div>
       </div>
-      <StatusBadge status={project.status} />
+      <div className="flex items-center gap-2">
+        <StatusBadge status={project.status} />
+        {project.status === "accepted" && (
+          <button
+            onClick={() => navigate(`/workspace/${workspaceId}`)}
+            className="text-xs px-3 py-1.5 rounded-lg transition-all duration-200 bg-primary text-background hover:bg-white/90"
+            style={{ border: "none", cursor: "pointer" }}>
+            Workspace →
+          </button>
+        )}
+      </div>
     </div>
   );
 };

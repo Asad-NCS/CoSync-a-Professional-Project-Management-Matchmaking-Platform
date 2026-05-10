@@ -11,28 +11,33 @@ const PRIORITY_CONFIG = {
 };
 
 const TYPE_CONFIG = {
-  feature: { color: "#3291FF", bg: "rgba(50,145,255,0.1)", label: "Feature" },
-  bug:     { color: "#f87171", bg: "rgba(248,113,113,0.1)", label: "Bug"     },
-  task:    { color: "#61dafb", bg: "rgba(97,218,251,0.1)",  label: "Task"    },
-  design:  { color: "#f472b6", bg: "rgba(244,114,182,0.1)", label: "Design"  },
-  docs:    { color: "#34d399", bg: "rgba(52,211,153,0.1)",  label: "Docs"    },
+  feature: { color: "#3291FF", bg: "rgba(50,145,255,0.1)",   label: "Feature" },
+  bug:     { color: "#f87171", bg: "rgba(248,113,113,0.1)",  label: "Bug"     },
+  task:    { color: "#61dafb", bg: "rgba(97,218,251,0.1)",   label: "Task"    },
+  design:  { color: "#f472b6", bg: "rgba(244,114,182,0.1)",  label: "Design"  },
+  docs:    { color: "#34d399", bg: "rgba(52,211,153,0.1)",   label: "Docs"    },
 };
 
+// Must match what SortableContext and useDroppable use
+const getTaskId = (t) => t.id || t._id?.toString();
 
 const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
+  // ── FIX: use the same stable id as SortableContext ──
+  const sortableId = getTaskId(task);
+
   const {
     attributes, listeners, setNodeRef,
     transform, transition, isDragging,
-  } = useSortable({ id: task.id });
+  } = useSortable({ id: sortableId });
 
-  const [hovered, setHovered] = useState(false);
+  const [hovered, setHovered]         = useState(false);
   const [showActions, setShowActions] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
-    zIndex: isDragging ? 999 : "auto",
+    zIndex:  isDragging ? 999 : "auto",
   };
 
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
@@ -41,74 +46,59 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
   const completedChecks = task.checklist?.filter(c => c.done).length || 0;
   const totalChecks     = task.checklist?.length || 0;
   const checkPct        = totalChecks ? Math.round((completedChecks / totalChecks) * 100) : 0;
+  const isOverdue       = task.dueDate && new Date(task.dueDate) < new Date();
 
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== "done";
+  // ── FIX: fullName from backend, name as fallback ──
+  const assigneeName = task.assignee?.fullName || task.assignee?.name;
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="relative group"
+    <div ref={setNodeRef} style={style} className="relative group"
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setShowActions(false); }}
-    >
-      <div
-        className="rounded-2xl transition-all duration-200"
+      onMouseLeave={() => { setHovered(false); setShowActions(false); }}>
+
+      <div className="rounded-2xl transition-all duration-200"
         style={{
-          background: overlay ? "rgba(32,32,36,0.98)" : hovered ? "rgba(22,14,48,0.98)" : "rgba(18,18,22,0.9)",
-          border: `1px solid ${isDragging ? "rgba(0,112,243,0.6)" : hovered ? "rgba(0,112,243,0.35)" : "rgba(0,112,243,0.12)"}`,
-          boxShadow: overlay ? "0 25px 50px rgba(0,0,0,0.5)" : hovered ? "0 8px 25px rgba(0,80,180,0.2)" : "none",
-          cursor: isDragging ? "grabbing" : "grab",
-        }}
-      >
+          background:  overlay ? "rgba(32,32,36,0.98)" : hovered ? "rgba(22,14,48,0.98)" : "rgba(18,18,22,0.9)",
+          border:      `1px solid ${isDragging ? "rgba(0,112,243,0.6)" : hovered ? "rgba(0,112,243,0.35)" : "rgba(0,112,243,0.12)"}`,
+          boxShadow:   overlay ? "0 25px 50px rgba(0,0,0,0.5)" : hovered ? "0 8px 25px rgba(0,80,180,0.2)" : "none",
+          cursor:      isDragging ? "grabbing" : "grab",
+        }}>
+
         {/* Priority strip */}
         <div className="h-0.5 rounded-t-2xl" style={{ background: priority.color }} />
 
         <div className="p-4">
-          {/* Header row */}
+          {/* Header */}
           <div className="flex items-start justify-between mb-2.5">
             <div className="flex items-center gap-1.5 flex-wrap flex-1 mr-2">
-              {/* Type badge */}
-              <span className="text-xs px-2 py-0.5 rounded-md font-medium"
-                style={{ background: type.bg, color: type.color }}>
-                {type.label}
-              </span>
-              {/* Priority badge */}
-              <span className="text-xs px-2 py-0.5 rounded-md font-medium"
-                style={{ background: priority.bg, border: `1px solid ${priority.border}`, color: priority.color }}>
-                {priority.label}
-              </span>
+              <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={{ background: type.bg, color: type.color }}>{type.label}</span>
+              <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={{ background: priority.bg, border: `1px solid ${priority.border}`, color: priority.color }}>{priority.label}</span>
             </div>
 
             {/* Action menu */}
             <div className="relative flex-shrink-0">
               <button
                 className="w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-200"
-                style={{
-                  background: showActions ? "rgba(0,112,243,0.2)" : "transparent",
-                  border: "none", cursor: "pointer", color: "#4b5563",
-                  opacity: hovered ? 1 : 0,
-                }}
+                style={{ background: showActions ? "rgba(0,112,243,0.2)" : "transparent", border: "none", cursor: "pointer", color: "#4b5563", opacity: hovered ? 1 : 0 }}
                 onClick={e => { e.stopPropagation(); setShowActions(p => !p); }}
-                {...attributes}
-              >
+                {...attributes}>
                 ···
               </button>
               {showActions && (
                 <div className="absolute right-0 top-7 rounded-xl overflow-hidden z-50 w-36"
                   style={{ background: "#0a0520", border: "1px solid rgba(0,112,243,0.25)", boxShadow: "0 12px 30px rgba(0,0,0,0.5)" }}>
-                  <button className="w-full text-left px-3 py-2 text-xs transition-colors"
+                  <button className="w-full text-left px-3 py-2 text-xs"
                     style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", display: "block" }}
                     onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,112,243,0.1)"; e.currentTarget.style.color = "#fff"; }}
                     onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#9ca3af"; }}
                     onClick={e => { e.stopPropagation(); setShowActions(false); onEdit(task); }}>
                     ✏ Edit task
                   </button>
-                  <button className="w-full text-left px-3 py-2 text-xs transition-colors"
+                  <button className="w-full text-left px-3 py-2 text-xs"
                     style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", display: "block" }}
                     onMouseEnter={e => e.currentTarget.style.background = "rgba(248,113,113,0.1)"}
                     onMouseLeave={e => e.currentTarget.style.background = "none"}
-                    onClick={e => { e.stopPropagation(); setShowActions(false); onDelete(task.id); }}>
+                    onClick={e => { e.stopPropagation(); setShowActions(false); onDelete(sortableId); }}>
                     🗑 Delete
                   </button>
                 </div>
@@ -116,15 +106,12 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
             </div>
           </div>
 
-          {/* Title — drag handle */}
+          {/* Title + description — drag handle */}
           <div {...listeners} {...attributes} style={{ cursor: isDragging ? "grabbing" : "grab" }}>
-            <h4 className="text-white font-semibold text-sm leading-snug mb-1"
-              style={{ textDecoration: task.status === "done" ? "line-through" : "none", opacity: task.status === "done" ? 0.6 : 1 }}>
-              {task.title}
-            </h4>
+            <h4 className="text-white font-semibold text-sm leading-snug mb-1">{task.title}</h4>
             {task.description && (
               <p className="text-xs leading-relaxed mb-3" style={{ color: "#4b5563" }}>
-                {task.description.length > 80 ? task.description.slice(0, 80) + "..." : task.description}
+                {task.description.length > 80 ? task.description.slice(0, 80) + "…" : task.description}
               </p>
             )}
           </div>
@@ -141,14 +128,12 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
             </div>
           )}
 
-          {/* Checklist progress */}
+          {/* Checklist */}
           {totalChecks > 0 && (
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs" style={{ color: "#374151" }}>Checklist</span>
-                <span className="text-xs font-medium" style={{ color: checkPct === 100 ? "#4ade80" : "#3291FF" }}>
-                  {completedChecks}/{totalChecks}
-                </span>
+                <span className="text-xs font-medium" style={{ color: checkPct === 100 ? "#4ade80" : "#3291FF" }}>{completedChecks}/{totalChecks}</span>
               </div>
               <div className="h-1 rounded-full" style={{ background: "rgba(0,112,243,0.1)" }}>
                 <div className="h-full rounded-full transition-all duration-500"
@@ -158,32 +143,23 @@ const TaskCard = ({ task, onEdit, onDelete, overlay = false }) => {
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3"
-            style={{ borderTop: "1px solid rgba(0,112,243,0.07)" }}>
+          <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(0,112,243,0.07)" }}>
             <div className="flex items-center gap-2">
-              {/* Assignee */}
-              {task.assignee && (
+              {/* ── FIX: safe assignee display ── */}
+              {assigneeName && (
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ background: task.assignee.color + "30", color: task.assignee.color, border: `1px solid ${task.assignee.color}40` }}
-                  title={task.assignee.name}>
-                  {task.assignee.name[0]}
+                  style={{ background: "rgba(50,145,255,0.2)", color: "#3291FF", border: "1px solid rgba(50,145,255,0.3)" }}
+                  title={assigneeName}>
+                  {assigneeName[0].toUpperCase()}
                 </div>
               )}
-
-              {/* Due date */}
               {task.dueDate && (
                 <span className="text-xs px-2 py-0.5 rounded-md"
-                  style={{
-                    background: isOverdue ? "rgba(248,113,113,0.1)" : "rgba(0,112,243,0.06)",
-                    color: isOverdue ? "#f87171" : "#4b5563",
-                    border: `1px solid ${isOverdue ? "rgba(248,113,113,0.2)" : "rgba(0,112,243,0.1)"}`,
-                  }}>
+                  style={{ background: isOverdue ? "rgba(248,113,113,0.1)" : "rgba(0,112,243,0.06)", color: isOverdue ? "#f87171" : "#4b5563", border: `1px solid ${isOverdue ? "rgba(248,113,113,0.2)" : "rgba(0,112,243,0.1)"}` }}>
                   {isOverdue ? "⚠ " : "📅 "}{task.dueDate}
                 </span>
               )}
             </div>
-
-            {/* Comments count */}
             {task.comments > 0 && (
               <span className="flex items-center gap-1 text-xs" style={{ color: "#374151" }}>
                 <span style={{ fontSize: 10 }}>💬</span> {task.comments}

@@ -55,10 +55,17 @@ const getWorkspace = async (req, res) => {
       console.log(`Found existing workspace: ${workspace._id}`);
     }
 
-    await workspace.populate([
-      { path: 'project', select: 'title owner status deadline members', populate: { path: 'members', select: 'fullName avatar role' } },
-      { path: 'columns.tasks.assignee', select: 'fullName avatar' }
-    ]);
+  await workspace.populate([
+  {
+    path: 'project',
+    select: 'title owner status deadline members',
+    populate: [
+      { path: 'members', select: 'fullName name avatar role email' },
+      { path: 'owner',   select: 'fullName name avatar role email' }
+    ]
+  },
+  { path: 'columns.tasks.assignee', select: 'fullName name avatar' }
+]);
 
     if (!workspace.project) {
       console.error(`CRITICAL: Workspace ${workspace._id} project population failed. Project ID: ${projectId}`);
