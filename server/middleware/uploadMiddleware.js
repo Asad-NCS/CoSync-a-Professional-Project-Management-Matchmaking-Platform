@@ -10,10 +10,14 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'cosync_uploads',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf', 'docx', 'zip'],
-    resource_type: 'auto',
+  params: async (req, file) => {
+    const fileExtension = file.originalname.split('.').pop().toLowerCase();
+    const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension);
+    return {
+      folder: 'cosync_uploads',
+      resource_type: isImage ? 'image' : 'raw',
+      public_id: `${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, "")}`,
+    };
   },
 });
 
