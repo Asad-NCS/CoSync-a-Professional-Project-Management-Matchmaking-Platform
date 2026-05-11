@@ -198,7 +198,7 @@ const ProjectDetailPage = () => {
                       )}
                       <div className="flex items-center gap-4 mt-2">
                         {/* GitHub Section */}
-                        {project.owner.github ? (
+                        {project.owner?.github ? (
                           <a href={formatLink(project.owner.github)} target="_blank" rel="noreferrer"
                             onClick={e => e.stopPropagation()}
                             className="text-xs flex items-center gap-1 transition-colors"
@@ -214,7 +214,7 @@ const ProjectDetailPage = () => {
                         )}
 
                         {/* LinkedIn Section */}
-                        {project.owner.linkedin ? (
+                        {project.owner?.linkedin ? (
                           <a href={formatLink(project.owner.linkedin)} target="_blank" rel="noreferrer"
                             onClick={e => e.stopPropagation()}
                             className="text-xs flex items-center gap-1 transition-colors"
