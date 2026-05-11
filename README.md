@@ -2,6 +2,10 @@
 
 CoSync is a full-stack, enterprise-grade project management and matchmaking platform designed for students and professionals. It allows users to create projects, find team members based on skill compatibility (matchmaking), manage tasks using a real-time Kanban board, and collaborate effectively.
 
+## 🔗 Live Demo (Coming Soon)
+- **Frontend**: [Live Site](https://cosync-frontend.vercel.app)
+- **Backend API**: [API Server](https://cosync-backend.onrender.com)
+
 ## 🚀 Features
 
 - **Skill-based Matchmaking**: Intelligent recommendation engine matching users with projects based on their skill sets and tech stacks.
