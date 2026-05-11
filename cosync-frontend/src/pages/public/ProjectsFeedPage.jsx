@@ -101,14 +101,37 @@ const ApplyModal = ({ project, onClose, isAuth }) => {
 };
 
 // ── Project Card ──────────────────────────────────────────────────────────────
-const ProjectCard = ({ project, onApply }) => {
+const ProjectCard = ({ project, onApply, applicationStatus }) => {
   const navigate = useNavigate();
   const isFull = project.status === "closed";
   const filled = project.members?.length || 0;
-  const fillPct = Math.round((filled / (project.total ?? 1)) * 100);
+  const total = project.total ?? 1;
+  const fillPct = Math.min(100, Math.round((filled / total) * 100));
 
   const hasMatchScore = project.matchPercentage !== undefined;
   const matchedSkills = project.matchedSkills || [];
+
+  // Determine button state based on application status
+  const isPending = applicationStatus === "pending";
+  const isAccepted = applicationStatus === "accepted";
+  const hasApplied = !!applicationStatus;
+
+  let btnText = "Apply";
+  let btnClass = "bg-primary text-background hover:bg-white/90 active:scale-95";
+
+  if (isFull) {
+    btnText = "Team full";
+    btnClass = "bg-border text-secondary cursor-not-allowed opacity-70";
+  } else if (isAccepted) {
+    btnText = "Joined";
+    btnClass = "bg-green-500 text-white cursor-default";
+  } else if (isPending) {
+    btnText = "Pending";
+    btnClass = "bg-yellow-500 text-black cursor-default";
+  } else if (hasApplied) {
+    btnText = "Applied";
+    btnClass = "bg-green-500 text-white cursor-default";
+  }
 
   return (
     <div
@@ -141,8 +164,8 @@ const ProjectCard = ({ project, onApply }) => {
             <h3 className="text-primary font-medium text-base leading-tight group-hover:text-accent transition-colors">{project.title}</h3>
           </div>
           {/* Author avatar */}
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-border text-primary shrink-0" title={project.author?.name ?? ""}>
-            {(project.author?.name ?? "?")[0]}
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-border text-primary shrink-0" title={project.owner?.fullName ?? ""}>
+            {(project.owner?.fullName ?? "?")[0]}
           </div>
         </div>
 
@@ -186,14 +209,14 @@ const ProjectCard = ({ project, onApply }) => {
           <div className="flex items-center gap-2 text-xs text-secondary">
             <span>{project.applicationCount ?? 0} applicants</span>
             <span>·</span>
-            <span>{project.posted || new Date(project.createdAt).toLocaleDateString()}</span>
+            <span>{new Date(project.createdAt).toLocaleDateString()}</span>
           </div>
           <button
-            onClick={(e) => { e.stopPropagation(); onApply(project); }}
-            disabled={isFull}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${isFull ? 'bg-border text-secondary cursor-not-allowed' : 'bg-primary text-background hover:bg-white/90 active:scale-95'}`}
+            onClick={(e) => { e.stopPropagation(); if(!hasApplied && !isFull) onApply(project); }}
+            disabled={isFull || hasApplied}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${btnClass}`}
           >
-            {isFull ? "Team full" : "Apply"}
+            {btnText}
           </button>
         </div>
       </div>
@@ -205,8 +228,8 @@ const ProjectCard = ({ project, onApply }) => {
 const ProjectsFeedPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector(s => s.auth);
-  const { projectsList, matchedProjects, status, error } = useSelector(s => s.projects);
+  const { isAuthenticated, user } = useSelector(s => s.auth);
+  const { projectsList, matchedProjects, appliedProjects, status, error } = useSelector(s => s.projects);
 
   const [isMatchMode, setIsMatchMode] = useState(false);
   const [search, setSearch] = useState("");
@@ -214,6 +237,13 @@ const ProjectsFeedPage = () => {
   const [activeStatus, setActiveStatus] = useState("All");
   const [activeStack, setActiveStack] = useState("");
   const [applyProject, setApplyProject] = useState(null);
+
+  // Fetch applications on mount to check "Applied" status
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchMyApplications());
+    }
+  }, [isAuthenticated, dispatch]);
 
   // Fetch from backend whenever filters or mode changes
   useEffect(() => {
@@ -377,7 +407,19 @@ const ProjectsFeedPage = () => {
           </div>
         ) : displayedProjects.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {displayedProjects.map(p => <ProjectCard key={p._id ?? p.id} project={p} onApply={setApplyProject} />)}
+            {displayedProjects.map(p => {
+              const userApp = appliedProjects.find(app => 
+                String(app.project?._id || app.project?.id || app.project) === String(p._id || p.id)
+              );
+              return (
+                <ProjectCard 
+                  key={p._id ?? p.id} 
+                  project={p} 
+                  onApply={setApplyProject} 
+                  applicationStatus={userApp?.status}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-20 border border-border rounded-xl bg-surface text-secondary">
