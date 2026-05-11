@@ -408,9 +408,13 @@ const ProjectsFeedPage = () => {
         ) : displayedProjects.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {displayedProjects.map(p => {
-              const userApp = appliedProjects.find(app => 
-                String(app.project?._id || app.project?.id || app.project) === String(p._id || p.id)
-              );
+              // Safety check: ensure appliedProjects is an array
+              const safeApps = Array.isArray(appliedProjects) ? appliedProjects : [];
+              const userApp = safeApps.find(app => {
+                const projectId = app?.project?._id || app?.project?.id || app?.project;
+                return String(projectId) === String(p._id || p.id);
+              });
+              
               return (
                 <ProjectCard 
                   key={p._id ?? p.id} 
