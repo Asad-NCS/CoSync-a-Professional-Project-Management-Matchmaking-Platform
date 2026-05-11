@@ -11,6 +11,7 @@ import { LayoutDashboard, Trash2, Search, FolderOpen, User } from "lucide-react"
 const ApplicantRow = ({ a }) => {
   const [status, setStatus] = useState(a.status);
   const [updating, setUpdating] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const applicant = a.applicant || a.user || {};
 
   const handleStatusChange = async (newStatus) => {
@@ -26,42 +27,80 @@ const ApplicantRow = ({ a }) => {
   };
 
   return (
-    <div className="flex items-center justify-between py-3"
-      style={{ borderBottom: "1px solid rgba(0,112,243,0.06)" }}>
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-          style={{ background: "rgba(0,112,243,0.1)", color: "#3291FF", border: `1px solid rgba(0,112,243,0.2)` }}>
-          {applicant.fullName?.[0] || applicant.name?.[0] || "?"}
+    <div className="py-4 px-4 rounded-xl mb-3 transition-all"
+      style={{ 
+        background: "rgba(0,112,243,0.04)", 
+        border: "1px solid rgba(0,112,243,0.1)",
+        borderLeft: status === 'pending' ? "3px solid #3291FF" : "1px solid rgba(0,112,243,0.1)"
+      }}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+            style={{ background: "rgba(0,112,243,0.15)", color: "#3291FF", border: `1px solid rgba(0,112,243,0.25)` }}>
+            {applicant.fullName?.[0] || applicant.name?.[0] || "?"}
+          </div>
+          <div>
+            <p className="text-white text-sm font-semibold">{applicant.fullName || applicant.name}</p>
+            <p className="text-[11px]" style={{ color: "#4b5563" }}>{a.role || 'Applicant'} · {new Date(a.createdAt).toLocaleDateString()}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-white text-sm font-medium">{applicant.fullName || applicant.name}</p>
-          <p className="text-xs" style={{ color: "#4b5563" }}>{a.role || 'Applicant'} · {new Date(a.createdAt).toLocaleDateString()}</p>
+        <div className="flex items-center gap-2">
+          {status === "pending" ? (
+            <>
+              <button onClick={() => handleStatusChange("accepted")} disabled={updating}
+                className="text-[11px] px-3 py-1.5 rounded-lg font-bold transition-all duration-200"
+                style={{ background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", color: "#4ade80", cursor: updating ? "wait" : "pointer" }}>
+                Accept
+              </button>
+              <button onClick={() => handleStatusChange("rejected")} disabled={updating}
+                className="text-[11px] px-3 py-1.5 rounded-lg font-bold transition-all duration-200"
+                style={{ background: "rgba(248,113,113,0.12)", border: "1px solid rgba(248,113,113,0.25)", color: "#f87171", cursor: updating ? "wait" : "pointer" }}>
+                Decline
+              </button>
+            </>
+          ) : (
+            <span className="text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider"
+              style={{
+                background: status === "accepted" ? "rgba(74,222,128,0.1)" : "rgba(248,113,113,0.08)",
+                color: status === "accepted" ? "#4ade80" : "#f87171",
+                border: `1px solid ${status === "accepted" ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.2)"}`,
+              }}>
+              {status}
+            </span>
+          )}
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        {status === "pending" ? (
-          <>
-            <button onClick={() => handleStatusChange("accepted")} disabled={updating}
-              className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
-              style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", cursor: updating ? "wait" : "pointer", opacity: updating ? 0.6 : 1 }}>
-              Accept
-            </button>
-            <button onClick={() => handleStatusChange("rejected")} disabled={updating}
-              className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
-              style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)", color: "#f87171", cursor: updating ? "wait" : "pointer", opacity: updating ? 0.6 : 1 }}>
-              Decline
-            </button>
-          </>
-        ) : (
-          <span className="text-xs px-2.5 py-1 rounded-full font-medium capitalize"
-            style={{
-              background: status === "accepted" ? "rgba(74,222,128,0.1)" : "rgba(248,113,113,0.08)",
-              color: status === "accepted" ? "#4ade80" : "#f87171",
-              border: `1px solid ${status === "accepted" ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.2)"}`,
-            }}>
-            {status}
-          </span>
+
+      {/* Details Section */}
+      <div className="ml-13 pl-13 mt-3">
+        {a.message && (
+          <div className="mb-3 p-3 rounded-lg" style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(0,112,243,0.05)" }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#374151" }}>Application Message</p>
+            <p className="text-xs italic text-gray-400">"{a.message}"</p>
+          </div>
         )}
+
+        <div className="flex flex-wrap gap-4 items-center mt-2">
+          {applicant.skills && applicant.skills.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {applicant.skills.slice(0, 3).map((s, i) => (
+                <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">{s}</span>
+              ))}
+              {applicant.skills.length > 3 && <span className="text-[10px] text-gray-600">+{applicant.skills.length - 3}</span>}
+            </div>
+          )}
+          
+          <div className="flex gap-3 ml-auto">
+            {applicant.github && (
+              <a href={applicant.github.startsWith('http') ? applicant.github : `https://${applicant.github}`} target="_blank" rel="noreferrer" 
+                className="text-[11px] text-gray-500 hover:text-white transition-colors">⌥ GitHub</a>
+            )}
+            {applicant.linkedin && (
+              <a href={applicant.linkedin.startsWith('http') ? applicant.linkedin : `https://${applicant.linkedin}`} target="_blank" rel="noreferrer" 
+                className="text-[11px] text-gray-500 hover:text-blue-400 transition-colors">in LinkedIn</a>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -125,16 +125,29 @@ const AddTaskModal = ({ onClose, onSave, defaultColumn, editTask, columns = [], 
     setSaving(true)
     setSaveError(null)
     try {
-      const res = await api.post(`/workspaces/${projectId}/tasks`, {
+      let res;
+      const taskData = {
         columnId,
         title: form.title,
         description: form.description,
         assignee: form.assigneeId || null,
-        priority: form.priority
-      })
+        priority: form.priority,
+        type: form.type,
+        dueDate: form.dueDate,
+        tags: form.tags,
+        checklist: form.checklist
+      };
+
+      if (isEdit) {
+        res = await api.put(`/workspaces/${projectId}/tasks/${editTask.id || editTask._id}`, taskData);
+      } else {
+        res = await api.post(`/workspaces/${projectId}/tasks`, taskData);
+      }
+      
       onWorkspaceUpdate(res.data.data.columns)
       onClose()
     } catch (err) {
+      console.error("Save task error:", err);
       setSaveError('Failed to save task. Please try again.')
     }
     setSaving(false)

@@ -79,12 +79,21 @@ const ResourcesTab = ({ workspace, projectId }) => {
     return <Link size={18} />;
   };
 
-  const getUrl = (r) => {
+  const getUrl = (r, forceDownload = false) => {
+    let finalUrl = r.url;
     if (r.type === 'file') {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      return apiUrl.replace('/api', '') + r.url;
+      if (!r.url.startsWith('http')) {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        finalUrl = apiUrl.replace('/api', '') + r.url;
+      }
+    } else {
+      finalUrl = r.url.startsWith('http') ? r.url : `https://${r.url}`;
     }
-    return r.url.startsWith('http') ? r.url : `https://${r.url}`;
+
+    if (forceDownload && finalUrl.includes('res.cloudinary.com')) {
+      return finalUrl.replace('/upload/', '/upload/fl_attachment/');
+    }
+    return finalUrl;
   };
 
   return (
@@ -128,7 +137,12 @@ const ResourcesTab = ({ workspace, projectId }) => {
               </div>
               <div className="flex items-center gap-1">
                 <button onClick={() => handleDelete(r._id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-all flex items-center justify-center" style={{ border: "none", cursor: "pointer", background: "none" }} title="Delete"><Trash2 size={16} /></button>
-                <a href={getUrl(r)} target="_blank" rel="noreferrer" className="p-1.5 text-gray-400 hover:text-white transition-colors flex items-center justify-center" title="Open"><ExternalLink size={16} /></a>
+                {r.type === 'file' ? (
+                  <a href={getUrl(r, true)} download={r.name} className="p-1.5 text-blue-400 hover:text-blue-300 transition-colors flex items-center justify-center" title="Download">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  </a>
+                ) : null}
+                <a href={getUrl(r)} target="_blank" rel="noreferrer" className="p-1.5 text-gray-400 hover:text-white transition-colors flex items-center justify-center" title={r.type === 'file' ? "View" : "Open Link"}><ExternalLink size={16} /></a>
               </div>
             </div>
           ))}
