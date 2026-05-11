@@ -13,6 +13,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'cosync_uploads',
     allowed_formats: ['jpg', 'png', 'jpeg', 'pdf', 'docx', 'zip'],
+    resource_type: 'auto',
   },
 });
 
