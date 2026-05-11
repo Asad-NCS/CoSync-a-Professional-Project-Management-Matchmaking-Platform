@@ -15,7 +15,8 @@ const storage = new CloudinaryStorage({
     return {
       folder: 'cosync_uploads',
       resource_type: isImage ? 'image' : 'raw',
-      public_id: file.originalname.replace(/\.[^/.]+$/, ""),
+      // Keep the full name with extension for raw files so they are easy to open
+      public_id: file.originalname,
     };
   },
 });
