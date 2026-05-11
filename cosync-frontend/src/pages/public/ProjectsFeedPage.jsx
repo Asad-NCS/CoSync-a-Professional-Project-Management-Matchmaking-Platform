@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProjects, fetchMatchedProjects } from "../../store/projectsSlice";
+import { fetchProjects, fetchMatchedProjects, fetchMyApplications } from "../../store/projectsSlice";
 import { PROJECT_STATUS, ROLE_COLORS } from "../../lib/utils";
 import { Search, AlertTriangle, Sparkles, Check, Lock } from "lucide-react";
 
