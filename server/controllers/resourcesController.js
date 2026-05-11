@@ -15,7 +15,7 @@ exports.addResource = async (req, res) => {
     let finalUrl = url;
     
     if (type === 'file' && req.file) {
-      finalUrl = `/uploads/${req.file.filename}`;
+      finalUrl = req.file.path; // This will now be the Cloudinary URL
     } else if (type === 'file' && !req.file) {
       return res.status(400).json({ success: false, error: "File is required for type 'file'" });
     }
