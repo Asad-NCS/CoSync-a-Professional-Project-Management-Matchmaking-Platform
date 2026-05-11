@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Logo from "../../components/ui/Logo";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { applyToProject } from "../../store/projectsSlice";
+import { applyToProject, fetchMyApplications } from "../../store/projectsSlice";
 import api from "../../lib/api";
 import { Clock, Users, Zap, Calendar, Globe } from "lucide-react";
 import { PROJECT_STATUS, ROLE_COLORS, SKILL_COLORS } from "../../lib/utils";
@@ -15,6 +15,7 @@ const ProjectDetailPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch()
   const { user, isAuthenticated } = useSelector(s => s.auth)
+  const { appliedProjects } = useSelector(s => s.projects)
   const [project, setProject] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -46,6 +47,13 @@ const ProjectDetailPage = () => {
     return () => { document.title = 'CoSync' }
   }, [project])
 
+  // Fetch user's applications to check status
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchMyApplications())
+    }
+  }, [isAuthenticated, dispatch])
+
   const handleApply = async () => {
     setApplying(true)
     setApplyError(null)
@@ -73,6 +81,19 @@ const ProjectDetailPage = () => {
   const fillPct = Math.round((filledCount / totalCount) * 100);
   const openRoles = roles;
   const similar = [];
+
+  // Check application status for this project
+  const safeApps = Array.isArray(appliedProjects) ? appliedProjects : [];
+  const existingApp = safeApps.find(app => {
+    const appProjectId = app?.project?._id || app?.project?.id || app?.project;
+    return String(appProjectId) === String(project._id || project.id);
+  });
+  const appStatus = existingApp?.status; // "pending" | "accepted" | undefined
+
+  // Check if user is owner or member
+  const isOwner = user && String(user._id) === String(project.owner?._id || project.owner);
+  const isMember = user && members.some(m => String(m._id || m.id) === String(user._id));
+
 
   return (
     <>
@@ -373,17 +394,49 @@ const ProjectDetailPage = () => {
                       rows={4}
                     />
                   )}
-                  {applySuccess ? (
-                    <p className="text-green-400 font-medium text-center py-2">✅ Application submitted!</p>
-                  ) : user?._id === project.owner?._id ? (
-                    <button disabled className="w-full py-3 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed mb-3"
-                      style={{ background: "rgba(0,112,243,0.05)", color: "#374151", border: "1px solid rgba(0,112,243,0.1)" }}>
-                      You own this project
+                  {/* Apply / Status button — owner & member checks FIRST */}
+                  {isOwner || isMember || appStatus === 'accepted' ? (
+                    <button
+                      onClick={() => navigate(`/workspace/${project._id}`)}
+                      className="w-full py-3 rounded-xl text-sm font-bold transition-all duration-200 mb-3"
+                      style={{
+                        background: "linear-gradient(135deg, #059669, #10b981)",
+                        color: "#fff",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.boxShadow = "0 10px 30px rgba(16,185,129,0.4)"}
+                      onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+                      {isOwner ? '🚀 Open Workspace' : '✅ Go to Workspace'}
+                    </button>
+                  ) : applySuccess || appStatus === 'pending' ? (
+                    <button disabled className="w-full py-3 rounded-xl text-sm font-bold mb-3"
+                      style={{ background: "rgba(234,179,8,0.15)", color: "#eab308", border: "1px solid rgba(234,179,8,0.3)", cursor: "default" }}>
+                      ⏳ Pending Review
+                    </button>
+                  ) : appStatus === 'rejected' ? (
+                    <button disabled className="w-full py-3 rounded-xl text-sm font-bold mb-3 opacity-60"
+                      style={{ background: "rgba(248,113,113,0.1)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)", cursor: "default" }}>
+                      Application Declined
                     </button>
                   ) : project.status === 'closed' ? (
                     <button disabled className="w-full py-3 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed mb-3"
                       style={{ background: "rgba(0,112,243,0.05)", color: "#374151", border: "1px solid rgba(0,112,243,0.1)" }}>
                       Not accepting applications
+                    </button>
+                  ) : !isAuthenticated ? (
+                    <button
+                      onClick={() => navigate('/register')}
+                      className="w-full py-3 rounded-xl text-sm font-bold transition-all duration-200 mb-3"
+                      style={{
+                        background: "linear-gradient(135deg,#0064dc,#0050b4)",
+                        color: "#fff",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.boxShadow = "0 10px 30px rgba(0,100,220,0.4)"}
+                      onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+                      Sign up to Apply
                     </button>
                   ) : (
                     <button

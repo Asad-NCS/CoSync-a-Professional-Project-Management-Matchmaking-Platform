@@ -101,7 +101,7 @@ const ApplyModal = ({ project, onClose, isAuth }) => {
 };
 
 // ── Project Card ──────────────────────────────────────────────────────────────
-const ProjectCard = ({ project, onApply, applicationStatus }) => {
+const ProjectCard = ({ project, onApply, applicationStatus, userId }) => {
   const navigate = useNavigate();
   const isFull = project.status === "closed";
   const filled = project.members?.length || 0;
@@ -111,26 +111,45 @@ const ProjectCard = ({ project, onApply, applicationStatus }) => {
   const hasMatchScore = project.matchPercentage !== undefined;
   const matchedSkills = project.matchedSkills || [];
 
-  // Determine button state based on application status
+  // Check if user is owner or member
+  const isOwner = userId && String(userId) === String(project.owner?._id || project.owner);
+  const isMember = userId && (project.members || []).some(m => String(m._id || m.id || m) === String(userId));
+
+  // Determine button state
   const isPending = applicationStatus === "pending";
   const isAccepted = applicationStatus === "accepted";
   const hasApplied = !!applicationStatus;
 
   let btnText = "Apply";
   let btnClass = "bg-primary text-background hover:bg-white/90 active:scale-95";
+  let btnDisabled = false;
+  let btnAction = (e) => { e.stopPropagation(); onApply(project); };
 
-  if (isFull) {
-    btnText = "Team full";
-    btnClass = "bg-border text-secondary cursor-not-allowed opacity-70";
-  } else if (isAccepted) {
-    btnText = "Joined";
-    btnClass = "bg-green-500 text-white cursor-default";
+  if (isOwner) {
+    btnText = "Your Project";
+    btnClass = "bg-green-600 text-white hover:bg-green-500 active:scale-95";
+    btnDisabled = false;
+    btnAction = (e) => { e.stopPropagation(); navigate(`/workspace/${project._id ?? project.id}`); };
+  } else if (isMember || isAccepted) {
+    btnText = "Open";
+    btnClass = "bg-green-500 text-white hover:bg-green-400 active:scale-95";
+    btnDisabled = false;
+    btnAction = (e) => { e.stopPropagation(); navigate(`/workspace/${project._id ?? project.id}`); };
   } else if (isPending) {
     btnText = "Pending";
     btnClass = "bg-yellow-500 text-black cursor-default";
+    btnDisabled = true;
+    btnAction = (e) => e.stopPropagation();
+  } else if (isFull) {
+    btnText = "Team full";
+    btnClass = "bg-border text-secondary cursor-not-allowed opacity-70";
+    btnDisabled = true;
+    btnAction = (e) => e.stopPropagation();
   } else if (hasApplied) {
     btnText = "Applied";
     btnClass = "bg-green-500 text-white cursor-default";
+    btnDisabled = true;
+    btnAction = (e) => e.stopPropagation();
   }
 
   return (
@@ -212,8 +231,8 @@ const ProjectCard = ({ project, onApply, applicationStatus }) => {
             <span>{new Date(project.createdAt).toLocaleDateString()}</span>
           </div>
           <button
-            onClick={(e) => { e.stopPropagation(); if(!hasApplied && !isFull) onApply(project); }}
-            disabled={isFull || hasApplied}
+            onClick={btnAction}
+            disabled={btnDisabled}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${btnClass}`}
           >
             {btnText}
@@ -421,6 +440,7 @@ const ProjectsFeedPage = () => {
                   project={p} 
                   onApply={setApplyProject} 
                   applicationStatus={userApp?.status}
+                  userId={user?._id}
                 />
               );
             })}
