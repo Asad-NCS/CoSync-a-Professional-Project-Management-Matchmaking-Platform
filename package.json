@@ -1,4 +1,11 @@
 {
+  "name": "cosync-root",
+  "version": "1.0.0",
+  "description": "CoSync Project Root",
+  "scripts": {
+    "start": "node server/index.js",
+    "postinstall": "cd server && npm install"
+  },
   "dependencies": {
     "@splinetool/react-spline": "^4.1.0"
   }
