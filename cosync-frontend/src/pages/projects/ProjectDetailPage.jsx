@@ -94,6 +94,12 @@ const ProjectDetailPage = () => {
   const isOwner = user && String(user._id) === String(project.owner?._id || project.owner);
   const isMember = user && members.some(m => String(m._id || m.id) === String(user._id));
 
+  const formatLink = (url) => {
+    if (!url) return "#";
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    return `https://${url}`;
+  };
+
 
   return (
     <>
@@ -190,30 +196,39 @@ const ProjectDetailPage = () => {
                       {project.owner?.bio && (
                         <p className="text-xs mt-1 line-clamp-2" style={{ color: "#9ca3af" }}>{project.owner.bio}</p>
                       )}
-                      {(project.owner?.github || project.owner?.linkedin) && (
-                        <div className="flex items-center gap-3 mt-2">
-                          {project.owner.github && (
-                            <a href={project.owner.github} target="_blank" rel="noreferrer"
-                              onClick={e => e.stopPropagation()}
-                              className="text-xs flex items-center gap-1 transition-colors"
-                              style={{ color: "#6b7280" }}
-                              onMouseEnter={e => e.currentTarget.style.color = "#fff"}
-                              onMouseLeave={e => e.currentTarget.style.color = "#6b7280"}>
-                              ⌥ GitHub ↗
-                            </a>
-                          )}
-                          {project.owner.linkedin && (
-                            <a href={project.owner.linkedin} target="_blank" rel="noreferrer"
-                              onClick={e => e.stopPropagation()}
-                              className="text-xs flex items-center gap-1 transition-colors"
-                              style={{ color: "#6b7280" }}
-                              onMouseEnter={e => e.currentTarget.style.color = "#3b82f6"}
-                              onMouseLeave={e => e.currentTarget.style.color = "#6b7280"}>
-                              in LinkedIn ↗
-                            </a>
-                          )}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-4 mt-2">
+                        {/* GitHub Section */}
+                        {project.owner.github ? (
+                          <a href={formatLink(project.owner.github)} target="_blank" rel="noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            className="text-xs flex items-center gap-1 transition-colors"
+                            style={{ color: "#6b7280" }}
+                            onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+                            onMouseLeave={e => e.currentTarget.style.color = "#6b7280"}>
+                            ⌥ GitHub ↗
+                          </a>
+                        ) : (
+                          <span className="text-[10px] opacity-40" style={{ color: "#6b7280" }}>
+                            ⌥ GitHub: Not provided
+                          </span>
+                        )}
+
+                        {/* LinkedIn Section */}
+                        {project.owner.linkedin ? (
+                          <a href={formatLink(project.owner.linkedin)} target="_blank" rel="noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            className="text-xs flex items-center gap-1 transition-colors"
+                            style={{ color: "#6b7280" }}
+                            onMouseEnter={e => e.currentTarget.style.color = "#3b82f6"}
+                            onMouseLeave={e => e.currentTarget.style.color = "#6b7280"}>
+                            in LinkedIn ↗
+                          </a>
+                        ) : (
+                          <span className="text-[10px] opacity-40" style={{ color: "#6b7280" }}>
+                            in LinkedIn: Not provided
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

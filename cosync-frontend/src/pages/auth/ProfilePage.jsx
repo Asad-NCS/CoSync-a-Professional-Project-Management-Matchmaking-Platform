@@ -102,6 +102,18 @@ const ProfilePage = () => {
   const [saveError, setSaveError] = useState(null)
 
   const handleSave = async () => {
+    // Basic URL validation regex
+    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+    
+    if (github && !urlPattern.test(github)) {
+      setSaveError('Please enter a valid GitHub URL (e.g., https://github.com/username)');
+      return;
+    }
+    if (linkedin && !urlPattern.test(linkedin)) {
+      setSaveError('Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/username)');
+      return;
+    }
+
     setSaving(true)
     setSaveSuccess(false)
     setSaveError(null)
