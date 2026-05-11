@@ -93,6 +93,22 @@ const ResourcesTab = ({ workspace, projectId }) => {
     return finalUrl;
   };
 
+  const getViewUrl = (r) => {
+    const finalUrl = getUrl(r);
+    if (!r.url) return finalUrl;
+    
+    const urlLower = r.url.toLowerCase();
+    const isDoc = urlLower.endsWith('.pdf') || 
+                  urlLower.endsWith('.docx') || urlLower.endsWith('.doc') || 
+                  urlLower.endsWith('.pptx') || urlLower.endsWith('.ppt') ||
+                  urlLower.endsWith('.xlsx') || urlLower.endsWith('.xls');
+
+    if (isDoc) {
+      return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(finalUrl)}`;
+    }
+    return finalUrl;
+  };
+
   return (
     <div className="flex-1 p-6 overflow-auto relative">
       <div className="flex items-start justify-between mb-6">
@@ -128,7 +144,7 @@ const ResourcesTab = ({ workspace, projectId }) => {
                   {getIcon(r.type, r.url)}
                 </div>
                 <div className="min-w-0 pr-4">
-                  <a href={getUrl(r)} target="_blank" rel="noreferrer" className="text-white text-sm font-medium hover:underline block truncate">{r.name}</a>
+                  <a href={getViewUrl(r)} target="_blank" rel="noreferrer" className="text-white text-sm font-medium hover:underline block truncate">{r.name}</a>
                   <p className="text-xs truncate" style={{ color: "#4b5563" }}>Added by {r.addedBy?.fullName || 'User'} · {new Date(r.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
@@ -140,7 +156,7 @@ const ResourcesTab = ({ workspace, projectId }) => {
                   </a>
                 ) : null}
                 <a 
-                  href={r.url.toLowerCase().endsWith('.pdf') ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(getUrl(r))}` : getUrl(r)} 
+                  href={getViewUrl(r)} 
                   target="_blank" 
                   rel="noreferrer" 
                   className="p-1.5 text-gray-400 hover:text-white transition-colors flex items-center justify-center" 
