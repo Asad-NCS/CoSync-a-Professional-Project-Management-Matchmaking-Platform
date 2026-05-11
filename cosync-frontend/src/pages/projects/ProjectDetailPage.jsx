@@ -165,14 +165,55 @@ const ProjectDetailPage = () => {
                   <h1 className="text-2xl font-bold text-white mb-1" style={{ letterSpacing: "-0.02em" }}>{project.title}</h1>
                   {project.tagline && <p className="text-base mb-4" style={{ color: "#3291FF" }}>{project.tagline}</p>}
 
-                  {/* Owner */}
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                  {/* Owner Profile */}
+                  <div className="flex items-start gap-3 mb-5 p-4 rounded-xl"
+                    style={{ background: "rgba(0,112,243,0.05)", border: "1px solid rgba(0,112,243,0.12)" }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
                       style={{ background: "rgba(0,100,220,0.3)", color: "#3291FF" }}>
                       {(project.owner?.fullName ?? "?")[0]}
                     </div>
-                    <div>
-                      <span className="text-sm font-medium text-white">{project.owner?.fullName ?? "Unknown"}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-white">{project.owner?.fullName ?? "Unknown"}</span>
+                        {project.owner?.role && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full"
+                            style={{ background: "rgba(0,112,243,0.12)", color: "#3291FF", border: "1px solid rgba(0,112,243,0.2)" }}>
+                            {project.owner.role}
+                          </span>
+                        )}
+                      </div>
+                      {(project.owner?.university || project.owner?.degree) && (
+                        <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>
+                          {[project.owner.degree, project.owner.university].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
+                      {project.owner?.bio && (
+                        <p className="text-xs mt-1 line-clamp-2" style={{ color: "#9ca3af" }}>{project.owner.bio}</p>
+                      )}
+                      {(project.owner?.github || project.owner?.linkedin) && (
+                        <div className="flex items-center gap-3 mt-2">
+                          {project.owner.github && (
+                            <a href={project.owner.github} target="_blank" rel="noreferrer"
+                              onClick={e => e.stopPropagation()}
+                              className="text-xs flex items-center gap-1 transition-colors"
+                              style={{ color: "#6b7280" }}
+                              onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+                              onMouseLeave={e => e.currentTarget.style.color = "#6b7280"}>
+                              ⌥ GitHub ↗
+                            </a>
+                          )}
+                          {project.owner.linkedin && (
+                            <a href={project.owner.linkedin} target="_blank" rel="noreferrer"
+                              onClick={e => e.stopPropagation()}
+                              className="text-xs flex items-center gap-1 transition-colors"
+                              style={{ color: "#6b7280" }}
+                              onMouseEnter={e => e.currentTarget.style.color = "#3b82f6"}
+                              onMouseLeave={e => e.currentTarget.style.color = "#6b7280"}>
+                              in LinkedIn ↗
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 

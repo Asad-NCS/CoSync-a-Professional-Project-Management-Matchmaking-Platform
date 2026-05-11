@@ -18,10 +18,11 @@
 ### 🎯 Core Platform
 - **Skill-Based Matchmaking Engine** — Intelligent recommendation algorithm that matches users with projects based on their skill sets, tech stacks, and role preferences.
 - **Project Board & Feed** — Browse, filter, and search active projects by category, tech stack, and availability status.
+- **Applicant & Owner Profiles** — View rich owner profiles (including GitHub/LinkedIn links, university, and role) before applying to a project.
 - **Application System** — Apply to join projects with color-coded status tracking:
   - 🔵 **Apply** — Not yet applied
   - 🟡 **Pending** — Application submitted, awaiting review
-  - 🟢 **Joined** — Application accepted
+  - 🟢 **Joined / Open** — Application accepted (Clickable to Workspace)
   - 🔴 **Declined** — Application not accepted
 
 ### 🛠️ Real-Time Collaboration Workspace
