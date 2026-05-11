@@ -90,9 +90,6 @@ const ResourcesTab = ({ workspace, projectId }) => {
       finalUrl = r.url.startsWith('http') ? r.url : `https://${r.url}`;
     }
 
-    if (forceDownload && finalUrl.includes('res.cloudinary.com')) {
-      return finalUrl.replace('/upload/', '/upload/fl_attachment/');
-    }
     return finalUrl;
   };
 
@@ -142,7 +139,15 @@ const ResourcesTab = ({ workspace, projectId }) => {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   </a>
                 ) : null}
-                <a href={getUrl(r)} target="_blank" rel="noreferrer" className="p-1.5 text-gray-400 hover:text-white transition-colors flex items-center justify-center" title={r.type === 'file' ? "View" : "Open Link"}><ExternalLink size={16} /></a>
+                <a 
+                  href={r.url.toLowerCase().endsWith('.pdf') ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(getUrl(r))}` : getUrl(r)} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="p-1.5 text-gray-400 hover:text-white transition-colors flex items-center justify-center" 
+                  title={r.type === 'file' ? "View" : "Open Link"}
+                >
+                  <ExternalLink size={16} />
+                </a>
               </div>
             </div>
           ))}
