@@ -107,7 +107,8 @@ const ApplicantRow = ({ a }) => {
 };
 
 // ── Project detail panel ──────────────────────────────────────────────────────
-const ProjectPanel = ({ project, onClose, onDelete }) => {
+const ProjectPanel = ({ project, onClose, onDelete, onUpdate }) => {
+  const [updating, setUpdating] = useState(false);
   const [tab, setTab] = useState("overview");
   const TABS = ["overview", "applicants", "team", "settings"];
 
@@ -259,12 +260,13 @@ const ProjectPanel = ({ project, onClose, onDelete }) => {
             <div className="space-y-4">
               <div className="rounded-xl p-4 space-y-3"
                 style={{ background: "rgba(0,112,243,0.05)", border: "1px solid rgba(0,112,243,0.12)" }}>
-                {[
-                  { label: "Mark as Active", desc: "Move project from recruiting to active development", color: "#3291FF" },
-                  { label: "Mark as Completed", desc: "Archive this project as successfully finished", color: "#4ade80" },
-                  { label: "Pause Recruiting", desc: "Stop accepting new applications temporarily", color: "#fbbf24" },
+                { [
+                  { label: "Mark as Active", desc: "Move project from recruiting to active development", status: "open", color: "#3291FF" },
+                  { label: "Mark as Completed", desc: "Archive this project as successfully finished", status: "completed", color: "#4ade80" },
+                  { label: "Pause Recruiting", desc: "Stop accepting new applications temporarily", status: "closed", color: "#fbbf24" },
                 ].map(item => (
                   <button key={item.label}
+                    onClick={() => onUpdate(project._id, item.status)}
                     className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 text-left"
                     style={{ background: "rgba(0,112,243,0.04)", border: "1px solid rgba(0,112,243,0.1)", cursor: "pointer" }}>
                     <div>
@@ -420,6 +422,21 @@ const MyProjectsPage = () => {
     }
   };
 
+  const handleUpdateStatus = async (projectId, newStatus) => {
+    try {
+      if (newStatus === 'completed') {
+        await api.put(`/projects/${projectId}/complete`);
+      } else {
+        await api.put(`/projects/${projectId}`, { status: newStatus });
+      }
+      dispatch(fetchMyProjects());
+      setSelected(null);
+      alert(`Project status updated to ${newStatus}!`);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update status");
+    }
+  };
+
   if (status === 'loading') return <div className="flex justify-center p-20"><p className="text-gray-400">Loading your projects...</p></div>
   if (error) return <div className="flex justify-center p-20"><p className="text-red-400">{error}</p></div>
 
@@ -541,7 +558,12 @@ const MyProjectsPage = () => {
       </div>
 
       {selected && (
-        <ProjectPanel project={selected} onClose={() => setSelected(null)} onDelete={handleDelete} />
+        <ProjectPanel 
+          project={selected} 
+          onClose={() => setSelected(null)} 
+          onDelete={handleDelete} 
+          onUpdate={handleUpdateStatus} 
+        />
       )}
     </>
   );
