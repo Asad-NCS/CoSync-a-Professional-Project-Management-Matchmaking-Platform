@@ -141,7 +141,3 @@ CoSync/
 - **Muhammad Asad Kashif** — Full-Stack Developer
 - **Hammad Ajmal** — Full-Stack Developer
 - **Azaan Murtaza** — UI/UX Designer
-
-## 📄 License
-
-This project was created for academic purposes as part of the Web Technologies course (4th Semester, NUST).
